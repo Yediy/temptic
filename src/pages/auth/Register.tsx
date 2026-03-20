@@ -19,41 +19,28 @@ export default function Register() {
     setError("");
     setLoading(true);
 
-    const { error } = await signUp(form.email, form.password, {
+    const { error: signUpErr } = await signUp(form.email, form.password, {
       first_name: form.first_name,
       last_name: form.last_name,
     });
 
-    if (error) {
-      setError(error);
+    if (signUpErr) {
+      setError(signUpErr);
       setLoading(false);
       return;
     }
 
-    // After signup, create agency + link user
-    // We wait a moment for the profile trigger to fire
+    // Use RPC to create agency + membership + role in one secure call
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      // Create agency
-      const { data: agency } = await supabase
-        .from("agencies")
-        .insert({ name: form.agency_name })
-        .select("id")
-        .single();
-
-      if (agency) {
-        // Link user to agency as admin
-        await supabase.from("agency_members").insert({
-          agency_id: agency.id,
-          user_id: user.id,
-          role: "agency_admin",
-        });
-
-        // Assign role
-        await supabase.from("user_roles").insert({
-          user_id: user.id,
-          role: "agency_admin",
-        });
+      const { error: rpcErr } = await supabase.rpc("register_agency", {
+        _agency_name: form.agency_name,
+        _user_id: user.id,
+      });
+      if (rpcErr) {
+        setError(rpcErr.message);
+        setLoading(false);
+        return;
       }
     }
 
