@@ -1,0 +1,1 @@
+DROP POLICY "Users insert own agency membership" ON public.agency_members;
