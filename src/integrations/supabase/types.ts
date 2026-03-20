@@ -972,10 +972,9 @@ export type Database = {
         }
         Returns: boolean
       }
-      register_agency: {
-        Args: { _agency_name: string; _user_id: string }
-        Returns: string
-      }
+      register_agency:
+        | { Args: { _agency_name: string }; Returns: string }
+        | { Args: { _agency_name: string; _user_id: string }; Returns: string }
     }
     Enums: {
       app_role:

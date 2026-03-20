@@ -31,17 +31,13 @@ export default function Register() {
     }
 
     // Use RPC to create agency + membership + role in one secure call
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { error: rpcErr } = await supabase.rpc("register_agency", {
-        _agency_name: form.agency_name,
-        _user_id: user.id,
-      });
-      if (rpcErr) {
-        setError(rpcErr.message);
-        setLoading(false);
-        return;
-      }
+    const { error: rpcErr } = await supabase.rpc("register_agency", {
+      _agency_name: form.agency_name,
+    });
+    if (rpcErr) {
+      setError(rpcErr.message);
+      setLoading(false);
+      return;
     }
 
     setLoading(false);
