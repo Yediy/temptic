@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth";
 import {
   LayoutDashboard,
   FileText,
@@ -9,6 +10,7 @@ import {
   Archive,
   Plus,
   ChevronDown,
+  LogOut,
 } from "lucide-react";
 
 const navItems = [
@@ -21,6 +23,7 @@ const navItems = [
 
 export function AppSidebar() {
   const location = useLocation();
+  const { signOut, user } = useAuth();
 
   return (
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col bg-sidebar text-sidebar-foreground">
@@ -69,17 +72,19 @@ export function AppSidebar() {
         })}
       </nav>
 
-      {/* Agency info */}
+      {/* User info + sign out */}
       <div className="border-t border-sidebar-border p-4">
         <div className="flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-accent text-xs font-bold text-sidebar-accent-foreground">
-            PS
+            {user?.email?.charAt(0).toUpperCase() ?? "?"}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="truncate text-sm font-medium text-sidebar-accent-foreground">ProStaff Industrial</p>
-            <p className="text-xs text-sidebar-muted">Houston South</p>
+            <p className="truncate text-sm font-medium text-sidebar-accent-foreground">{user?.email ?? "Agency"}</p>
+            <p className="text-xs text-sidebar-muted">Agency Portal</p>
           </div>
-          <ChevronDown className="h-4 w-4 text-sidebar-muted" />
+          <button onClick={signOut} className="rounded-lg p-1.5 text-sidebar-muted hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors">
+            <LogOut className="h-4 w-4" />
+          </button>
         </div>
       </div>
     </aside>
