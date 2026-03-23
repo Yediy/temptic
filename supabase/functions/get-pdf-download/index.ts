@@ -82,6 +82,9 @@ serve(async (req) => {
     const isClient = clientSigner?.client_id === ticket.client_id;
     const isWorker = worker?.id === ticket.worker_id;
 
+    if (pdf_type === "draft" && !isAgency) {
+      throw new Error("Forbidden");
+    }
     if (
       (pdf_type === "agency_copy" && !isAgency) ||
       (pdf_type === "client_copy" && !isClient && !isAgency) ||
