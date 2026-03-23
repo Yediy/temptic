@@ -70,32 +70,24 @@ serve(async (req) => {
 
     if (updateErr) throw updateErr;
 
-    // Try to send notification email to client signer
-    const { data: signer } = await supabase
-      .from("client_signers")
-      .select("id, email")
-      .eq("client_id", ticket.client_id)
-      .eq("is_active", true)
-      .limit(1)
-      .single();
-
-    if (signer?.email) {
-      try {
-        await supabase.functions.invoke("send-notification-email", {
-          body: {
-            agency_id: ticket.agency_id,
-            ticket_id: ticket.id,
-            recipient_type: "client",
-            recipient_id: signer.id,
-            to: signer.email,
-            subject: `Ticket ${ticket.ticket_number} ready for signature`,
-            html: `<p>Ticket <strong>${ticket.ticket_number}</strong> is ready for signature.</p>`,
-            template_key: "ticket_sent_client",
-          },
-        });
-      } catch (_) {
-        // Notification failure should not block the send
-      }
+    // Send notification email to client signer (server-side only)
+    try {
+      const fnUrl = `${supabaseUrl}/functions/v1/send-notification-email`;
+      await fetch(fnUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-internal-secret": serviceKey,
+          "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")!}`,
+        },
+        body: JSON.stringify({
+          ticket_id: ticket.id,
+          recipient_type: "client",
+          template_key: "ticket_sent_client",
+        }),
+      });
+    } catch (_) {
+      // Notification failure should not block the send
     }
 
     return new Response(JSON.stringify({ ticket: updated }), {
