@@ -48,6 +48,34 @@ export default function TicketDetail() {
         .update({ status: "sent" as const, sent_at: new Date().toISOString() })
         .eq("id", id!);
       if (error) throw error;
+
+      // Send email notification to client
+      if (ticket) {
+        // Look up client billing email
+        const { data: client } = await supabase
+          .from("clients")
+          .select("billing_email, company_name")
+          .eq("id", ticket.client_id)
+          .single();
+
+        if (client?.billing_email) {
+          const signUrl = `${window.location.origin}/client/ticket/${id}`;
+          await supabase.functions.invoke("send-transactional-email", {
+            body: {
+              templateName: "ticket-sent",
+              recipientEmail: client.billing_email,
+              idempotencyKey: `ticket-sent-${id}`,
+              templateData: {
+                ticketNumber: ticket.ticket_number,
+                workerName: ticket.worker_name_snapshot,
+                workDate: ticket.work_date || ticket.week_start_date || "—",
+                siteName: ticket.site_name_snapshot || "—",
+                signUrl,
+              },
+            },
+          });
+        }
+      }
     },
     onSuccess: () => {
       toast.success("Ticket sent for signature");
