@@ -207,6 +207,7 @@ serve(async (req) => {
       .from("tickets")
       .select("*")
       .eq("id", ticket_id)
+      .eq("agency_id", membership.agency_id)
       .single();
     if (ticketErr || !ticket) throw new Error("Ticket not found");
 
