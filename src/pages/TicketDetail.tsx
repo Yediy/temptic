@@ -129,7 +129,7 @@ export default function TicketDetail() {
             </Button>
           )}
           {["draft", "rejected"].includes(ticket.status) && (
-            <Button variant="outline" onClick={() => navigate(`/tickets/create`)}>
+            <Button variant="outline" onClick={() => navigate(`/tickets/${id}/edit`)}>
               <FileText className="mr-1 h-4 w-4" /> Edit
             </Button>
           )}

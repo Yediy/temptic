@@ -22,6 +22,7 @@ import Tickets from "@/pages/Tickets";
 import CreateTicket from "@/pages/CreateTicket";
 import CreateWeeklyTicket from "@/pages/CreateWeeklyTicket";
 import TicketDetail from "@/pages/TicketDetail";
+import EditTicket from "@/pages/EditTicket";
 import Clients from "@/pages/Clients";
 import Workers from "@/pages/Workers";
 import Archive from "@/pages/Archive";
@@ -72,6 +73,7 @@ const App = () => (
                 <Route path="/tickets/create" element={<CreateTicket />} />
                 <Route path="/tickets/create/weekly" element={<CreateWeeklyTicket />} />
                 <Route path="/tickets/:id" element={<TicketDetail />} />
+                <Route path="/tickets/:id/edit" element={<EditTicket />} />
                 <Route path="/clients" element={<Clients />} />
                 <Route path="/workers" element={<Workers />} />
                 <Route path="/archive" element={<Archive />} />
