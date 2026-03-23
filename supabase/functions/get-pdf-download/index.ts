@@ -33,21 +33,14 @@ serve(async (req) => {
 
     const { ticket_id, pdf_type } = await req.json();
 
-    const { data: ticket, error: ticketErr } = await supabase
-      .from("tickets")
-      .select("*")
-      .eq("id", ticket_id)
-      .single();
-
-    if (ticketErr || !ticket) throw new Error("Ticket not found");
-
-    // Check authorization
-    const { data: roles } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id);
-
-    const roleList = (roles ?? []).map((r: any) => r.role);
+    // Determine caller's relationship to the ticket
+    const { data: membership } = await supabase
+      .from("agency_members")
+      .select("agency_id")
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .limit(1)
+      .maybeSingle();
 
     const { data: clientSigner } = await supabase
       .from("client_signers")
@@ -61,9 +54,31 @@ serve(async (req) => {
       .eq("user_id", user.id)
       .maybeSingle();
 
-    const isAgency = roleList.some((r: string) =>
-      ["super_admin", "agency_admin", "dispatcher", "payroll", "viewer"].includes(r)
-    );
+    // Fetch ticket with tenant isolation for agency users
+    let ticket: any = null;
+    if (membership?.agency_id) {
+      const { data, error: ticketErr } = await supabase
+        .from("tickets")
+        .select("*")
+        .eq("id", ticket_id)
+        .eq("agency_id", membership.agency_id)
+        .single();
+      if (!ticketErr) ticket = data;
+    }
+
+    // If not found via agency, try client/worker path
+    if (!ticket) {
+      const { data } = await supabase
+        .from("tickets")
+        .select("*")
+        .eq("id", ticket_id)
+        .single();
+      ticket = data;
+    }
+
+    if (!ticket) throw new Error("Ticket not found");
+
+    const isAgency = membership?.agency_id === ticket.agency_id;
     const isClient = clientSigner?.client_id === ticket.client_id;
     const isWorker = worker?.id === ticket.worker_id;
 
