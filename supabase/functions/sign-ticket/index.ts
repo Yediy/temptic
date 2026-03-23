@@ -1,0 +1,177 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabase = createClient(supabaseUrl, serviceKey);
+
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) throw new Error("Missing auth header");
+
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const {
+      data: { user },
+      error: userErr,
+    } = await userClient.auth.getUser();
+
+    if (userErr || !user) throw new Error("Unauthorized");
+
+    const {
+      ticket_id,
+      signer_name,
+      signer_title,
+      signer_initials,
+      signer_email,
+      signature_image,
+      signature_date,
+    } = await req.json();
+
+    const { data: signer, error: signerErr } = await supabase
+      .from("client_signers")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .limit(1)
+      .single();
+
+    if (signerErr || !signer) throw new Error("Client signer not found");
+
+    const { data: ticket, error: ticketErr } = await supabase
+      .from("tickets")
+      .select("*")
+      .eq("id", ticket_id)
+      .eq("client_id", signer.client_id)
+      .single();
+
+    if (ticketErr || !ticket) throw new Error("Ticket not found");
+
+    if (!["sent", "viewed"].includes(ticket.status)) {
+      throw new Error("Ticket cannot be signed from current status");
+    }
+
+    let signatureUrl: string | null = null;
+
+    if (signature_image) {
+      const base64 = String(signature_image).replace(/^data:image\/png;base64,/, "");
+      const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+      const filePath = `${ticket.agency_id}/${ticket.id}/client-signature-v${ticket.version_number}.png`;
+
+      const { error: uploadErr } = await supabase.storage
+        .from("ticket-assets")
+        .upload(filePath, bytes, {
+          contentType: "image/png",
+          upsert: true,
+        });
+
+      if (uploadErr) throw uploadErr;
+      signatureUrl = filePath;
+    }
+
+    const { error: sigErr } = await supabase
+      .from("ticket_signatures")
+      .insert({
+        ticket_id,
+        signer_type: "client",
+        signer_name,
+        signer_title,
+        signer_initials,
+        signer_email,
+        signature_image_url: signatureUrl,
+        signed_at: signature_date || new Date().toISOString(),
+      });
+
+    if (sigErr) throw sigErr;
+
+    const { data: updated, error: updateErr } = await supabase
+      .from("tickets")
+      .update({
+        status: "signed",
+        client_initials: signer_initials,
+        supervisor_name: signer_name,
+        supervisor_title: signer_title,
+        signed_at: signature_date || new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", ticket_id)
+      .select()
+      .single();
+
+    if (updateErr) throw updateErr;
+
+    // Generate PDF copies
+    try {
+      await supabase.functions.invoke("generate-pdf", {
+        body: { ticket_id, pdf_type: "agency_copy" },
+      });
+      await supabase.functions.invoke("generate-pdf", {
+        body: { ticket_id, pdf_type: "client_copy" },
+      });
+      await supabase.functions.invoke("generate-pdf", {
+        body: { ticket_id, pdf_type: "worker_copy" },
+      });
+    } catch (_) {
+      // PDF generation failure should not block signing
+    }
+
+    // Notify agency
+    try {
+      const { data: agencyUser } = await supabase
+        .from("agency_members")
+        .select("user_id")
+        .eq("agency_id", ticket.agency_id)
+        .eq("is_active", true)
+        .limit(1)
+        .single();
+
+      if (agencyUser?.user_id) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("email")
+          .eq("id", agencyUser.user_id)
+          .single();
+
+        if (profile?.email) {
+          await supabase.functions.invoke("send-notification-email", {
+            body: {
+              agency_id: ticket.agency_id,
+              ticket_id,
+              recipient_type: "agency",
+              recipient_id: agencyUser.user_id,
+              to: profile.email,
+              subject: `Ticket ${ticket.ticket_number} signed`,
+              html: `<p>Ticket <strong>${ticket.ticket_number}</strong> has been signed.</p>`,
+              template_key: "ticket_signed_agency",
+            },
+          });
+        }
+      }
+    } catch (_) {
+      // Notification failure should not block signing
+    }
+
+    return new Response(JSON.stringify({ ticket: updated }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
+  } catch (err: any) {
+    return new Response(JSON.stringify({ error: err.message }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 400,
+    });
+  }
+});

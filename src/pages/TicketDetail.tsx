@@ -1,9 +1,11 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Send, FileText, Clock, Eye, CheckCircle2, XCircle, RotateCcw } from "lucide-react";
+import { ArrowLeft, Send, FileText, Clock, Eye, CheckCircle2, XCircle, RotateCcw, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusBadge, type TicketStatus } from "@/components/StatusBadge";
+import { useSendTicket } from "@/hooks/use-ticket-actions";
+import { downloadPdf } from "@/lib/download-pdf";
 import { toast } from "sonner";
 
 const timelineIcons: Record<string, typeof Clock> = {
@@ -19,12 +21,12 @@ const timelineIcons: Record<string, typeof Clock> = {
 export default function TicketDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const qc = useQueryClient();
+  const sendTicket = useSendTicket();
 
   const { data: ticket, isLoading } = useQuery({
     queryKey: ["ticket", id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("tickets").select("*").eq("id", id!).single();
+      const { data, error } = await supabase.from("tickets").select("*, ticket_days(*)").eq("id", id!).single();
       if (error) throw error;
       return data;
     },
@@ -41,21 +43,6 @@ export default function TicketDetail() {
     enabled: !!id,
   });
 
-  const sendTicket = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase
-        .from("tickets")
-        .update({ status: "sent" as const, sent_at: new Date().toISOString() })
-        .eq("id", id!);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Ticket sent for signature");
-      qc.invalidateQueries({ queryKey: ["ticket", id] });
-      qc.invalidateQueries({ queryKey: ["tickets"] });
-    },
-  });
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -65,9 +52,7 @@ export default function TicketDetail() {
   }
 
   if (!ticket) {
-    return (
-      <div className="py-24 text-center text-muted-foreground">Ticket not found.</div>
-    );
+    return <div className="py-24 text-center text-muted-foreground">Ticket not found.</div>;
   }
 
   const timeline = [
@@ -109,6 +94,23 @@ export default function TicketDetail() {
     rows.push(["Supervisor", `${ticket.supervisor_name}${ticket.supervisor_title ? ` (${ticket.supervisor_title})` : ""}`]);
   }
 
+  const handleSend = async () => {
+    try {
+      await sendTicket.mutateAsync(ticket.id);
+      toast.success("Ticket sent for signature");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send ticket");
+    }
+  };
+
+  const handleDownload = async (pdfType: "draft" | "agency_copy" | "client_copy" | "worker_copy") => {
+    try {
+      await downloadPdf(ticket.id, pdfType);
+    } catch (err: any) {
+      toast.error(err.message || "PDF not available");
+    }
+  };
+
   return (
     <div className="mx-auto max-w-3xl space-y-6 animate-fade-in">
       <div className="flex items-center gap-4">
@@ -122,15 +124,25 @@ export default function TicketDetail() {
           </div>
           <p className="text-sm text-muted-foreground">{ticket.client_company_name_snapshot} · {ticket.worker_name_snapshot}</p>
         </div>
-        <div className="flex gap-2">
-          {ticket.status === "draft" && (
-            <Button onClick={() => sendTicket.mutate()} disabled={sendTicket.isPending}>
+        <div className="flex gap-2 flex-wrap">
+          {["draft", "corrected"].includes(ticket.status) && (
+            <Button onClick={handleSend} disabled={sendTicket.isPending}>
               <Send className="mr-1 h-4 w-4" /> Send
             </Button>
           )}
           {["draft", "rejected"].includes(ticket.status) && (
             <Button variant="outline" onClick={() => navigate(`/tickets/${id}/edit`)}>
               <FileText className="mr-1 h-4 w-4" /> Edit
+            </Button>
+          )}
+          {ticket.status === "signed" && (
+            <Button variant="outline" onClick={() => handleDownload("agency_copy")}>
+              <Download className="mr-1 h-4 w-4" /> Download PDF
+            </Button>
+          )}
+          {ticket.status === "draft" && (
+            <Button variant="outline" onClick={() => handleDownload("draft")}>
+              <Download className="mr-1 h-4 w-4" /> Draft PDF
             </Button>
           )}
         </div>
@@ -157,6 +169,24 @@ export default function TicketDetail() {
           })}
         </div>
       </div>
+
+      {/* Weekly ticket days */}
+      {ticket.ticket_type === "weekly" && (ticket as any).ticket_days?.length > 0 && (
+        <div className="rounded-xl border bg-card p-6">
+          <h3 className="text-sm font-semibold text-muted-foreground mb-4">Weekly Hours</h3>
+          <div className="grid gap-2 text-sm">
+            {(ticket as any).ticket_days.map((day: any) => (
+              <div key={day.id} className="flex justify-between border-b border-border/50 pb-2 last:border-0">
+                <span className="text-muted-foreground">{day.day_name || day.day_date}</span>
+                <span className="font-medium">
+                  {day.start_time || "—"} – {day.end_time || "—"} · {day.total_hours}h
+                  {day.overtime_hours > 0 && <span className="text-xs text-orange-500 ml-1">({day.overtime_hours}h OT)</span>}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Details */}
       <div className="rounded-xl border bg-card p-6">
