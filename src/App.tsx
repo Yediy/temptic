@@ -20,6 +20,7 @@ import Unauthorized from "@/pages/Unauthorized";
 import Dashboard from "@/pages/Dashboard";
 import Tickets from "@/pages/Tickets";
 import CreateTicket from "@/pages/CreateTicket";
+import TicketDetail from "@/pages/TicketDetail";
 import Clients from "@/pages/Clients";
 import Workers from "@/pages/Workers";
 import Archive from "@/pages/Archive";
@@ -28,6 +29,7 @@ import Archive from "@/pages/Archive";
 import ClientDashboard from "@/pages/client/ClientDashboard";
 import ClientPending from "@/pages/client/ClientPending";
 import ClientHistory from "@/pages/client/ClientHistory";
+import ClientTicketSign from "@/pages/client/ClientTicketSign";
 
 // Worker pages
 import WorkerTickets from "@/pages/worker/WorkerTickets";
@@ -67,6 +69,7 @@ const App = () => (
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/tickets" element={<Tickets />} />
                 <Route path="/tickets/create" element={<CreateTicket />} />
+                <Route path="/tickets/:id" element={<TicketDetail />} />
                 <Route path="/clients" element={<Clients />} />
                 <Route path="/workers" element={<Workers />} />
                 <Route path="/archive" element={<Archive />} />
@@ -78,6 +81,7 @@ const App = () => (
               <Route element={<ClientLayout />}>
                 <Route path="/client" element={<ClientDashboard />} />
                 <Route path="/client/pending" element={<ClientPending />} />
+                <Route path="/client/ticket/:id" element={<ClientTicketSign />} />
                 <Route path="/client/history" element={<ClientHistory />} />
               </Route>
             </Route>
