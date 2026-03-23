@@ -20,6 +20,7 @@ import Unauthorized from "@/pages/Unauthorized";
 import Dashboard from "@/pages/Dashboard";
 import Tickets from "@/pages/Tickets";
 import CreateTicket from "@/pages/CreateTicket";
+import CreateWeeklyTicket from "@/pages/CreateWeeklyTicket";
 import TicketDetail from "@/pages/TicketDetail";
 import Clients from "@/pages/Clients";
 import Workers from "@/pages/Workers";
