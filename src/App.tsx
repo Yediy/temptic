@@ -37,6 +37,7 @@ import ClientTicketSign from "@/pages/client/ClientTicketSign";
 import WorkerTickets from "@/pages/worker/WorkerTickets";
 import WorkerHours from "@/pages/worker/WorkerHours";
 
+import Unsubscribe from "@/pages/Unsubscribe";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
