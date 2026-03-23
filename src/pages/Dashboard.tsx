@@ -23,7 +23,7 @@ export default function Dashboard() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" asChild>
-            <Link to="/tickets/create?type=weekly">
+            <Link to="/tickets/create/weekly">
               <Plus className="mr-1 h-4 w-4" /> Weekly Ticket
             </Link>
           </Button>

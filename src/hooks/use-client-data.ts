@@ -62,6 +62,14 @@ export function useSignTicket() {
         })
         .eq("id", ticketId);
       if (ticketError) throw ticketError;
+
+      // 3. Generate PDF documents (agency, client, worker copies)
+      const pdfTypes = ["agency_copy", "client_copy", "worker_copy"] as const;
+      for (const pdfType of pdfTypes) {
+        await supabase.functions.invoke("generate-pdf", {
+          body: { ticket_id: ticketId, pdf_type: pdfType },
+        });
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["client-tickets"] });

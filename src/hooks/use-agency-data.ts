@@ -131,6 +131,12 @@ export function useCreateTicket() {
         .select()
         .single();
       if (error) throw error;
+
+      // Generate draft PDF
+      await supabase.functions.invoke("generate-pdf", {
+        body: { ticket_id: data.id, pdf_type: "draft" },
+      });
+
       return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["tickets"] }),
