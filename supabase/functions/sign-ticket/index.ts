@@ -128,38 +128,22 @@ serve(async (req) => {
       // PDF generation failure should not block signing
     }
 
-    // Notify agency
+    // Notify agency (server-side only)
     try {
-      const { data: agencyUser } = await supabase
-        .from("agency_members")
-        .select("user_id")
-        .eq("agency_id", ticket.agency_id)
-        .eq("is_active", true)
-        .limit(1)
-        .single();
-
-      if (agencyUser?.user_id) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("email")
-          .eq("id", agencyUser.user_id)
-          .single();
-
-        if (profile?.email) {
-          await supabase.functions.invoke("send-notification-email", {
-            body: {
-              agency_id: ticket.agency_id,
-              ticket_id,
-              recipient_type: "agency",
-              recipient_id: agencyUser.user_id,
-              to: profile.email,
-              subject: `Ticket ${ticket.ticket_number} signed`,
-              html: `<p>Ticket <strong>${ticket.ticket_number}</strong> has been signed.</p>`,
-              template_key: "ticket_signed_agency",
-            },
-          });
-        }
-      }
+      const fnUrl = `${supabaseUrl}/functions/v1/send-notification-email`;
+      await fetch(fnUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-internal-secret": serviceKey,
+          "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")!}`,
+        },
+        body: JSON.stringify({
+          ticket_id,
+          recipient_type: "agency",
+          template_key: "ticket_signed_agency",
+        }),
+      });
     } catch (_) {
       // Notification failure should not block signing
     }
