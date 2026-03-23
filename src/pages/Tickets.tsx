@@ -10,6 +10,7 @@ const statusFilters: (TicketStatus | "all")[] = ["all", "draft", "sent", "viewed
 
 export default function Tickets() {
   const { data: tickets, isLoading } = useTickets();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<TicketStatus | "all">("all");
 
