@@ -22,6 +22,7 @@ import Tickets from "@/pages/Tickets";
 import CreateTicket from "@/pages/CreateTicket";
 import CreateWeeklyTicket from "@/pages/CreateWeeklyTicket";
 import TicketDetail from "@/pages/TicketDetail";
+import EditTicket from "@/pages/EditTicket";
 import Clients from "@/pages/Clients";
 import Workers from "@/pages/Workers";
 import Archive from "@/pages/Archive";
