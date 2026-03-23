@@ -19,29 +19,53 @@ export default function Register() {
     setError("");
     setLoading(true);
 
-    const { error: signUpErr } = await signUp(form.email, form.password, {
-      first_name: form.first_name,
-      last_name: form.last_name,
-    });
+    try {
+      // Sign up and get session directly
+      const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
+        email: form.email,
+        password: form.password,
+        options: {
+          data: { first_name: form.first_name, last_name: form.last_name },
+          emailRedirectTo: window.location.origin,
+        },
+      });
 
-    if (signUpErr) {
-      setError(signUpErr);
+      if (signUpErr) {
+        setError(signUpErr.message);
+        setLoading(false);
+        return;
+      }
+
+      // If email confirmation is required, session may be null
+      if (!signUpData.session) {
+        // Try signing in immediately (works when email confirm is disabled)
+        const { error: signInErr } = await supabase.auth.signInWithPassword({
+          email: form.email,
+          password: form.password,
+        });
+        if (signInErr) {
+          setError("Account created! Please check your email to confirm, then sign in.");
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Now session is active, call register_agency RPC
+      const { error: rpcErr } = await supabase.rpc("register_agency", {
+        _agency_name: form.agency_name,
+      });
+      if (rpcErr) {
+        setError(rpcErr.message);
+        setLoading(false);
+        return;
+      }
+
       setLoading(false);
-      return;
-    }
-
-    // Use RPC to create agency + membership + role in one secure call
-    const { error: rpcErr } = await supabase.rpc("register_agency", {
-      _agency_name: form.agency_name,
-    });
-    if (rpcErr) {
-      setError(rpcErr.message);
+      navigate("/");
+    } catch (err: any) {
+      setError(err.message || "Registration failed");
       setLoading(false);
-      return;
     }
-
-    setLoading(false);
-    navigate("/");
   };
 
   return (

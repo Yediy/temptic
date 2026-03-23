@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ const statusFilters: (TicketStatus | "all")[] = ["all", "draft", "sent", "viewed
 
 export default function Tickets() {
   const { data: tickets, isLoading } = useTickets();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<TicketStatus | "all">("all");
 
@@ -79,7 +80,7 @@ export default function Tickets() {
                 <tr><td colSpan={8} className="px-4 py-12 text-center text-muted-foreground">No tickets match your filters.</td></tr>
               ) : (
                 filtered.map(ticket => (
-                  <tr key={ticket.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer">
+                  <tr key={ticket.id} onClick={() => navigate(`/tickets/${ticket.id}`)} className="border-b last:border-0 hover:bg-muted/30 transition-colors cursor-pointer">
                     <td className="px-4 py-3 font-mono text-xs font-semibold tracking-wider">{ticket.ticket_number}</td>
                     <td className="px-4 py-3">
                       <span className="rounded bg-secondary px-1.5 py-0.5 text-xs font-medium uppercase text-secondary-foreground">{ticket.ticket_type}</span>
