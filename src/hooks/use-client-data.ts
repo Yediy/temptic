@@ -122,6 +122,37 @@ export function useRejectTicket() {
         })
         .eq("id", ticketId);
       if (error) throw error;
+
+      // Send "ticket rejected" email to agency
+      const { data: ticket } = await supabase
+        .from("tickets")
+        .select("ticket_number, worker_name_snapshot, agency_id")
+        .eq("id", ticketId)
+        .single();
+
+      if (ticket) {
+        const { data: agency } = await supabase
+          .from("agencies")
+          .select("email")
+          .eq("id", ticket.agency_id)
+          .single();
+
+        if (agency?.email) {
+          await supabase.functions.invoke("send-transactional-email", {
+            body: {
+              templateName: "ticket-rejected",
+              recipientEmail: agency.email,
+              idempotencyKey: `ticket-rejected-${ticketId}`,
+              templateData: {
+                ticketNumber: ticket.ticket_number,
+                workerName: ticket.worker_name_snapshot,
+                rejectedBy: "Client",
+                reason,
+              },
+            },
+          });
+        }
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["client-tickets"] });
