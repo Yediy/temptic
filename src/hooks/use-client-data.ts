@@ -63,43 +63,12 @@ export function useSignTicket() {
         .eq("id", ticketId);
       if (ticketError) throw ticketError;
 
-      // 3. Generate PDF documents
+      // 3. Generate PDF documents (agency, client, worker copies)
       const pdfTypes = ["agency_copy", "client_copy", "worker_copy"] as const;
       for (const pdfType of pdfTypes) {
         await supabase.functions.invoke("generate-pdf", {
           body: { ticket_id: ticketId, pdf_type: pdfType },
         });
-      }
-
-      // 4. Send "ticket signed" email to agency
-      const { data: ticket } = await supabase
-        .from("tickets")
-        .select("ticket_number, worker_name_snapshot, agency_id")
-        .eq("id", ticketId)
-        .single();
-
-      if (ticket) {
-        const { data: agency } = await supabase
-          .from("agencies")
-          .select("email")
-          .eq("id", ticket.agency_id)
-          .single();
-
-        if (agency?.email) {
-          await supabase.functions.invoke("send-transactional-email", {
-            body: {
-              templateName: "ticket-signed",
-              recipientEmail: agency.email,
-              idempotencyKey: `ticket-signed-${ticketId}`,
-              templateData: {
-                ticketNumber: ticket.ticket_number,
-                workerName: ticket.worker_name_snapshot,
-                signerName,
-                signedAt: new Date().toLocaleString(),
-              },
-            },
-          });
-        }
       }
     },
     onSuccess: () => {
@@ -122,37 +91,6 @@ export function useRejectTicket() {
         })
         .eq("id", ticketId);
       if (error) throw error;
-
-      // Send "ticket rejected" email to agency
-      const { data: ticket } = await supabase
-        .from("tickets")
-        .select("ticket_number, worker_name_snapshot, agency_id")
-        .eq("id", ticketId)
-        .single();
-
-      if (ticket) {
-        const { data: agency } = await supabase
-          .from("agencies")
-          .select("email")
-          .eq("id", ticket.agency_id)
-          .single();
-
-        if (agency?.email) {
-          await supabase.functions.invoke("send-transactional-email", {
-            body: {
-              templateName: "ticket-rejected",
-              recipientEmail: agency.email,
-              idempotencyKey: `ticket-rejected-${ticketId}`,
-              templateData: {
-                ticketNumber: ticket.ticket_number,
-                workerName: ticket.worker_name_snapshot,
-                rejectedBy: "Client",
-                reason,
-              },
-            },
-          });
-        }
-      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["client-tickets"] });

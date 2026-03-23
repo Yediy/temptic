@@ -37,7 +37,6 @@ import ClientTicketSign from "@/pages/client/ClientTicketSign";
 import WorkerTickets from "@/pages/worker/WorkerTickets";
 import WorkerHours from "@/pages/worker/WorkerHours";
 
-import Unsubscribe from "@/pages/Unsubscribe";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -65,7 +64,6 @@ const App = () => (
             <Route path="/worker/login" element={<WorkerLogin />} />
             <Route path="/register" element={<Register />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
-            <Route path="/unsubscribe" element={<Unsubscribe />} />
 
             {/* Agency portal */}
             <Route element={<ProtectedRoute allowedRoles={["super_admin", "agency_admin", "dispatcher", "payroll", "viewer"]} redirectTo="/login" />}>
