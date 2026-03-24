@@ -9,6 +9,8 @@ import {
   Building2,
   Archive,
   Plus,
+  Layers,
+  CreditCard,
   ChevronDown,
   LogOut,
   Search,
