@@ -11,6 +11,9 @@ import {
   Plus,
   ChevronDown,
   LogOut,
+  Search,
+  AlertTriangle,
+  Shield,
 } from "lucide-react";
 
 const navItems = [
@@ -19,6 +22,12 @@ const navItems = [
   { label: "Clients", icon: Building2, path: "/clients" },
   { label: "Workers", icon: HardHat, path: "/workers" },
   { label: "PDF Archive", icon: Archive, path: "/archive" },
+];
+
+const adminItems = [
+  { label: "Agencies", icon: Shield, path: "/admin/agencies" },
+  { label: "Ticket Search", icon: Search, path: "/admin/tickets" },
+  { label: "Notifications", icon: AlertTriangle, path: "/admin/notifications" },
 ];
 
 export function AppSidebar() {
@@ -70,6 +79,29 @@ export function AppSidebar() {
             </Link>
           );
         })}
+
+        {/* Admin section */}
+        <div className="mt-4 pt-3 border-t border-sidebar-border">
+          <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-widest text-sidebar-muted">Admin</p>
+          {adminItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                )}
+              >
+                <item.icon className="h-4 w-4" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
       </nav>
 
       {/* User info + sign out */}

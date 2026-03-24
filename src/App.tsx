@@ -27,6 +27,11 @@ import Clients from "@/pages/Clients";
 import Workers from "@/pages/Workers";
 import Archive from "@/pages/Archive";
 
+// Admin pages
+import AdminAgencies from "@/pages/admin/AdminAgencies";
+import AdminTicketSearch from "@/pages/admin/AdminTicketSearch";
+import AdminNotifications from "@/pages/admin/AdminNotifications";
+
 // Client pages
 import ClientDashboard from "@/pages/client/ClientDashboard";
 import ClientPending from "@/pages/client/ClientPending";
@@ -77,6 +82,9 @@ const App = () => (
                 <Route path="/clients" element={<Clients />} />
                 <Route path="/workers" element={<Workers />} />
                 <Route path="/archive" element={<Archive />} />
+                <Route path="/admin/agencies" element={<AdminAgencies />} />
+                <Route path="/admin/tickets" element={<AdminTicketSearch />} />
+                <Route path="/admin/notifications" element={<AdminNotifications />} />
               </Route>
             </Route>
 
