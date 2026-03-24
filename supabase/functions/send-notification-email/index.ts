@@ -123,10 +123,31 @@ serve(async (req) => {
       });
     }
 
+    // Log notification to notifications table
+    const notifPayload = {
+      agency_id: agency_id || ticket.agency_id,
+      ticket_id,
+      recipient_type,
+      recipient_id: recipient_id || null,
+      recipient_email: to,
+      template_key,
+      subject,
+      status: "queued" as string,
+    };
+
+    const { data: notifRow } = await supabase
+      .from("notifications")
+      .insert(notifPayload)
+      .select("id")
+      .single();
+
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
 
     if (!resendApiKey) {
       console.log(`[notification-email] No RESEND_API_KEY configured. Would send "${subject}" to ${to}`);
+      if (notifRow?.id) {
+        await supabase.from("notifications").update({ status: "skipped" }).eq("id", notifRow.id);
+      }
       return new Response(JSON.stringify({ success: true, skipped: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
@@ -150,7 +171,14 @@ serve(async (req) => {
     if (!emailRes.ok) {
       const text = await emailRes.text();
       console.error(`[notification-email] Send failed: ${text}`);
+      if (notifRow?.id) {
+        await supabase.from("notifications").update({ status: "failed", error_message: text }).eq("id", notifRow.id);
+      }
       throw new Error(text);
+    }
+
+    if (notifRow?.id) {
+      await supabase.from("notifications").update({ status: "sent", sent_at: new Date().toISOString() }).eq("id", notifRow.id);
     }
 
     return new Response(JSON.stringify({ success: true }), {
