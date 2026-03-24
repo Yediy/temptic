@@ -26,6 +26,8 @@ import EditTicket from "@/pages/EditTicket";
 import Clients from "@/pages/Clients";
 import Workers from "@/pages/Workers";
 import Archive from "@/pages/Archive";
+import Templates from "@/pages/Templates";
+import Billing from "@/pages/Billing";
 
 // Admin pages
 import AdminAgencies from "@/pages/admin/AdminAgencies";
