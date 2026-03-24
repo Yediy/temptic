@@ -400,6 +400,66 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          agency_id: string
+          created_at: string
+          error_message: string | null
+          id: string
+          recipient_email: string | null
+          recipient_id: string | null
+          recipient_type: string
+          sent_at: string | null
+          status: string
+          subject: string | null
+          template_key: string
+          ticket_id: string | null
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          recipient_email?: string | null
+          recipient_id?: string | null
+          recipient_type: string
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+          template_key: string
+          ticket_id?: string | null
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          recipient_email?: string | null
+          recipient_id?: string | null
+          recipient_type?: string
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+          template_key?: string
+          ticket_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pdf_documents: {
         Row: {
           file_name: string
@@ -526,6 +586,32 @@ export type Database = {
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "ticket_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_counters: {
+        Row: {
+          agency_id: string
+          current_year: number
+          last_number: number
+        }
+        Insert: {
+          agency_id: string
+          current_year?: number
+          last_number?: number
+        }
+        Update: {
+          agency_id?: string
+          current_year?: number
+          last_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_counters_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
             referencedColumns: ["id"]
           },
         ]
@@ -962,6 +1048,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      current_user_agency_ids: { Args: never; Returns: string[] }
+      current_user_client_ids: { Args: never; Returns: string[] }
+      current_user_has_role: {
+        Args: { _role: Database["public"]["Enums"]["app_role"] }
+        Returns: boolean
+      }
+      current_user_worker_ids: { Args: never; Returns: string[] }
       get_user_agency_id: { Args: { _user_id: string }; Returns: string }
       get_user_client_id: { Args: { _user_id: string }; Returns: string }
       get_user_worker_id: { Args: { _user_id: string }; Returns: string }
@@ -972,6 +1065,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      next_ticket_number: { Args: { _agency_id: string }; Returns: string }
       register_agency:
         | { Args: { _agency_name: string }; Returns: string }
         | { Args: { _agency_name: string; _user_id: string }; Returns: string }
