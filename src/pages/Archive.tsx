@@ -1,65 +1,156 @@
-import { Archive as ArchiveIcon, Download, Search } from "lucide-react";
 import { useState } from "react";
+import { Archive as ArchiveIcon, Download, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { StatusBadge } from "@/components/StatusBadge";
-import { mockTickets } from "@/lib/mock-data";
+import { StatusBadge, type TicketStatus } from "@/components/StatusBadge";
+import { useTickets, useClients, useWorkers } from "@/hooks/use-agency-data";
+import { downloadPdf } from "@/lib/download-pdf";
+import { toast } from "sonner";
 
 export default function Archive() {
+  const { data: tickets, isLoading } = useTickets();
+  const { data: clients } = useClients();
+  const { data: workers } = useWorkers();
   const [search, setSearch] = useState("");
-  const signedTickets = mockTickets.filter(
-    (t) => t.status === "signed" || t.status === "closed"
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [clientFilter, setClientFilter] = useState<string>("all");
+  const [workerFilter, setWorkerFilter] = useState<string>("all");
+
+  const archivable = (tickets ?? []).filter(t =>
+    ["signed", "rejected", "closed", "corrected"].includes(t.status)
   );
 
-  const filtered = signedTickets.filter(
-    (t) =>
-      !search ||
-      t.ticket_number.toLowerCase().includes(search.toLowerCase()) ||
-      t.client_name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = archivable.filter(t => {
+    if (statusFilter !== "all" && t.status !== statusFilter) return false;
+    if (clientFilter !== "all" && t.client_id !== clientFilter) return false;
+    if (workerFilter !== "all" && t.worker_id !== workerFilter) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      if (
+        !t.ticket_number.toLowerCase().includes(q) &&
+        !t.client_company_name_snapshot.toLowerCase().includes(q) &&
+        !t.worker_name_snapshot.toLowerCase().includes(q)
+      ) return false;
+    }
+    return true;
+  });
+
+  const handleDownload = async (ticketId: string, pdfType: "agency_copy" | "client_copy" | "worker_copy") => {
+    try {
+      await downloadPdf(ticketId, pdfType);
+    } catch {
+      toast.error("PDF not available yet");
+    }
+  };
+
+  const handleExportCsv = () => {
+    if (filtered.length === 0) { toast.info("No tickets to export"); return; }
+    const headers = ["Ticket #", "Type", "Status", "Client", "Worker", "Date", "Hours"];
+    const rows = filtered.map(t => [
+      t.ticket_number,
+      t.ticket_type,
+      t.status,
+      t.client_company_name_snapshot,
+      t.worker_name_snapshot,
+      t.work_date || t.week_start_date || "",
+      String(t.total_hours ?? 0),
+    ]);
+    const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `temptic-archive-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("CSV exported");
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">PDF Archive</h1>
-          <p className="text-sm text-muted-foreground">{signedTickets.length} archived tickets</p>
+          <p className="text-sm text-muted-foreground">
+            {isLoading ? "Loading…" : `${archivable.length} archived tickets`}
+          </p>
         </div>
-        <Button variant="outline">
+        <Button variant="outline" onClick={handleExportCsv}>
           <Download className="mr-1 h-4 w-4" />
-          Export Week
+          Export CSV
         </Button>
       </div>
 
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input placeholder="Search archive..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input placeholder="Search archive..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+        </div>
+        <select
+          value={statusFilter}
+          onChange={e => setStatusFilter(e.target.value)}
+          className="rounded-lg border bg-card px-3 py-2 text-sm"
+        >
+          <option value="all">All Statuses</option>
+          <option value="signed">Signed</option>
+          <option value="rejected">Rejected</option>
+          <option value="closed">Closed</option>
+          <option value="corrected">Corrected</option>
+        </select>
+        <select
+          value={clientFilter}
+          onChange={e => setClientFilter(e.target.value)}
+          className="rounded-lg border bg-card px-3 py-2 text-sm"
+        >
+          <option value="all">All Clients</option>
+          {clients?.map(c => (
+            <option key={c.id} value={c.id}>{c.company_name}</option>
+          ))}
+        </select>
+        <select
+          value={workerFilter}
+          onChange={e => setWorkerFilter(e.target.value)}
+          className="rounded-lg border bg-card px-3 py-2 text-sm"
+        >
+          <option value="all">All Workers</option>
+          {workers?.map(w => (
+            <option key={w.id} value={w.id}>{w.first_name} {w.last_name}</option>
+          ))}
+        </select>
       </div>
 
       <div className="grid gap-3">
-        {filtered.map((ticket) => (
-          <div key={ticket.id} className="flex items-center justify-between rounded-xl border bg-card p-4 hover:shadow-sm transition-all">
-            <div className="flex items-center gap-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-success/10">
-                <ArchiveIcon className="h-5 w-5 text-success" />
-              </div>
-              <div>
-                <p className="font-mono text-xs font-semibold tracking-wider">{ticket.ticket_number}</p>
-                <p className="text-sm text-muted-foreground">{ticket.client_name} · {ticket.worker_name} · {ticket.work_date}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <StatusBadge status={ticket.status} />
-              <div className="flex gap-1">
-                <Button variant="ghost" size="sm" className="text-xs">Agency</Button>
-                <Button variant="ghost" size="sm" className="text-xs">Client</Button>
-                <Button variant="ghost" size="sm" className="text-xs">Worker</Button>
-              </div>
-            </div>
-          </div>
-        ))}
-        {filtered.length === 0 && (
+        {isLoading ? (
+          <div className="py-12 text-center text-muted-foreground">Loading…</div>
+        ) : filtered.length === 0 ? (
           <div className="py-12 text-center text-muted-foreground">No archived tickets found.</div>
+        ) : (
+          filtered.map((ticket) => (
+            <div key={ticket.id} className="flex items-center justify-between rounded-xl border bg-card p-4 hover:shadow-sm transition-all">
+              <div className="flex items-center gap-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-success/10">
+                  <ArchiveIcon className="h-5 w-5 text-success" />
+                </div>
+                <div>
+                  <p className="font-mono text-xs font-semibold tracking-wider">{ticket.ticket_number}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {ticket.client_company_name_snapshot} · {ticket.worker_name_snapshot} · {ticket.work_date || ticket.week_start_date || "—"}
+                    <span className="ml-1 rounded bg-secondary px-1 py-0.5 text-[10px] uppercase">{ticket.ticket_type}</span>
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <StatusBadge status={ticket.status as TicketStatus} />
+                {ticket.status === "signed" && (
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="sm" className="text-xs" onClick={() => handleDownload(ticket.id, "agency_copy")}>Agency</Button>
+                    <Button variant="ghost" size="sm" className="text-xs" onClick={() => handleDownload(ticket.id, "client_copy")}>Client</Button>
+                    <Button variant="ghost" size="sm" className="text-xs" onClick={() => handleDownload(ticket.id, "worker_copy")}>Worker</Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))
         )}
       </div>
     </div>

@@ -9,6 +9,8 @@ import {
   Building2,
   Archive,
   Plus,
+  Layers,
+  CreditCard,
   ChevronDown,
   LogOut,
   Search,
@@ -22,6 +24,8 @@ const navItems = [
   { label: "Clients", icon: Building2, path: "/clients" },
   { label: "Workers", icon: HardHat, path: "/workers" },
   { label: "PDF Archive", icon: Archive, path: "/archive" },
+  { label: "Templates", icon: Layers, path: "/templates" },
+  { label: "Billing", icon: CreditCard, path: "/billing" },
 ];
 
 const adminItems = [

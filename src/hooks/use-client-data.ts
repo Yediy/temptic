@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 
@@ -24,78 +24,13 @@ export function useClientTicket(ticketId?: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tickets")
-        .select("*")
+        .select("*, ticket_days(*)")
         .eq("id", ticketId!)
         .single();
       if (error) throw error;
       return data;
     },
     enabled: !!ticketId,
-  });
-}
-
-export function useSignTicket() {
-  const qc = useQueryClient();
-  const { user } = useAuth();
-  return useMutation({
-    mutationFn: async ({ ticketId, signerName, signerTitle }: { ticketId: string; signerName: string; signerTitle?: string }) => {
-      // 1. Insert signature record
-      const { error: sigError } = await supabase
-        .from("ticket_signatures")
-        .insert({
-          ticket_id: ticketId,
-          signer_type: "client" as const,
-          signer_name: signerName,
-          signer_title: signerTitle || null,
-          signed_at: new Date().toISOString(),
-        });
-      if (sigError) throw sigError;
-
-      // 2. Update ticket status
-      const { error: ticketError } = await supabase
-        .from("tickets")
-        .update({
-          status: "signed" as const,
-          signed_at: new Date().toISOString(),
-          supervisor_name: signerName,
-          supervisor_title: signerTitle || null,
-        })
-        .eq("id", ticketId);
-      if (ticketError) throw ticketError;
-
-      // 3. Generate PDF documents (agency, client, worker copies)
-      const pdfTypes = ["agency_copy", "client_copy", "worker_copy"] as const;
-      for (const pdfType of pdfTypes) {
-        await supabase.functions.invoke("generate-pdf", {
-          body: { ticket_id: ticketId, pdf_type: pdfType },
-        });
-      }
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["client-tickets"] });
-      qc.invalidateQueries({ queryKey: ["client-ticket"] });
-    },
-  });
-}
-
-export function useRejectTicket() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async ({ ticketId, reason }: { ticketId: string; reason: string }) => {
-      const { error } = await supabase
-        .from("tickets")
-        .update({
-          status: "rejected" as const,
-          rejected_at: new Date().toISOString(),
-          rejection_reason: reason,
-        })
-        .eq("id", ticketId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["client-tickets"] });
-      qc.invalidateQueries({ queryKey: ["client-ticket"] });
-    },
   });
 }
 

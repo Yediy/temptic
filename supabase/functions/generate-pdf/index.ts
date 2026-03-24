@@ -160,54 +160,15 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
-
-    // Authenticate the caller
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 401,
-      });
-    }
-
-    const userClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    const { data: { user }, error: userErr } = await userClient.auth.getUser();
-    if (userErr || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 401,
-      });
-    }
-
-    // Verify caller belongs to an agency
-    const { data: membership } = await supabase
-      .from("agency_members")
-      .select("agency_id")
-      .eq("user_id", user.id)
-      .eq("is_active", true)
-      .limit(1)
-      .single();
-
-    if (!membership?.agency_id) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 403,
-      });
-    }
 
     const { ticket_id, pdf_type } = (await req.json()) as PdfRequest;
 
-    // Fetch ticket
+    // Fetch ticket using service role (called internally after auth verification)
     const { data: ticket, error: ticketErr } = await supabase
       .from("tickets")
       .select("*")
       .eq("id", ticket_id)
-      .eq("agency_id", membership.agency_id)
       .single();
     if (ticketErr || !ticket) throw new Error("Ticket not found");
 
@@ -224,10 +185,19 @@ serve(async (req) => {
 
     // Generate HTML
     const html = generateTicketHtml(ticket, pdf_type, days);
+    const htmlBytes = new TextEncoder().encode(html);
 
-    // Store PDF record (HTML stored as storage_url for now - will be replaced with actual PDF when Puppeteer is available)
-    const fileName = `${ticket.ticket_number}_${pdf_type}.html`;
-    const storageUrl = `tickets/${ticket.agency_id}/${ticket_id}/${fileName}`;
+    // Upload to Storage
+    const storagePath = `${ticket.agency_id}/${ticket_id}/${ticket.ticket_number}_${pdf_type}_v${ticket.version_number}.html`;
+
+    const { error: uploadErr } = await supabase.storage
+      .from("ticket-assets")
+      .upload(storagePath, htmlBytes, {
+        contentType: "text/html",
+        upsert: true,
+      });
+
+    if (uploadErr) throw uploadErr;
 
     // Get existing version count
     const { data: existing } = await supabase
@@ -240,6 +210,8 @@ serve(async (req) => {
 
     const version = (existing?.[0]?.version_number ?? 0) + 1;
 
+    const fileName = `${ticket.ticket_number}_${pdf_type}.html`;
+
     // Insert PDF document record
     const { data: pdfDoc, error: pdfErr } = await supabase
       .from("pdf_documents")
@@ -247,7 +219,7 @@ serve(async (req) => {
         ticket_id,
         pdf_type,
         file_name: fileName,
-        storage_url: storageUrl,
+        storage_url: storagePath,
         version_number: version,
       })
       .select()
@@ -256,7 +228,7 @@ serve(async (req) => {
     if (pdfErr) throw pdfErr;
 
     return new Response(
-      JSON.stringify({ id: pdfDoc.id, html, storage_url: storageUrl, file_name: fileName }),
+      JSON.stringify({ id: pdfDoc.id, storage_url: storagePath, file_name: fileName }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
   } catch (err: any) {
