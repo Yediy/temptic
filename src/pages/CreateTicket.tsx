@@ -50,10 +50,18 @@ export default function CreateTicket() {
   const { data: clients } = useClients();
   const { data: sites } = useClientSites(form.client_id || undefined);
   const { data: workers } = useWorkers();
+  const { data: signers } = useClientSigners(form.client_id || undefined);
+  const { data: invites } = useClientInvites(form.client_id || undefined);
 
   const selectedClient = clients?.find(c => c.id === form.client_id);
   const selectedSite = sites?.find(s => s.id === form.site_id);
   const selectedWorker = workers?.find(w => w.id === form.worker_id);
+
+  // Signer status for guardrails
+  const linkedSigners = signers?.filter(s => s.user_id) ?? [];
+  const pendingInvites = invites?.filter(i => i.status === "pending") ?? [];
+  const hasNoSigners = !signers || signers.length === 0;
+  const hasNoLinkedSigners = linkedSigners.length === 0;
 
   useEffect(() => {
     if (agencyId) generateTicketNumber(agencyId).then(setTicketNumber);
