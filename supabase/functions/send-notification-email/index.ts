@@ -61,18 +61,56 @@ serve(async (req) => {
     let html = "";
     const ticketNum = escapeHtml(ticket.ticket_number);
 
+    // Determine the app base URL
+    const appUrl = Deno.env.get("APP_URL") || "https://temptic.lovable.app";
+
     if (template_key === "ticket_sent_client") {
-      // Find client signer email
+      // Find client signer email and check if they have an account
       const { data: signer } = await supabase
         .from("client_signers")
-        .select("email")
+        .select("email, user_id")
         .eq("client_id", ticket.client_id)
         .eq("is_active", true)
         .limit(1)
         .single();
       to = signer?.email || null;
       subject = `Ticket ${ticket.ticket_number} ready for signature`;
-      html = `<p>Ticket <strong>${ticketNum}</strong> is ready for your signature.</p>`;
+
+      const ticketPath = `/client/ticket/${ticket_id}`;
+
+      if (signer?.user_id) {
+        // Signer already has an account — link directly to ticket
+        const ticketUrl = `${appUrl}${ticketPath}`;
+        html = `<p>Ticket <strong>${ticketNum}</strong> is ready for your signature.</p>
+                <p><a href="${ticketUrl}" style="display:inline-block;padding:10px 20px;background:#2563eb;color:#fff;text-decoration:none;border-radius:6px;">Review & Sign Ticket</a></p>`;
+      } else {
+        // Signer has no account — check for a pending invite token
+        const { data: invite } = await supabase
+          .from("client_invites")
+          .select("token")
+          .eq("client_signer_id", (await supabase
+            .from("client_signers")
+            .select("id")
+            .eq("client_id", ticket.client_id)
+            .eq("is_active", true)
+            .limit(1)
+            .single()).data?.id || "")
+          .eq("status", "pending")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (invite?.token) {
+          // Redirect through onboarding with ticket redirect
+          const onboardingUrl = `${appUrl}/client/onboarding/${invite.token}?redirect=${encodeURIComponent(ticketPath)}`;
+          html = `<p>Ticket <strong>${ticketNum}</strong> is ready for your signature.</p>
+                  <p>To get started, create your account first:</p>
+                  <p><a href="${onboardingUrl}" style="display:inline-block;padding:10px 20px;background:#2563eb;color:#fff;text-decoration:none;border-radius:6px;">Set Up Account & Sign Ticket</a></p>`;
+        } else {
+          // No invite exists — plain notification
+          html = `<p>Ticket <strong>${ticketNum}</strong> is ready for your signature. Please contact your agency to set up portal access.</p>`;
+        }
+      }
     } else if (template_key === "ticket_signed_agency") {
       // Find agency admin email — try profiles first, fall back to agency.email
       const { data: members } = await supabase
