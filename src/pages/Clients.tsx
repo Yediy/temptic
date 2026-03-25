@@ -372,7 +372,7 @@ function SignerInviteActions({
   );
 }
 
-function ClientSignersList({ clientId }: { clientId: string }) {
+function ClientSignersList({ clientId, clientCompany }: { clientId: string; clientCompany?: string }) {
   const { data: signers } = useClientSigners(clientId);
   const { data: invites } = useClientInvites(clientId);
 
@@ -386,7 +386,7 @@ function ClientSignersList({ clientId }: { clientId: string }) {
             {s.title && <span className="text-muted-foreground ml-1">· {s.title}</span>}
             {s.email && <span className="text-muted-foreground ml-1 text-[10px]">({s.email})</span>}
           </div>
-          <SignerInviteActions signer={s} clientId={clientId} invites={invites ?? []} />
+          <SignerInviteActions signer={s} clientId={clientId} invites={invites ?? []} clientCompany={clientCompany} />
         </div>
       ))}
     </div>
