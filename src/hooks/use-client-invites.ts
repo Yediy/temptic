@@ -58,6 +58,9 @@ export function useSendInvite() {
       client_id: string;
       client_signer_id: string;
       email: string;
+      signerName?: string;
+      clientCompany?: string;
+      agencyName?: string;
     }) => {
       const { data, error } = await supabase
         .from("client_invites")
@@ -71,7 +74,31 @@ export function useSendInvite() {
         .select()
         .single();
       if (error) throw error;
-      return data as ClientInvite;
+
+      const invite = data as ClientInvite;
+
+      // Send email notification with onboarding link
+      const inviteUrl = `${window.location.origin}/client/onboarding/${invite.token}`;
+      try {
+        await supabase.functions.invoke("send-transactional-email", {
+          body: {
+            templateName: "client-invite",
+            recipientEmail: input.email,
+            idempotencyKey: `client-invite-${invite.id}`,
+            templateData: {
+              agencyName: input.agencyName || "Your Agency",
+              clientCompany: input.clientCompany || "Your Company",
+              signerName: input.signerName || "",
+              inviteUrl,
+            },
+          },
+        });
+      } catch (emailErr) {
+        // Don't fail the invite if email fails — invite was already created
+        console.error("Failed to send invite email:", emailErr);
+      }
+
+      return invite;
     },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["client_invites"] });
