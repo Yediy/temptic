@@ -108,8 +108,13 @@ export default function ClientOnboarding() {
         return;
       }
 
-      setSuccess(data.message || "Account created! Redirecting to login...");
-      setTimeout(() => navigate("/client/login"), 3000);
+      const isLoginRedirect = redirectPath === "/client/login";
+      setSuccess(
+        data.message || (isLoginRedirect
+          ? "Account created! Redirecting to login..."
+          : "Account created! Redirecting to your ticket...")
+      );
+      setTimeout(() => navigate(isLoginRedirect ? "/client/login" : `/client/login?redirect=${encodeURIComponent(redirectPath)}`), 3000);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {

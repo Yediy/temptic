@@ -26,7 +26,7 @@ export default function ClientLogin() {
     if (error) {
       setError(error);
     } else {
-      navigate("/client");
+      navigate(redirectPath);
     }
   };
 
