@@ -113,12 +113,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
   };
 
+  const refreshUserData = useCallback(async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    await loadUserData(session?.user ?? null, session);
+  }, [loadUserData]);
+
   const isAgency = state.portalType === "agency";
   const isClient = state.portalType === "client";
   const isWorker = state.portalType === "worker";
 
   return (
-    <AuthContext.Provider value={{ ...state, signIn, signUp, signOut, isAgency, isClient, isWorker }}>
+    <AuthContext.Provider value={{ ...state, signIn, signUp, signOut, refreshUserData, isAgency, isClient, isWorker }}>
       {children}
     </AuthContext.Provider>
   );
