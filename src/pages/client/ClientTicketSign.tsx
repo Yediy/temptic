@@ -43,14 +43,12 @@ export default function ClientTicketSign() {
     enabled: !!id,
   });
 
-  // Mark as viewed
+  // Mark as viewed via secure edge function
   useEffect(() => {
     if (ticket && ticket.status === "sent") {
-      supabase
-        .from("tickets")
-        .update({ status: "viewed" as const, viewed_at: new Date().toISOString() })
-        .eq("id", ticket.id)
-        .then(() => {});
+      supabase.functions.invoke("mark-viewed", {
+        body: { ticket_id: ticket.id },
+      }).catch(() => {});
     }
   }, [ticket?.id, ticket?.status]);
 
