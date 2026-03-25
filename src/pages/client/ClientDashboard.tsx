@@ -15,9 +15,9 @@ export default function ClientDashboard() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-xl border bg-card p-5">
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-5">
           <p className="text-sm text-muted-foreground">Awaiting Signature</p>
-          <p className="mt-1 text-3xl font-bold">{stats?.pending ?? 0}</p>
+          <p className="mt-1 text-3xl font-bold text-destructive">{stats?.pending ?? 0}</p>
         </div>
         <div className="rounded-xl border bg-card p-5">
           <p className="text-sm text-muted-foreground">Signed This Week</p>
@@ -32,7 +32,7 @@ export default function ClientDashboard() {
       {pending.length > 0 ? (
         <div className="rounded-xl border bg-card">
           <div className="border-b px-4 py-3">
-            <h3 className="text-sm font-semibold">Tickets Awaiting Signature</h3>
+            <h3 className="text-sm font-semibold text-destructive">Tickets Awaiting Signature</h3>
           </div>
           <div className="divide-y">
             {pending.map(t => (
