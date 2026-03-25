@@ -178,6 +178,7 @@ export default function EditTicket() {
         ? [selectedSite.address_line1, selectedSite.city, selectedSite.state].filter(Boolean).join(", ")
         : null;
 
+      // Always save edits as corrected/draft first
       const updateData: Record<string, any> = {
         client_id: form.client_id,
         site_id: form.site_id || null,
@@ -200,10 +201,11 @@ export default function EditTicket() {
         report_to_name_snapshot: selectedSite?.report_to_name ?? null,
         report_to_phone_snapshot: selectedSite?.report_to_phone ?? null,
         worker_name_snapshot: `${selectedWorker.first_name} ${selectedWorker.last_name}`,
-        status,
+        status: status === "sent" ? "corrected" : "draft",
         rejection_reason: null,
         rejected_at: null,
         version_number: ticket.version_number + 1,
+        updated_at: new Date().toISOString(),
       };
 
       if (isWeekly) {
@@ -211,12 +213,6 @@ export default function EditTicket() {
       } else {
         updateData.work_date = form.date;
         updateData.start_time = form.start_time;
-      }
-
-      if (status === "sent") {
-        updateData.sent_at = new Date().toISOString();
-        updateData.viewed_at = null;
-        updateData.signed_at = null;
       }
 
       const { error } = await supabase.from("tickets").update(updateData).eq("id", id!);
@@ -239,9 +235,18 @@ export default function EditTicket() {
         }
       }
 
+      // If sending, use the secure send-ticket edge function
+      if (status === "sent") {
+        const { error: sendErr } = await supabase.functions.invoke("send-ticket", {
+          body: { ticket_id: id },
+        });
+        if (sendErr) throw sendErr;
+      }
+
       toast.success(status === "sent" ? "Ticket resent for signature" : "Draft updated");
       qc.invalidateQueries({ queryKey: ["ticket", id] });
       qc.invalidateQueries({ queryKey: ["tickets"] });
+      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
       navigate(`/tickets/${id}`);
     } catch (err: any) {
       toast.error(err.message);
