@@ -72,6 +72,7 @@ const App = () => (
             <Route path="/worker/login" element={<WorkerLogin />} />
             <Route path="/register" element={<Register />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
+            <Route path="/client/onboarding/:token" element={<ClientOnboarding />} />
 
             {/* Agency portal */}
             <Route element={<ProtectedRoute allowedRoles={["super_admin", "agency_admin", "dispatcher", "payroll", "viewer"]} redirectTo="/login" />}>
