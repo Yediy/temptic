@@ -86,6 +86,12 @@ const App = () => (
                 <Route path="/archive" element={<Archive />} />
                 <Route path="/templates" element={<Templates />} />
                 <Route path="/billing" element={<Billing />} />
+              </Route>
+            </Route>
+
+            {/* Admin-only routes (super_admin only) */}
+            <Route element={<ProtectedRoute allowedRoles={["super_admin"]} redirectTo="/unauthorized" />}>
+              <Route element={<AppLayout />}>
                 <Route path="/admin/agencies" element={<AdminAgencies />} />
                 <Route path="/admin/tickets" element={<AdminTicketSearch />} />
                 <Route path="/admin/notifications" element={<AdminNotifications />} />
