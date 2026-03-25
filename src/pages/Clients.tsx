@@ -354,7 +354,7 @@ function SignerInviteActions({
         disabled={sendInvite.isPending}
         onClick={() => {
           sendInvite.mutate(
-            { client_id: clientId, client_signer_id: signer.id, email: signer.email! },
+            { client_id: clientId, client_signer_id: signer.id, email: signer.email!, signerName: `${signer.first_name} ${signer.last_name}`, clientCompany },
             {
               onSuccess: (newInvite) => {
                 const link = `${window.location.origin}/client/onboarding/${newInvite.token}`;
