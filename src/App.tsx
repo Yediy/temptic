@@ -39,6 +39,7 @@ import ClientDashboard from "@/pages/client/ClientDashboard";
 import ClientPending from "@/pages/client/ClientPending";
 import ClientHistory from "@/pages/client/ClientHistory";
 import ClientTicketSign from "@/pages/client/ClientTicketSign";
+import ClientOnboarding from "@/pages/client/ClientOnboarding";
 
 // Worker pages
 import WorkerTickets from "@/pages/worker/WorkerTickets";
