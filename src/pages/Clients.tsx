@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Building2, MapPin, FileText, Mail, Plus, UserPlus } from "lucide-react";
+import { Building2, MapPin, Mail, Plus, UserPlus, Send, RefreshCw, XCircle, CheckCircle, Clock, Copy } from "lucide-react";
 import { useClients, useCreateClient, useClientSites, useCreateClientSite } from "@/hooks/use-agency-data";
 import { useCreateClientSigner, useClientSigners } from "@/hooks/use-agency-data";
+import { useClientInvites, useSendInvite, useRevokeInvite, useResendInvite, type ClientInvite } from "@/hooks/use-client-invites";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -158,7 +159,7 @@ function AddSignerDialog({ clientId }: { clientId: string }) {
     if (!form.first_name.trim() || !form.last_name.trim()) { toast.error("Name is required"); return; }
     try {
       await createSigner.mutateAsync({ ...form, client_id: clientId });
-      toast.success("Signer added — they can be invited to the client portal later.");
+      toast.success("Signer added — send an invite to connect their portal account.");
       setOpen(false);
       setForm({ first_name: "", last_name: "", email: "", phone: "", title: "" });
     } catch (err: any) {
@@ -178,7 +179,7 @@ function AddSignerDialog({ clientId }: { clientId: string }) {
         <DialogHeader>
           <DialogTitle>Add Authorized Signer</DialogTitle>
         </DialogHeader>
-        <p className="text-xs text-muted-foreground -mt-2">Add a person authorized to sign tickets for this client. They can be linked to a portal account later.</p>
+        <p className="text-xs text-muted-foreground -mt-2">Add a person authorized to sign tickets. Send them an invite to connect their portal account.</p>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -195,8 +196,8 @@ function AddSignerDialog({ clientId }: { clientId: string }) {
             <Input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="e.g. Site Foreman" className="mt-1" />
           </div>
           <div>
-            <Label>Email</Label>
-            <Input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="For portal invitations" className="mt-1" />
+            <Label>Email *</Label>
+            <Input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="Required for portal invitations" className="mt-1" required />
           </div>
           <div>
             <Label>Phone</Label>
@@ -208,6 +209,32 @@ function AddSignerDialog({ clientId }: { clientId: string }) {
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function InviteStatusBadge({ status, expiresAt }: { status: string; expiresAt: string }) {
+  const isExpired = status === "pending" && new Date(expiresAt) < new Date();
+  const effectiveStatus = isExpired ? "expired" : status;
+
+  const styles: Record<string, string> = {
+    pending: "bg-warning/15 text-warning",
+    accepted: "bg-success/15 text-success",
+    expired: "bg-muted text-muted-foreground",
+    revoked: "bg-destructive/15 text-destructive",
+  };
+
+  const icons: Record<string, React.ReactNode> = {
+    pending: <Clock className="h-3 w-3" />,
+    accepted: <CheckCircle className="h-3 w-3" />,
+    expired: <XCircle className="h-3 w-3" />,
+    revoked: <XCircle className="h-3 w-3" />,
+  };
+
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${styles[effectiveStatus] || styles.pending}`}>
+      {icons[effectiveStatus]}
+      {effectiveStatus.charAt(0).toUpperCase() + effectiveStatus.slice(1)}
+    </span>
   );
 }
 
@@ -226,27 +253,186 @@ function ClientSitesList({ clientId }: { clientId: string }) {
   );
 }
 
+function SignerInviteActions({
+  signer,
+  clientId,
+  invites,
+}: {
+  signer: { id: string; email: string | null; user_id: string | null; first_name: string; last_name: string };
+  clientId: string;
+  invites: ClientInvite[];
+}) {
+  const sendInvite = useSendInvite();
+  const revokeInvite = useRevokeInvite();
+  const resendInvite = useResendInvite();
+
+  const signerInvites = invites.filter((i) => i.client_signer_id === signer.id);
+  const latestInvite = signerInvites[0]; // Already sorted by created_at desc
+  const isExpired = latestInvite?.status === "pending" && new Date(latestInvite.expires_at) < new Date();
+  const isPending = latestInvite?.status === "pending" && !isExpired;
+
+  if (signer.user_id) {
+    return (
+      <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-medium text-success flex items-center gap-1">
+        <CheckCircle className="h-3 w-3" /> Linked
+      </span>
+    );
+  }
+
+  if (!signer.email) {
+    return <span className="text-[10px] text-muted-foreground">No email — cannot invite</span>;
+  }
+
+  if (isPending) {
+    return (
+      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+        <InviteStatusBadge status={latestInvite.status} expiresAt={latestInvite.expires_at} />
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 px-1.5 text-[10px]"
+          onClick={() => {
+            revokeInvite.mutate(latestInvite.id, {
+              onSuccess: () => toast.success("Invite revoked"),
+              onError: (e) => toast.error(e.message),
+            });
+          }}
+        >
+          <XCircle className="h-3 w-3" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 px-1.5 text-[10px]"
+          onClick={() => {
+            const link = `${window.location.origin}/client/onboarding/${latestInvite.token}`;
+            navigator.clipboard.writeText(link);
+            toast.success("Invite link copied");
+          }}
+        >
+          <Copy className="h-3 w-3" />
+        </Button>
+      </div>
+    );
+  }
+
+  if (latestInvite && (latestInvite.status === "expired" || latestInvite.status === "revoked" || isExpired)) {
+    return (
+      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+        <InviteStatusBadge status={isExpired ? "expired" : latestInvite.status} expiresAt={latestInvite.expires_at} />
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 px-1.5 text-[10px]"
+          disabled={resendInvite.isPending}
+          onClick={() => {
+            resendInvite.mutate(latestInvite, {
+              onSuccess: (newInvite) => {
+                const link = `${window.location.origin}/client/onboarding/${newInvite.token}`;
+                navigator.clipboard.writeText(link);
+                toast.success("New invite sent — link copied to clipboard");
+              },
+              onError: (e) => toast.error(e.message),
+            });
+          }}
+        >
+          <RefreshCw className="h-3 w-3 mr-0.5" /> Resend
+        </Button>
+      </div>
+    );
+  }
+
+  // No invite sent yet
+  return (
+    <div onClick={(e) => e.stopPropagation()}>
+      <Button
+        variant="outline"
+        size="sm"
+        className="h-6 px-2 text-[10px]"
+        disabled={sendInvite.isPending}
+        onClick={() => {
+          sendInvite.mutate(
+            { client_id: clientId, client_signer_id: signer.id, email: signer.email! },
+            {
+              onSuccess: (newInvite) => {
+                const link = `${window.location.origin}/client/onboarding/${newInvite.token}`;
+                navigator.clipboard.writeText(link);
+                toast.success("Invite created — link copied to clipboard");
+              },
+              onError: (e) => toast.error(e.message),
+            }
+          );
+        }}
+      >
+        <Send className="h-3 w-3 mr-0.5" /> Send Invite
+      </Button>
+    </div>
+  );
+}
+
 function ClientSignersList({ clientId }: { clientId: string }) {
   const { data: signers } = useClientSigners(clientId);
+  const { data: invites } = useClientInvites(clientId);
+
   if (!signers || signers.length === 0) return <p className="text-xs text-muted-foreground mt-2">No authorized signers yet.</p>;
   return (
     <div className="mt-2 space-y-1.5">
-      {signers.map(s => (
+      {signers.map((s) => (
         <div key={s.id} className="flex items-center justify-between rounded-md bg-muted/50 px-3 py-2 text-xs">
           <div>
             <span className="font-medium">{s.first_name} {s.last_name}</span>
             {s.title && <span className="text-muted-foreground ml-1">· {s.title}</span>}
+            {s.email && <span className="text-muted-foreground ml-1 text-[10px]">({s.email})</span>}
           </div>
-          <div className="flex items-center gap-2">
-            {s.email && <span className="text-muted-foreground">{s.email}</span>}
-            {s.user_id ? (
-              <span className="rounded-full bg-success/15 px-1.5 py-0.5 text-[10px] font-medium text-success">Linked</span>
-            ) : (
-              <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">Not linked</span>
-            )}
-          </div>
+          <SignerInviteActions signer={s} clientId={clientId} invites={invites ?? []} />
         </div>
       ))}
+    </div>
+  );
+}
+
+function OnboardingProgress({ clientId }: { clientId: string }) {
+  const { data: sites } = useClientSites(clientId);
+  const { data: signers } = useClientSigners(clientId);
+  const { data: invites } = useClientInvites(clientId);
+
+  const hasSites = (sites?.length ?? 0) > 0;
+  const hasSigners = (signers?.length ?? 0) > 0;
+  const linkedSigners = signers?.filter((s) => s.user_id) ?? [];
+  const pendingInvites = invites?.filter((i) => i.status === "pending") ?? [];
+  const allLinked = hasSigners && linkedSigners.length === signers!.length;
+
+  if (allLinked && hasSites) return null; // Fully onboarded
+
+  return (
+    <div className="mt-3 rounded-md border border-warning/30 bg-warning/5 px-3 py-2 text-xs space-y-1">
+      <p className="font-semibold text-warning">Onboarding checklist</p>
+      <div className="flex items-center gap-2">
+        {hasSites ? <CheckCircle className="h-3 w-3 text-success" /> : <Clock className="h-3 w-3 text-muted-foreground" />}
+        <span className={hasSites ? "text-success" : ""}>Work site added</span>
+      </div>
+      <div className="flex items-center gap-2">
+        {hasSigners ? <CheckCircle className="h-3 w-3 text-success" /> : <Clock className="h-3 w-3 text-muted-foreground" />}
+        <span className={hasSigners ? "text-success" : ""}>Signer added</span>
+      </div>
+      <div className="flex items-center gap-2">
+        {allLinked ? (
+          <CheckCircle className="h-3 w-3 text-success" />
+        ) : pendingInvites.length > 0 ? (
+          <Clock className="h-3 w-3 text-warning" />
+        ) : (
+          <Clock className="h-3 w-3 text-muted-foreground" />
+        )}
+        <span className={allLinked ? "text-success" : ""}>
+          {allLinked
+            ? "All signers linked"
+            : linkedSigners.length > 0
+            ? `${linkedSigners.length}/${signers!.length} signers linked`
+            : pendingInvites.length > 0
+            ? `${pendingInvites.length} invite(s) pending`
+            : "Invite signers to portal"}
+        </span>
+      </div>
     </div>
   );
 }
@@ -305,6 +491,8 @@ export default function Clients() {
                 )}
               </div>
 
+              {expanded !== client.id && <OnboardingProgress clientId={client.id} />}
+
               {expanded === client.id && (
                 <div className="mt-4 border-t pt-3 space-y-4">
                   {/* Sites */}
@@ -328,6 +516,8 @@ export default function Clients() {
                     </div>
                     <ClientSignersList clientId={client.id} />
                   </div>
+
+                  <OnboardingProgress clientId={client.id} />
                 </div>
               )}
             </div>
@@ -336,7 +526,7 @@ export default function Clients() {
             <div className="col-span-full rounded-xl border border-dashed bg-card p-12 text-center">
               <Building2 className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
               <p className="text-muted-foreground">No clients yet. Add your first client company to get started.</p>
-              <p className="text-xs text-muted-foreground mt-1">Create a client → add a work site → add authorized signers → create tickets.</p>
+              <p className="text-xs text-muted-foreground mt-1">Create a client → add a work site → add a signer → send invite → create tickets.</p>
             </div>
           )}
         </div>
