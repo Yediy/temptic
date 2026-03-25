@@ -12,10 +12,10 @@ import { useToast } from "@/hooks/use-toast";
 
 function statusBadge(invite: ClientInvite) {
   const expired = isPast(new Date(invite.expires_at));
-  if (invite.status === "accepted") return <Badge variant="default" className="bg-emerald-600"><CheckCircle className="mr-1 h-3 w-3" />Accepted</Badge>;
+  if (invite.status === "accepted") return <Badge variant="default"><CheckCircle className="mr-1 h-3 w-3" />Accepted</Badge>;
   if (invite.status === "revoked") return <Badge variant="secondary"><XCircle className="mr-1 h-3 w-3" />Revoked</Badge>;
   if (expired) return <Badge variant="destructive"><AlertTriangle className="mr-1 h-3 w-3" />Expired</Badge>;
-  return <Badge variant="outline" className="border-amber-500 text-amber-600"><Clock className="mr-1 h-3 w-3" />Pending</Badge>;
+  return <Badge variant="outline"><Clock className="mr-1 h-3 w-3" />Pending</Badge>;
 }
 
 export default function PendingInvites() {
