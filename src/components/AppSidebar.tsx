@@ -16,6 +16,7 @@ import {
   Search,
   AlertTriangle,
   Shield,
+  Mail,
 } from "lucide-react";
 
 const navItems = [
