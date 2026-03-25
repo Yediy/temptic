@@ -516,7 +516,7 @@ export default function Clients() {
                         <AddSignerDialog clientId={client.id} />
                       </div>
                     </div>
-                    <ClientSignersList clientId={client.id} />
+                    <ClientSignersList clientId={client.id} clientCompany={client.company_name} />
                   </div>
 
                   <OnboardingProgress clientId={client.id} />
