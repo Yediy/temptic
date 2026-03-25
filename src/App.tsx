@@ -46,6 +46,7 @@ import WorkerTickets from "@/pages/worker/WorkerTickets";
 import WorkerHours from "@/pages/worker/WorkerHours";
 
 import NotFound from "./pages/NotFound";
+import Unsubscribe from "@/pages/Unsubscribe";
 
 const queryClient = new QueryClient();
 
