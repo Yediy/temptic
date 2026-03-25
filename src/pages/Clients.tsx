@@ -257,10 +257,12 @@ function SignerInviteActions({
   signer,
   clientId,
   invites,
+  clientCompany,
 }: {
   signer: { id: string; email: string | null; user_id: string | null; first_name: string; last_name: string };
   clientId: string;
   invites: ClientInvite[];
+  clientCompany?: string;
 }) {
   const sendInvite = useSendInvite();
   const revokeInvite = useRevokeInvite();
