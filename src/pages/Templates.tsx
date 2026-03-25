@@ -304,7 +304,7 @@ export default function Templates() {
                         {mappingCount} field{mappingCount !== 1 ? "s" : ""} mapped
                       </span>
                       {!isReady && !t.is_active && (
-                        <span className="text-[10px] text-orange-500 font-medium">
+                        <span className="text-[10px] text-destructive font-medium">
                           {missingRequired.length} required field{missingRequired.length !== 1 ? "s" : ""} missing
                         </span>
                       )}

@@ -180,7 +180,7 @@ export default function TicketDetail() {
                 <span className="text-muted-foreground">{day.day_name || day.day_date}</span>
                 <span className="font-medium">
                   {day.start_time || "—"} – {day.end_time || "—"} · {day.total_hours}h
-                  {day.overtime_hours > 0 && <span className="text-xs text-orange-500 ml-1">({day.overtime_hours}h OT)</span>}
+                  {day.overtime_hours > 0 && <span className="text-xs text-destructive ml-1">({day.overtime_hours}h OT)</span>}
                 </span>
               </div>
             ))}
