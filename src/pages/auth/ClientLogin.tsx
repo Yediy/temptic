@@ -46,7 +46,7 @@ export default function ClientLogin() {
           </div>
           <div>
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required className="mt-1" placeholder="••••••••" />
+            <PasswordInput id="password" value={password} onChange={e => setPassword(e.target.value)} required className="mt-1" placeholder="••••••••" />
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
           <Button type="submit" className="w-full" disabled={loading}>

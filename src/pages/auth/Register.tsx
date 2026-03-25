@@ -105,7 +105,7 @@ export default function Register() {
           </div>
           <div>
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} required minLength={6} className="mt-1" />
+            <PasswordInput id="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} required minLength={6} className="mt-1" />
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
           <Button type="submit" className="w-full" disabled={loading}>
