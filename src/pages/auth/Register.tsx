@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { FileText, ArrowRight } from "lucide-react";
 
 export default function Register() {
-  const { signUp } = useAuth();
+  const { signUp, refreshUserData } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ first_name: "", last_name: "", email: "", password: "", agency_name: "" });
   const [error, setError] = useState("");
