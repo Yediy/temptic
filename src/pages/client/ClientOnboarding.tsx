@@ -19,6 +19,8 @@ interface InviteData {
 export default function ClientOnboarding() {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectPath = searchParams.get("redirect") || "/client/login";
 
   const [loading, setLoading] = useState(true);
   const [invite, setInvite] = useState<InviteData | null>(null);
