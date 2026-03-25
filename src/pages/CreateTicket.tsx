@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Check, FileText, Send } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, FileText, Send, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useClients, useClientSites, useWorkers, useCreateTicket, generateTicketNumber } from "@/hooks/use-agency-data";
+import { useClients, useClientSites, useWorkers, useCreateTicket, generateTicketNumber, useClientSigners } from "@/hooks/use-agency-data";
+import { useClientInvites } from "@/hooks/use-client-invites";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
