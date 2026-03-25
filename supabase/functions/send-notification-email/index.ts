@@ -65,10 +65,10 @@ serve(async (req) => {
     const appUrl = Deno.env.get("APP_URL") || "https://temptic.lovable.app";
 
     if (template_key === "ticket_sent_client") {
-      // Find client signer email and check if they have an account
+      // Find client signer email, id, and check if they have an account
       const { data: signer } = await supabase
         .from("client_signers")
-        .select("email, user_id")
+        .select("id, email, user_id")
         .eq("client_id", ticket.client_id)
         .eq("is_active", true)
         .limit(1)
@@ -83,18 +83,12 @@ serve(async (req) => {
         const ticketUrl = `${appUrl}${ticketPath}`;
         html = `<p>Ticket <strong>${ticketNum}</strong> is ready for your signature.</p>
                 <p><a href="${ticketUrl}" style="display:inline-block;padding:10px 20px;background:#2563eb;color:#fff;text-decoration:none;border-radius:6px;">Review & Sign Ticket</a></p>`;
-      } else {
+      } else if (signer?.id) {
         // Signer has no account — check for a pending invite token
         const { data: invite } = await supabase
           .from("client_invites")
           .select("token")
-          .eq("client_signer_id", (await supabase
-            .from("client_signers")
-            .select("id")
-            .eq("client_id", ticket.client_id)
-            .eq("is_active", true)
-            .limit(1)
-            .single()).data?.id || "")
+          .eq("client_signer_id", signer.id)
           .eq("status", "pending")
           .order("created_at", { ascending: false })
           .limit(1)
