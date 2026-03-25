@@ -17,6 +17,7 @@ interface AuthContextValue extends AuthState {
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string, meta?: Record<string, string>) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
+  refreshUserData: () => Promise<void>;
   isAgency: boolean;
   isClient: boolean;
   isWorker: boolean;
@@ -112,12 +113,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
   };
 
+  const refreshUserData = useCallback(async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    await loadUserData(session?.user ?? null, session);
+  }, [loadUserData]);
+
   const isAgency = state.portalType === "agency";
   const isClient = state.portalType === "client";
   const isWorker = state.portalType === "worker";
 
   return (
-    <AuthContext.Provider value={{ ...state, signIn, signUp, signOut, isAgency, isClient, isWorker }}>
+    <AuthContext.Provider value={{ ...state, signIn, signUp, signOut, refreshUserData, isAgency, isClient, isWorker }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
+
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { FileText, ArrowRight } from "lucide-react";
 
 export default function Register() {
-  const { signUp } = useAuth();
+  const { signUp, refreshUserData } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ first_name: "", last_name: "", email: "", password: "", agency_name: "" });
   const [error, setError] = useState("");
@@ -59,6 +60,9 @@ export default function Register() {
         setLoading(false);
         return;
       }
+
+      // Re-fetch roles so AuthProvider picks up the new agency_admin role
+      await refreshUserData();
 
       setLoading(false);
       navigate("/");
