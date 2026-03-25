@@ -37,7 +37,7 @@ export default function Dashboard() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Draft Tickets" value={stats?.drafts ?? 0} icon={FileText} variant="default" />
-        <StatCard label="Unsigned" value={stats?.unsigned ?? 0} icon={Send} variant="warning" />
+        <StatCard label="Unsigned" value={stats?.unsigned ?? 0} icon={Send} variant="destructive" />
         <StatCard label="Signed" value={stats?.signed ?? 0} icon={CheckCircle2} variant="success" />
         <StatCard label="Rejected" value={stats?.rejected ?? 0} icon={XCircle} variant="destructive" />
       </div>
