@@ -107,7 +107,7 @@ export default function CreateTicket() {
   };
 
   const canNext = () => {
-    if (step === 0) return !!form.client_id;
+    if (step === 0) return !!form.client_id && !!form.site_id;
     if (step === 1) return !!form.worker_id;
     return true;
   };
