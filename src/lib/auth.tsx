@@ -17,6 +17,7 @@ interface AuthContextValue extends AuthState {
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string, meta?: Record<string, string>) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
+  refreshUserData: () => Promise<void>;
   isAgency: boolean;
   isClient: boolean;
   isWorker: boolean;
