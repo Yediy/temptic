@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Check, FileText, Send } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, FileText, Send, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useClients, useClientSites, useWorkers, useCreateTicket, generateTicketNumber } from "@/hooks/use-agency-data";
+import { useClients, useClientSites, useWorkers, useCreateTicket, generateTicketNumber, useClientSigners } from "@/hooks/use-agency-data";
+import { useClientInvites } from "@/hooks/use-client-invites";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -49,10 +50,18 @@ export default function CreateTicket() {
   const { data: clients } = useClients();
   const { data: sites } = useClientSites(form.client_id || undefined);
   const { data: workers } = useWorkers();
+  const { data: signers } = useClientSigners(form.client_id || undefined);
+  const { data: invites } = useClientInvites(form.client_id || undefined);
 
   const selectedClient = clients?.find(c => c.id === form.client_id);
   const selectedSite = sites?.find(s => s.id === form.site_id);
   const selectedWorker = workers?.find(w => w.id === form.worker_id);
+
+  // Signer status for guardrails
+  const linkedSigners = signers?.filter(s => s.user_id) ?? [];
+  const pendingInvites = invites?.filter(i => i.status === "pending") ?? [];
+  const hasNoSigners = !signers || signers.length === 0;
+  const hasNoLinkedSigners = linkedSigners.length === 0;
 
   useEffect(() => {
     if (agencyId) generateTicketNumber(agencyId).then(setTicketNumber);
@@ -262,6 +271,31 @@ export default function CreateTicket() {
         {step === 4 && (
           <div className="space-y-4">
             <h3 className="font-semibold">Review Ticket</h3>
+
+            {/* Signer status guardrail */}
+            {form.client_id && hasNoSigners && (
+              <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 flex items-start gap-2 text-sm">
+                <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
+                <div>
+                  <p className="font-medium text-destructive">No authorized signers</p>
+                  <p className="text-xs text-muted-foreground">This client has no signers. Add a signer on the Clients page before sending.</p>
+                </div>
+              </div>
+            )}
+            {form.client_id && !hasNoSigners && hasNoLinkedSigners && (
+              <div className="rounded-lg border border-warning/30 bg-warning/5 p-3 flex items-start gap-2 text-sm">
+                <AlertTriangle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
+                <div>
+                  <p className="font-medium text-warning">No linked signers</p>
+                  <p className="text-xs text-muted-foreground">
+                    {pendingInvites.length > 0
+                      ? `${pendingInvites.length} invite(s) pending. The signer can still sign after accepting the invite.`
+                      : "No signers have portal accounts yet. Send an invite from the Clients page."}
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="grid gap-3 text-sm">
               {[
                 ["Client", selectedClient?.company_name],

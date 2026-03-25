@@ -39,6 +39,7 @@ import ClientDashboard from "@/pages/client/ClientDashboard";
 import ClientPending from "@/pages/client/ClientPending";
 import ClientHistory from "@/pages/client/ClientHistory";
 import ClientTicketSign from "@/pages/client/ClientTicketSign";
+import ClientOnboarding from "@/pages/client/ClientOnboarding";
 
 // Worker pages
 import WorkerTickets from "@/pages/worker/WorkerTickets";
@@ -71,6 +72,7 @@ const App = () => (
             <Route path="/worker/login" element={<WorkerLogin />} />
             <Route path="/register" element={<Register />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
+            <Route path="/client/onboarding/:token" element={<ClientOnboarding />} />
 
             {/* Agency portal */}
             <Route element={<ProtectedRoute allowedRoles={["super_admin", "agency_admin", "dispatcher", "payroll", "viewer"]} redirectTo="/login" />}>
