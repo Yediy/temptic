@@ -271,6 +271,31 @@ export default function CreateTicket() {
         {step === 4 && (
           <div className="space-y-4">
             <h3 className="font-semibold">Review Ticket</h3>
+
+            {/* Signer status guardrail */}
+            {form.client_id && hasNoSigners && (
+              <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 flex items-start gap-2 text-sm">
+                <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
+                <div>
+                  <p className="font-medium text-destructive">No authorized signers</p>
+                  <p className="text-xs text-muted-foreground">This client has no signers. Add a signer on the Clients page before sending.</p>
+                </div>
+              </div>
+            )}
+            {form.client_id && !hasNoSigners && hasNoLinkedSigners && (
+              <div className="rounded-lg border border-warning/30 bg-warning/5 p-3 flex items-start gap-2 text-sm">
+                <AlertTriangle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
+                <div>
+                  <p className="font-medium text-warning">No linked signers</p>
+                  <p className="text-xs text-muted-foreground">
+                    {pendingInvites.length > 0
+                      ? `${pendingInvites.length} invite(s) pending. The signer can still sign after accepting the invite.`
+                      : "No signers have portal accounts yet. Send an invite from the Clients page."}
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="grid gap-3 text-sm">
               {[
                 ["Client", selectedClient?.company_name],
