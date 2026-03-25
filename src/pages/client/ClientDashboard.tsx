@@ -32,7 +32,7 @@ export default function ClientDashboard() {
       {pending.length > 0 ? (
         <div className="rounded-xl border bg-card">
           <div className="border-b px-4 py-3">
-            <h3 className="text-sm font-semibold">Tickets Awaiting Signature</h3>
+            <h3 className="text-sm font-semibold text-destructive">Tickets Awaiting Signature</h3>
           </div>
           <div className="divide-y">
             {pending.map(t => (
