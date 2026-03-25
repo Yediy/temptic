@@ -77,6 +77,13 @@ export function useSendInvite() {
 
       const invite = data as ClientInvite;
 
+      // Resolve agency name for email
+      let resolvedAgencyName = input.agencyName;
+      if (!resolvedAgencyName && agencyId) {
+        const { data: agency } = await supabase.from("agencies").select("name").eq("id", agencyId).single();
+        resolvedAgencyName = agency?.name || "Your Agency";
+      }
+
       // Send email notification with onboarding link
       const inviteUrl = `${window.location.origin}/client/onboarding/${invite.token}`;
       try {
