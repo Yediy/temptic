@@ -61,6 +61,9 @@ export default function Register() {
         return;
       }
 
+      // Re-fetch roles so AuthProvider picks up the new agency_admin role
+      await refreshUserData();
+
       setLoading(false);
       navigate("/");
     } catch (err: any) {
