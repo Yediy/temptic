@@ -152,7 +152,7 @@ function MappingEditor({ templateId, onClose }: { templateId: string; onClose: (
 
       {/* Readiness indicator */}
       {missingRequired.length > 0 && (
-        <div className="rounded-lg border border-orange-300 bg-orange-50 px-3 py-2 text-xs text-orange-800 dark:border-orange-700 dark:bg-orange-950/30 dark:text-orange-300">
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
           <div className="flex items-center gap-1.5 font-semibold mb-1">
             <AlertTriangle className="h-3.5 w-3.5" />
             Missing required fields
