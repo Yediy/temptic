@@ -70,6 +70,40 @@ export function useCreateClientSite() {
   });
 }
 
+// ─── Client Signers ───
+export function useClientSigners(clientId?: string) {
+  return useQuery({
+    queryKey: ["client_signers", clientId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("client_signers")
+        .select("*")
+        .eq("client_id", clientId!)
+        .order("last_name");
+      if (error) throw error;
+      return data as Tables<"client_signers">[];
+    },
+    enabled: !!clientId,
+  });
+}
+
+export function useCreateClientSigner() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: Omit<TablesInsert<"client_signers">, "initials"> & { client_id: string }) => {
+      const initials = `${(input.first_name || "")[0] || ""}${(input.last_name || "")[0] || ""}`.toUpperCase();
+      const { data, error } = await supabase
+        .from("client_signers")
+        .insert({ ...input, initials })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, vars) => qc.invalidateQueries({ queryKey: ["client_signers", vars.client_id] }),
+  });
+}
+
 // ─── Workers ───
 export function useWorkers() {
   const { agencyId } = useAuth();
@@ -146,11 +180,9 @@ export function useCreateTicket() {
 // ─── Ticket Number ───
 export async function generateTicketNumber(agencyId?: string | null): Promise<string> {
   if (agencyId) {
-    // Use the server-side atomic function to avoid race conditions
     const { data, error } = await supabase.rpc("next_ticket_number", { _agency_id: agencyId });
     if (!error && data) return data;
   }
-  // Fallback: client-side generation (shouldn't happen with valid agencyId)
   const year = new Date().getFullYear();
   const prefix = `TT-${year}-`;
   const { data } = await supabase

@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Building2, MapPin, FileText, Mail, Plus } from "lucide-react";
+import { Building2, MapPin, FileText, Mail, Plus, UserPlus } from "lucide-react";
 import { useClients, useCreateClient, useClientSites, useCreateClientSite } from "@/hooks/use-agency-data";
+import { useCreateClientSigner, useClientSigners } from "@/hooks/use-agency-data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,9 +21,10 @@ function AddClientDialog() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!form.company_name.trim()) { toast.error("Company name is required"); return; }
     try {
       await createClient.mutateAsync(form);
-      toast.success("Client created");
+      toast.success("Client created — now add a work site and signer.");
       setOpen(false);
       setForm({ company_name: "", billing_email: "", billing_name: "", billing_phone: "" });
     } catch (err: any) {
@@ -40,11 +42,11 @@ function AddClientDialog() {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add New Client</DialogTitle>
+          <DialogTitle>Add New Client Company</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="company_name">Company Name</Label>
+            <Label htmlFor="company_name">Company Name *</Label>
             <Input id="company_name" value={form.company_name} onChange={e => setForm({ ...form, company_name: e.target.value })} required className="mt-1" />
           </div>
           <div>
@@ -75,6 +77,7 @@ function AddSiteDialog({ clientId }: { clientId: string }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!form.address_line1.trim()) { toast.error("Address is required"); return; }
     try {
       await createSite.mutateAsync({ ...form, client_id: clientId });
       toast.success("Site added");
@@ -109,7 +112,7 @@ function AddSiteDialog({ clientId }: { clientId: string }) {
             </div>
           </div>
           <div>
-            <Label>Address</Label>
+            <Label>Address *</Label>
             <Input value={form.address_line1} onChange={e => setForm({ ...form, address_line1: e.target.value })} required className="mt-1" />
           </div>
           <div className="grid grid-cols-3 gap-3">
@@ -145,15 +148,103 @@ function AddSiteDialog({ clientId }: { clientId: string }) {
   );
 }
 
+function AddSignerDialog({ clientId }: { clientId: string }) {
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({ first_name: "", last_name: "", email: "", phone: "", title: "" });
+  const createSigner = useCreateClientSigner();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.first_name.trim() || !form.last_name.trim()) { toast.error("Name is required"); return; }
+    try {
+      await createSigner.mutateAsync({ ...form, client_id: clientId });
+      toast.success("Signer added — they can be invited to the client portal later.");
+      setOpen(false);
+      setForm({ first_name: "", last_name: "", email: "", phone: "", title: "" });
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          <UserPlus className="mr-1 h-3 w-3" />
+          Add Signer
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add Authorized Signer</DialogTitle>
+        </DialogHeader>
+        <p className="text-xs text-muted-foreground -mt-2">Add a person authorized to sign tickets for this client. They can be linked to a portal account later.</p>
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>First Name *</Label>
+              <Input value={form.first_name} onChange={e => setForm({ ...form, first_name: e.target.value })} required className="mt-1" />
+            </div>
+            <div>
+              <Label>Last Name *</Label>
+              <Input value={form.last_name} onChange={e => setForm({ ...form, last_name: e.target.value })} required className="mt-1" />
+            </div>
+          </div>
+          <div>
+            <Label>Title</Label>
+            <Input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="e.g. Site Foreman" className="mt-1" />
+          </div>
+          <div>
+            <Label>Email</Label>
+            <Input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="For portal invitations" className="mt-1" />
+          </div>
+          <div>
+            <Label>Phone</Label>
+            <Input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} className="mt-1" />
+          </div>
+          <Button type="submit" className="w-full" disabled={createSigner.isPending}>
+            {createSigner.isPending ? "Adding…" : "Add Signer"}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function ClientSitesList({ clientId }: { clientId: string }) {
   const { data: sites } = useClientSites(clientId);
-  if (!sites || sites.length === 0) return <p className="text-xs text-muted-foreground mt-2">No sites yet</p>;
+  if (!sites || sites.length === 0) return <p className="text-xs text-muted-foreground mt-2">No work sites yet. Add a site to create tickets.</p>;
   return (
     <div className="mt-3 space-y-1.5">
       {sites.map(s => (
         <div key={s.id} className="rounded-md bg-muted/50 px-3 py-2 text-xs">
           <span className="font-medium">{s.site_code ? `${s.site_code} — ` : ""}{s.site_name || s.address_line1}</span>
           {s.report_to_name && <span className="ml-2 text-muted-foreground">· {s.report_to_name}</span>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ClientSignersList({ clientId }: { clientId: string }) {
+  const { data: signers } = useClientSigners(clientId);
+  if (!signers || signers.length === 0) return <p className="text-xs text-muted-foreground mt-2">No authorized signers yet.</p>;
+  return (
+    <div className="mt-2 space-y-1.5">
+      {signers.map(s => (
+        <div key={s.id} className="flex items-center justify-between rounded-md bg-muted/50 px-3 py-2 text-xs">
+          <div>
+            <span className="font-medium">{s.first_name} {s.last_name}</span>
+            {s.title && <span className="text-muted-foreground ml-1">· {s.title}</span>}
+          </div>
+          <div className="flex items-center gap-2">
+            {s.email && <span className="text-muted-foreground">{s.email}</span>}
+            {s.user_id ? (
+              <span className="rounded-full bg-success/15 px-1.5 py-0.5 text-[10px] font-medium text-success">Linked</span>
+            ) : (
+              <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">Not linked</span>
+            )}
+          </div>
         </div>
       ))}
     </div>
@@ -215,14 +306,28 @@ export default function Clients() {
               </div>
 
               {expanded === client.id && (
-                <div className="mt-4 border-t pt-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Work Sites</span>
-                    <div onClick={e => e.stopPropagation()}>
-                      <AddSiteDialog clientId={client.id} />
+                <div className="mt-4 border-t pt-3 space-y-4">
+                  {/* Sites */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Work Sites</span>
+                      <div onClick={e => e.stopPropagation()}>
+                        <AddSiteDialog clientId={client.id} />
+                      </div>
                     </div>
+                    <ClientSitesList clientId={client.id} />
                   </div>
-                  <ClientSitesList clientId={client.id} />
+
+                  {/* Signers */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Authorized Signers</span>
+                      <div onClick={e => e.stopPropagation()}>
+                        <AddSignerDialog clientId={client.id} />
+                      </div>
+                    </div>
+                    <ClientSignersList clientId={client.id} />
+                  </div>
                 </div>
               )}
             </div>
@@ -230,7 +335,8 @@ export default function Clients() {
           {clients?.length === 0 && (
             <div className="col-span-full rounded-xl border border-dashed bg-card p-12 text-center">
               <Building2 className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-              <p className="text-muted-foreground">No clients yet. Add your first client to get started.</p>
+              <p className="text-muted-foreground">No clients yet. Add your first client company to get started.</p>
+              <p className="text-xs text-muted-foreground mt-1">Create a client → add a work site → add authorized signers → create tickets.</p>
             </div>
           )}
         </div>

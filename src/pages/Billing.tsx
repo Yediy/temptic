@@ -39,13 +39,18 @@ export default function Billing() {
     setLoading(priceId);
     try {
       const { data, error } = await supabase.functions.invoke("create-checkout-session", {
-        body: { agency_id: agencyId, plan: priceId },
+        body: {
+          agency_id: agencyId,
+          plan: priceId,
+          success_url: `${window.location.origin}/billing?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${window.location.origin}/billing`,
+        },
       });
       if (error) throw error;
       if (data?.url) {
         window.location.href = data.url;
       } else {
-        toast.info("Checkout session created (Stripe not configured yet)");
+        toast.info(data?.message || "Stripe checkout is not fully configured yet.");
       }
     } catch (err: any) {
       toast.error(err.message || "Failed to start checkout");

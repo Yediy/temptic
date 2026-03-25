@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Archive as ArchiveIcon, Download, Search } from "lucide-react";
+import { Archive as ArchiveIcon, Download, Search, FileText } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { StatusBadge, type TicketStatus } from "@/components/StatusBadge";
@@ -39,7 +39,7 @@ export default function Archive() {
     try {
       await downloadPdf(ticketId, pdfType);
     } catch {
-      toast.error("PDF not available yet");
+      toast.error("PDF not available for this ticket.");
     }
   };
 
@@ -63,7 +63,7 @@ export default function Archive() {
     a.download = `temptic-archive-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success("CSV exported");
+    toast.success(`Exported ${filtered.length} tickets to CSV`);
   };
 
   return (
@@ -72,19 +72,19 @@ export default function Archive() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">PDF Archive</h1>
           <p className="text-sm text-muted-foreground">
-            {isLoading ? "Loading…" : `${archivable.length} archived tickets`}
+            {isLoading ? "Loading…" : `${archivable.length} completed tickets`}
           </p>
         </div>
-        <Button variant="outline" onClick={handleExportCsv}>
+        <Button variant="outline" onClick={handleExportCsv} disabled={filtered.length === 0}>
           <Download className="mr-1 h-4 w-4" />
-          Export CSV
+          Export CSV ({filtered.length})
         </Button>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Search archive..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+          <Input placeholder="Search tickets, clients, workers..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
         <select
           value={statusFilter}
@@ -123,13 +123,24 @@ export default function Archive() {
         {isLoading ? (
           <div className="py-12 text-center text-muted-foreground">Loading…</div>
         ) : filtered.length === 0 ? (
-          <div className="py-12 text-center text-muted-foreground">No archived tickets found.</div>
+          <div className="rounded-xl border border-dashed bg-card p-12 text-center">
+            <ArchiveIcon className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+            <p className="text-muted-foreground">
+              {archivable.length === 0
+                ? "No completed tickets yet. Signed, rejected, or closed tickets will appear here."
+                : "No tickets match your current filters."}
+            </p>
+          </div>
         ) : (
           filtered.map((ticket) => (
             <div key={ticket.id} className="flex items-center justify-between rounded-xl border bg-card p-4 hover:shadow-sm transition-all">
               <div className="flex items-center gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-success/10">
-                  <ArchiveIcon className="h-5 w-5 text-success" />
+                <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${
+                  ticket.status === "signed" ? "bg-success/10" : "bg-muted"
+                }`}>
+                  <ArchiveIcon className={`h-5 w-5 ${
+                    ticket.status === "signed" ? "text-success" : "text-muted-foreground"
+                  }`} />
                 </div>
                 <div>
                   <p className="font-mono text-xs font-semibold tracking-wider">{ticket.ticket_number}</p>
@@ -143,9 +154,15 @@ export default function Archive() {
                 <StatusBadge status={ticket.status as TicketStatus} />
                 {ticket.status === "signed" && (
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="sm" className="text-xs" onClick={() => handleDownload(ticket.id, "agency_copy")}>Agency</Button>
-                    <Button variant="ghost" size="sm" className="text-xs" onClick={() => handleDownload(ticket.id, "client_copy")}>Client</Button>
-                    <Button variant="ghost" size="sm" className="text-xs" onClick={() => handleDownload(ticket.id, "worker_copy")}>Worker</Button>
+                    <Button variant="ghost" size="sm" className="text-xs" onClick={() => handleDownload(ticket.id, "agency_copy")}>
+                      <FileText className="mr-0.5 h-3 w-3" /> Agency
+                    </Button>
+                    <Button variant="ghost" size="sm" className="text-xs" onClick={() => handleDownload(ticket.id, "client_copy")}>
+                      <FileText className="mr-0.5 h-3 w-3" /> Client
+                    </Button>
+                    <Button variant="ghost" size="sm" className="text-xs" onClick={() => handleDownload(ticket.id, "worker_copy")}>
+                      <FileText className="mr-0.5 h-3 w-3" /> Worker
+                    </Button>
                   </div>
                 )}
               </div>
