@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,8 @@ interface InviteData {
 export default function ClientOnboarding() {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectPath = searchParams.get("redirect") || "/client/login";
 
   const [loading, setLoading] = useState(true);
   const [invite, setInvite] = useState<InviteData | null>(null);
@@ -106,8 +108,13 @@ export default function ClientOnboarding() {
         return;
       }
 
-      setSuccess(data.message || "Account created! Redirecting to login...");
-      setTimeout(() => navigate("/client/login"), 3000);
+      const isLoginRedirect = redirectPath === "/client/login";
+      setSuccess(
+        data.message || (isLoginRedirect
+          ? "Account created! Redirecting to login..."
+          : "Account created! Redirecting to your ticket...")
+      );
+      setTimeout(() => navigate(isLoginRedirect ? "/client/login" : `/client/login?redirect=${encodeURIComponent(redirectPath)}`), 3000);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
