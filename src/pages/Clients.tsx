@@ -257,10 +257,12 @@ function SignerInviteActions({
   signer,
   clientId,
   invites,
+  clientCompany,
 }: {
   signer: { id: string; email: string | null; user_id: string | null; first_name: string; last_name: string };
   clientId: string;
   invites: ClientInvite[];
+  clientCompany?: string;
 }) {
   const sendInvite = useSendInvite();
   const revokeInvite = useRevokeInvite();
@@ -352,7 +354,7 @@ function SignerInviteActions({
         disabled={sendInvite.isPending}
         onClick={() => {
           sendInvite.mutate(
-            { client_id: clientId, client_signer_id: signer.id, email: signer.email! },
+            { client_id: clientId, client_signer_id: signer.id, email: signer.email!, signerName: `${signer.first_name} ${signer.last_name}`, clientCompany },
             {
               onSuccess: (newInvite) => {
                 const link = `${window.location.origin}/client/onboarding/${newInvite.token}`;
@@ -370,7 +372,7 @@ function SignerInviteActions({
   );
 }
 
-function ClientSignersList({ clientId }: { clientId: string }) {
+function ClientSignersList({ clientId, clientCompany }: { clientId: string; clientCompany?: string }) {
   const { data: signers } = useClientSigners(clientId);
   const { data: invites } = useClientInvites(clientId);
 
@@ -384,7 +386,7 @@ function ClientSignersList({ clientId }: { clientId: string }) {
             {s.title && <span className="text-muted-foreground ml-1">· {s.title}</span>}
             {s.email && <span className="text-muted-foreground ml-1 text-[10px]">({s.email})</span>}
           </div>
-          <SignerInviteActions signer={s} clientId={clientId} invites={invites ?? []} />
+          <SignerInviteActions signer={s} clientId={clientId} invites={invites ?? []} clientCompany={clientCompany} />
         </div>
       ))}
     </div>
@@ -514,7 +516,7 @@ export default function Clients() {
                         <AddSignerDialog clientId={client.id} />
                       </div>
                     </div>
-                    <ClientSignersList clientId={client.id} />
+                    <ClientSignersList clientId={client.id} clientCompany={client.company_name} />
                   </div>
 
                   <OnboardingProgress clientId={client.id} />
