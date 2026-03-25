@@ -144,24 +144,26 @@ export function useCreateTicket() {
 }
 
 // ─── Ticket Number ───
-export async function generateTicketNumber(): Promise<string> {
+export async function generateTicketNumber(agencyId?: string | null): Promise<string> {
+  if (agencyId) {
+    // Use the server-side atomic function to avoid race conditions
+    const { data, error } = await supabase.rpc("next_ticket_number", { _agency_id: agencyId });
+    if (!error && data) return data;
+  }
+  // Fallback: client-side generation (shouldn't happen with valid agencyId)
   const year = new Date().getFullYear();
   const prefix = `TT-${year}-`;
-  
   const { data } = await supabase
     .from("tickets")
     .select("ticket_number")
     .like("ticket_number", `${prefix}%`)
     .order("ticket_number", { ascending: false })
     .limit(1);
-
   let seq = 1;
   if (data && data.length > 0) {
-    const last = data[0].ticket_number;
-    const num = parseInt(last.replace(prefix, ""), 10);
+    const num = parseInt(data[0].ticket_number.replace(prefix, ""), 10);
     if (!isNaN(num)) seq = num + 1;
   }
-
   return `${prefix}${String(seq).padStart(6, "0")}`;
 }
 

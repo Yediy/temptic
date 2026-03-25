@@ -100,9 +100,21 @@ serve(async (req) => {
       .eq("pdf_type", pdf_type)
       .order("generated_at", { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
-    if (pdfErr || !pdfDoc) throw new Error("PDF not found");
+    if (pdfErr || !pdfDoc) throw new Error("PDF not found. The document may not have been generated yet.");
+
+    // Verify the storage object actually exists before creating a signed URL
+    const { data: fileList, error: listErr } = await supabase.storage
+      .from("ticket-assets")
+      .list(pdfDoc.storage_url.substring(0, pdfDoc.storage_url.lastIndexOf("/")), {
+        search: pdfDoc.storage_url.substring(pdfDoc.storage_url.lastIndexOf("/") + 1),
+        limit: 1,
+      });
+
+    if (listErr || !fileList || fileList.length === 0) {
+      throw new Error("Document file is missing from storage. It may need to be regenerated.");
+    }
 
     const { data: signedUrlData, error: signedUrlErr } = await supabase.storage
       .from("ticket-assets")

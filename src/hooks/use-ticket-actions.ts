@@ -42,7 +42,9 @@ export function useSignTicket() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["client-tickets"] });
       qc.invalidateQueries({ queryKey: ["client-ticket"] });
+      qc.invalidateQueries({ queryKey: ["client-dashboard-stats"] });
       qc.invalidateQueries({ queryKey: ["tickets"] });
+      qc.invalidateQueries({ queryKey: ["ticket"] });
     },
   });
 }
@@ -64,7 +66,9 @@ export function useRejectTicket() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["client-tickets"] });
       qc.invalidateQueries({ queryKey: ["client-ticket"] });
+      qc.invalidateQueries({ queryKey: ["client-dashboard-stats"] });
       qc.invalidateQueries({ queryKey: ["tickets"] });
+      qc.invalidateQueries({ queryKey: ["ticket"] });
     },
   });
 }
