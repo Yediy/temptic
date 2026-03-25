@@ -74,21 +74,32 @@ serve(async (req) => {
       subject = `Ticket ${ticket.ticket_number} ready for signature`;
       html = `<p>Ticket <strong>${ticketNum}</strong> is ready for your signature.</p>`;
     } else if (template_key === "ticket_signed_agency") {
-      // Find agency admin email
-      const { data: member } = await supabase
+      // Find agency admin email — try profiles first, fall back to agency.email
+      const { data: members } = await supabase
         .from("agency_members")
         .select("user_id")
         .eq("agency_id", ticket.agency_id)
         .eq("is_active", true)
-        .limit(1)
-        .single();
-      if (member?.user_id) {
-        const { data: profile } = await supabase
-          .from("profiles")
+        .order("created_at")
+        .limit(5);
+      if (members && members.length > 0) {
+        for (const member of members) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("email")
+            .eq("id", member.user_id)
+            .single();
+          if (profile?.email) { to = profile.email; break; }
+        }
+      }
+      // Fallback: use agency email if no profile email found
+      if (!to) {
+        const { data: agency } = await supabase
+          .from("agencies")
           .select("email")
-          .eq("id", member.user_id)
+          .eq("id", ticket.agency_id)
           .single();
-        to = profile?.email || null;
+        to = agency?.email || null;
       }
       subject = `Ticket ${ticket.ticket_number} signed`;
       html = `<p>Ticket <strong>${ticketNum}</strong> has been signed by the client.</p>`;
