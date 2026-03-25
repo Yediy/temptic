@@ -102,7 +102,7 @@ export default function CreateWeeklyTicket() {
   const selectedSite = sites?.find(s => s.id === form.site_id);
   const selectedWorker = workers?.find(w => w.id === form.worker_id);
 
-  useEffect(() => { generateTicketNumber().then(setTicketNumber); }, []);
+  useEffect(() => { if (agencyId) generateTicketNumber(agencyId).then(setTicketNumber); }, [agencyId]);
 
   const updateWeekStart = (newStart: string) => {
     setForm(f => ({ ...f, week_start: newStart }));

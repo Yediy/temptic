@@ -55,8 +55,8 @@ export default function CreateTicket() {
   const selectedWorker = workers?.find(w => w.id === form.worker_id);
 
   useEffect(() => {
-    generateTicketNumber().then(setTicketNumber);
-  }, []);
+    if (agencyId) generateTicketNumber(agencyId).then(setTicketNumber);
+  }, [agencyId]);
 
   const handleSave = async (status: "draft" | "sent") => {
     if (!agencyId || !selectedClient || !selectedWorker) return;
