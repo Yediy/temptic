@@ -1,6 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
+import { useAllClientInvites } from "@/hooks/use-client-invites";
+import { isPast } from "date-fns";
 import {
   LayoutDashboard,
   FileText,
@@ -24,7 +26,7 @@ const navItems = [
   { label: "Tickets", icon: FileText, path: "/tickets" },
   { label: "Clients", icon: Building2, path: "/clients" },
   { label: "Workers", icon: HardHat, path: "/workers" },
-  { label: "Pending Invites", icon: Mail, path: "/invites" },
+  { label: "Pending Invites", icon: Mail, path: "/invites", badge: true },
   { label: "PDF Archive", icon: Archive, path: "/archive" },
   { label: "Templates", icon: Layers, path: "/templates" },
   { label: "Billing", icon: CreditCard, path: "/billing" },
@@ -40,6 +42,11 @@ export function AppSidebar() {
   const location = useLocation();
   const { signOut, user, roles } = useAuth();
   const isSuperAdmin = roles.includes("super_admin");
+
+  const { data: invites = [] } = useAllClientInvites();
+  const pendingCount = invites.filter(
+    (i) => i.status === "pending" && !isPast(new Date(i.expires_at))
+  ).length;
 
   return (
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col bg-sidebar text-sidebar-foreground">
@@ -82,7 +89,12 @@ export function AppSidebar() {
               )}
             >
               <item.icon className="h-4 w-4" />
-              {item.label}
+              <span className="flex-1">{item.label}</span>
+              {"badge" in item && item.badge && pendingCount > 0 && (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-bold text-destructive-foreground">
+                  {pendingCount > 99 ? "99+" : pendingCount}
+                </span>
+              )}
             </Link>
           );
         })}
