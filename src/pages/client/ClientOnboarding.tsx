@@ -106,8 +106,9 @@ export default function ClientOnboarding() {
         },
       });
 
-      if (fnErr || data?.error) {
-        setError(data?.error || "Failed to accept invite");
+      const result = fnErr ? null : data;
+      if (!result || result?.error) {
+        setError(result?.error || "Failed to accept invite");
         return;
       }
 
