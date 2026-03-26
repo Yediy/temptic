@@ -155,7 +155,36 @@ export function useResendInvite() {
         .select()
         .single();
       if (error) throw error;
-      return data as ClientInvite;
+
+      const invite = data as ClientInvite;
+
+      // Send email notification for the new invite
+      let resolvedAgencyName: string | undefined;
+      if (agencyId) {
+        const { data: agency } = await supabase.from("agencies").select("name").eq("id", agencyId).single();
+        resolvedAgencyName = agency?.name || "Your Agency";
+      }
+
+      const inviteUrl = `${window.location.origin}/client/onboarding/${invite.token}`;
+      try {
+        await supabase.functions.invoke("send-transactional-email", {
+          body: {
+            templateName: "client-invite",
+            recipientEmail: oldInvite.email,
+            idempotencyKey: `client-invite-${invite.id}`,
+            templateData: {
+              agencyName: resolvedAgencyName || "Your Agency",
+              clientCompany: "",
+              signerName: "",
+              inviteUrl,
+            },
+          },
+        });
+      } catch (emailErr) {
+        console.error("Failed to send resend invite email:", emailErr);
+      }
+
+      return invite;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["client_invites"] });

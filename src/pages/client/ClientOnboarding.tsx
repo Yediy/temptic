@@ -60,17 +60,17 @@ export default function ClientOnboarding() {
         return;
       }
 
-      if (data?.error) {
-        setError(data.error);
+      if (result?.error) {
+        setError(result.error);
         return;
       }
 
-      if (data?.invite) {
-        setInvite(data.invite);
+      if (result?.invite) {
+        setInvite(result.invite);
         setForm((f) => ({
           ...f,
-          first_name: data.invite.signer_first_name || "",
-          last_name: data.invite.signer_last_name || "",
+          first_name: result.invite.signer_first_name || "",
+          last_name: result.invite.signer_last_name || "",
         }));
       }
     } catch {
