@@ -100,8 +100,29 @@ serve(async (req) => {
           html = `<p>Ticket <strong>${ticketNum}</strong> is ready for your signature.</p>
                   <p>To get started, create your account first:</p>
                   <p><a href="${onboardingUrl}" style="display:inline-block;padding:10px 20px;background:#2563eb;color:#fff;text-decoration:none;border-radius:6px;">Set Up Account & Sign Ticket</a></p>`;
+        } else if (signer?.email) {
+          // No invite exists — auto-create one so the signer can onboard
+          const { data: newInvite } = await supabase
+            .from("client_invites")
+            .insert({
+              agency_id: ticket.agency_id,
+              client_id: ticket.client_id,
+              client_signer_id: signer.id,
+              email: signer.email,
+            })
+            .select("token")
+            .single();
+
+          if (newInvite?.token) {
+            const onboardingUrl = `${appUrl}/client/onboarding/${newInvite.token}?redirect=${encodeURIComponent(ticketPath)}`;
+            html = `<p>Ticket <strong>${ticketNum}</strong> is ready for your signature.</p>
+                    <p>To get started, create your account first:</p>
+                    <p><a href="${onboardingUrl}" style="display:inline-block;padding:10px 20px;background:#2563eb;color:#fff;text-decoration:none;border-radius:6px;">Set Up Account & Sign Ticket</a></p>`;
+          } else {
+            html = `<p>Ticket <strong>${ticketNum}</strong> is ready for your signature. Please contact your agency to set up portal access.</p>`;
+          }
         } else {
-          // No invite exists — plain notification
+          // No email on signer — can't do anything
           html = `<p>Ticket <strong>${ticketNum}</strong> is ready for your signature. Please contact your agency to set up portal access.</p>`;
         }
       }
