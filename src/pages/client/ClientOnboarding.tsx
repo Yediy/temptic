@@ -114,7 +114,7 @@ export default function ClientOnboarding() {
 
       const isLoginRedirect = redirectPath === "/client/login";
       setSuccess(
-        data.message || (isLoginRedirect
+        result.message || (isLoginRedirect
           ? "Account created! Redirecting to login..."
           : "Account created! Redirecting to your ticket...")
       );
