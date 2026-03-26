@@ -1,11 +1,16 @@
 import "https://deno.land/std@0.224.0/dotenv/load.ts";
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
-const SUPABASE_URL = Deno.env.get("VITE_SUPABASE_URL")!;
+const SUPABASE_URL = Deno.env.get("VITE_SUPABASE_URL") || Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 Deno.test("auto-creates invite for uninvited signer when sending ticket notification", async () => {
-  // First revoke the existing invite to simulate no-invite scenario
+  if (!SERVICE_KEY) {
+    console.log("SUPABASE_SERVICE_ROLE_KEY not available, skipping test");
+    return;
+  }
+
+  // First revoke any existing pending invites to simulate no-invite scenario
   const revokeRes = await fetch(
     `${SUPABASE_URL}/rest/v1/client_invites?client_signer_id=eq.6ef339ce-a8fd-46ed-b782-1219f3d80967&status=eq.pending`,
     {
@@ -20,8 +25,23 @@ Deno.test("auto-creates invite for uninvited signer when sending ticket notifica
     }
   );
   await revokeRes.text();
+  console.log("Revoked existing pending invites, status:", revokeRes.status);
 
-  // Now call send-notification-email — should auto-create an invite
+  // Verify no pending invites exist
+  const checkRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/client_invites?client_signer_id=eq.6ef339ce-a8fd-46ed-b782-1219f3d80967&status=eq.pending`,
+    {
+      headers: {
+        "apikey": SERVICE_KEY,
+        "Authorization": `Bearer ${SERVICE_KEY}`,
+      },
+    }
+  );
+  const checkData = await checkRes.json();
+  console.log("Pending invites before test:", checkData.length);
+  assertEquals(checkData.length, 0, "Should have no pending invites before test");
+
+  // Call send-notification-email — should auto-create an invite
   const res = await fetch(`${SUPABASE_URL}/functions/v1/send-notification-email`, {
     method: "POST",
     headers: {
@@ -36,10 +56,10 @@ Deno.test("auto-creates invite for uninvited signer when sending ticket notifica
     }),
   });
   const data = await res.json();
-  console.log("Response:", JSON.stringify(data));
+  console.log("Notification response:", JSON.stringify(data));
   assertEquals(res.ok, true, `Should succeed: ${JSON.stringify(data)}`);
 
-  // Verify a new invite was auto-created
+  // Verify a new pending invite was auto-created
   const invitesRes = await fetch(
     `${SUPABASE_URL}/rest/v1/client_invites?client_signer_id=eq.6ef339ce-a8fd-46ed-b782-1219f3d80967&status=eq.pending&order=created_at.desc&limit=1`,
     {
@@ -50,9 +70,8 @@ Deno.test("auto-creates invite for uninvited signer when sending ticket notifica
     }
   );
   const invites = await invitesRes.json();
-  console.log("New invites:", JSON.stringify(invites));
+  console.log("Auto-created invites:", JSON.stringify(invites));
   assertEquals(invites.length, 1, "Should have auto-created a new pending invite");
   assertEquals(typeof invites[0].token, "string", "New invite should have a token");
-  console.log("Auto-created invite token:", invites[0].token);
-  console.log("Onboarding URL: /client/onboarding/" + invites[0].token);
+  console.log("✅ Onboarding URL: /client/onboarding/" + invites[0].token);
 });
