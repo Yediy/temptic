@@ -47,12 +47,15 @@ export default function ClientOnboarding() {
         body: { action: "validate", token },
       });
 
-      if (fnErr) {
+      // supabase.functions.invoke returns non-2xx body in data, fnErr for network issues
+      const result = fnErr ? null : data;
+
+      if (fnErr && !result) {
         setError("Unable to validate invite. Please try again.");
         return;
       }
 
-      if (data?.error === "already_accepted") {
+      if (result?.error === "already_accepted") {
         setSuccess("This invite has already been accepted. You can sign in to the client portal.");
         return;
       }
