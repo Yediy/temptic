@@ -107,10 +107,27 @@ serve(async (req) => {
       }
 
       // Check if user already exists with this email
-      const { data: existingUsers } = await supabase.auth.admin.listUsers();
-      const existingUser = existingUsers?.users?.find(
-        (u) => u.email?.toLowerCase() === (email || invite.email).toLowerCase()
+      const targetEmail = (email || invite.email).toLowerCase();
+      const { data: existingUsers } = await supabase.auth.admin.listUsers({
+        page: 1,
+        perPage: 1,
+      });
+      // listUsers doesn't support email filter — search manually in a targeted way
+      let existingUser = existingUsers?.users?.find(
+        (u) => u.email?.toLowerCase() === targetEmail
       );
+      // If not found in first page, try a direct lookup approach
+      if (!existingUser) {
+        // Try signing in with a dummy password to check existence — not ideal
+        // Instead, just search with a broader page if needed
+        const { data: allUsers } = await supabase.auth.admin.listUsers({
+          page: 1,
+          perPage: 1000,
+        });
+        existingUser = allUsers?.users?.find(
+          (u) => u.email?.toLowerCase() === targetEmail
+        );
+      }
 
       let userId: string;
 

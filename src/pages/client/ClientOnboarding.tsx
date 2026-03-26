@@ -47,27 +47,30 @@ export default function ClientOnboarding() {
         body: { action: "validate", token },
       });
 
-      if (fnErr) {
+      // supabase.functions.invoke returns non-2xx body in data, fnErr for network issues
+      const result = fnErr ? null : data;
+
+      if (fnErr && !result) {
         setError("Unable to validate invite. Please try again.");
         return;
       }
 
-      if (data?.error === "already_accepted") {
+      if (result?.error === "already_accepted") {
         setSuccess("This invite has already been accepted. You can sign in to the client portal.");
         return;
       }
 
-      if (data?.error) {
-        setError(data.error);
+      if (result?.error) {
+        setError(result.error);
         return;
       }
 
-      if (data?.invite) {
-        setInvite(data.invite);
+      if (result?.invite) {
+        setInvite(result.invite);
         setForm((f) => ({
           ...f,
-          first_name: data.invite.signer_first_name || "",
-          last_name: data.invite.signer_last_name || "",
+          first_name: result.invite.signer_first_name || "",
+          last_name: result.invite.signer_last_name || "",
         }));
       }
     } catch {
@@ -103,14 +106,15 @@ export default function ClientOnboarding() {
         },
       });
 
-      if (fnErr || data?.error) {
-        setError(data?.error || "Failed to accept invite");
+      const result = fnErr ? null : data;
+      if (!result || result?.error) {
+        setError(result?.error || "Failed to accept invite");
         return;
       }
 
       const isLoginRedirect = redirectPath === "/client/login";
       setSuccess(
-        data.message || (isLoginRedirect
+        result.message || (isLoginRedirect
           ? "Account created! Redirecting to login..."
           : "Account created! Redirecting to your ticket...")
       );

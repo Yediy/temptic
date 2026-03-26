@@ -401,7 +401,7 @@ function OnboardingProgress({ clientId }: { clientId: string }) {
   const hasSites = (sites?.length ?? 0) > 0;
   const hasSigners = (signers?.length ?? 0) > 0;
   const linkedSigners = signers?.filter((s) => s.user_id) ?? [];
-  const pendingInvites = invites?.filter((i) => i.status === "pending") ?? [];
+  const pendingInvites = invites?.filter((i) => i.status === "pending" && new Date(i.expires_at) > new Date()) ?? [];
   const allLinked = hasSigners && linkedSigners.length === signers!.length;
 
   if (allLinked && hasSites) return null; // Fully onboarded
