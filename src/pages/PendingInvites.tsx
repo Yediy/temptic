@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useAllClientInvites, useRevokeInvite, useResendInvite, ClientInvite } from "@/hooks/use-client-invites";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -11,7 +12,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { RefreshCw, XCircle, Mail, Loader2, CheckCircle, Clock, AlertTriangle, Search } from "lucide-react";
-import { format, isPast, formatDistanceToNow } from "date-fns";
+import { format, isPast, formatDistanceToNow, addHours, isBefore } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
