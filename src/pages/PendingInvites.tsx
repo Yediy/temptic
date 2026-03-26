@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useAllClientInvites, useRevokeInvite, useResendInvite, ClientInvite } from "@/hooks/use-client-invites";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -11,7 +12,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { RefreshCw, XCircle, Mail, Loader2, CheckCircle, Clock, AlertTriangle, Search } from "lucide-react";
-import { format, isPast, formatDistanceToNow } from "date-fns";
+import { format, isPast, formatDistanceToNow, addHours, isBefore } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -153,6 +154,15 @@ export default function PendingInvites() {
   const pendingCount = invites.filter((i) => getEffectiveStatus(i) === "pending").length;
   const expiredCount = invites.filter((i) => getEffectiveStatus(i) === "expired").length;
 
+  // Expiring soon (within 24 hours)
+  const now = new Date();
+  const soonThreshold = addHours(now, 24);
+  const expiringSoon = invites.filter((i) => {
+    if (getEffectiveStatus(i) !== "pending") return false;
+    const exp = new Date(i.expires_at);
+    return isBefore(exp, soonThreshold) && !isPast(exp);
+  });
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between flex-wrap gap-3">
@@ -179,6 +189,18 @@ export default function PendingInvites() {
           </div>
         )}
       </div>
+
+      {expiringSoon.length > 0 && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Expiring soon</AlertTitle>
+          <AlertDescription>
+            {expiringSoon.length} invite{expiringSoon.length > 1 ? "s" : ""} will expire in the next 24 hours:{" "}
+            {expiringSoon.map((inv) => inv.email).join(", ")}.
+            Consider resending before they expire.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
