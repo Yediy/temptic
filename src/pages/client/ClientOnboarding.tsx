@@ -47,25 +47,33 @@ export default function ClientOnboarding() {
         body: { action: "validate", token },
       });
 
-      // supabase.functions.invoke returns non-2xx body in data, fnErr for network issues
-      const result = fnErr ? null : data;
+      // For non-2xx, supabase-js sets fnErr and data=null. Extract body from fnErr.context.
+      let result = data;
+      if (fnErr) {
+        try {
+          const ctx = (fnErr as any).context;
+          if (ctx instanceof Response) {
+            result = await ctx.json();
+          }
+        } catch { /* ignore parse errors */ }
+      }
 
-      if (fnErr && !result) {
+      if (!result) {
         setError("Unable to validate invite. Please try again.");
         return;
       }
 
-      if (result?.error === "already_accepted") {
+      if (result.error === "already_accepted") {
         setSuccess("This invite has already been accepted. You can sign in to the client portal.");
         return;
       }
 
-      if (result?.error) {
+      if (result.error) {
         setError(result.error);
         return;
       }
 
-      if (result?.invite) {
+      if (result.invite) {
         setInvite(result.invite);
         setForm((f) => ({
           ...f,
@@ -106,7 +114,13 @@ export default function ClientOnboarding() {
         },
       });
 
-      const result = fnErr ? null : data;
+      let result = data;
+      if (fnErr) {
+        try {
+          const ctx = (fnErr as any).context;
+          if (ctx instanceof Response) result = await ctx.json();
+        } catch { /* ignore */ }
+      }
       if (!result || result?.error) {
         setError(result?.error || "Failed to accept invite");
         return;
