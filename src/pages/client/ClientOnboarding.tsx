@@ -65,12 +65,12 @@ export default function ClientOnboarding() {
         return;
       }
 
-      if (result?.invite) {
-        setInvite(result.invite);
+      if (data?.invite) {
+        setInvite(data.invite);
         setForm((f) => ({
           ...f,
-          first_name: result.invite.signer_first_name || "",
-          last_name: result.invite.signer_last_name || "",
+          first_name: data.invite.signer_first_name || "",
+          last_name: data.invite.signer_last_name || "",
         }));
       }
     } catch {
