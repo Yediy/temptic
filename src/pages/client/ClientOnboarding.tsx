@@ -106,15 +106,18 @@ export default function ClientOnboarding() {
         },
       });
 
-      const result = fnErr ? null : data;
-      if (!result || result?.error) {
-        setError(result?.error || "Failed to accept invite");
+      if (fnErr && !data) {
+        setError("Failed to accept invite");
+        return;
+      }
+      if (data?.error) {
+        setError(data.error);
         return;
       }
 
       const isLoginRedirect = redirectPath === "/client/login";
       setSuccess(
-        result.message || (isLoginRedirect
+        data.message || (isLoginRedirect
           ? "Account created! Redirecting to login..."
           : "Account created! Redirecting to your ticket...")
       );
