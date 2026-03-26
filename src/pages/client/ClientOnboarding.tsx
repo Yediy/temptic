@@ -114,12 +114,15 @@ export default function ClientOnboarding() {
         },
       });
 
-      if (fnErr && !data) {
-        setError("Failed to accept invite");
-        return;
+      let result = data;
+      if (fnErr) {
+        try {
+          const ctx = (fnErr as any).context;
+          if (ctx instanceof Response) result = await ctx.json();
+        } catch { /* ignore */ }
       }
-      if (data?.error) {
-        setError(data.error);
+      if (!result || result?.error) {
+        setError(result?.error || "Failed to accept invite");
         return;
       }
 
