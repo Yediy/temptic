@@ -47,6 +47,8 @@ import ClientResetPassword from "@/pages/auth/ClientResetPassword";
 // Worker pages
 import WorkerTickets from "@/pages/worker/WorkerTickets";
 import WorkerHours from "@/pages/worker/WorkerHours";
+import WorkerForgotPassword from "@/pages/auth/WorkerForgotPassword";
+import WorkerResetPassword from "@/pages/auth/WorkerResetPassword";
 
 import NotFound from "./pages/NotFound";
 import Unsubscribe from "@/pages/Unsubscribe";
@@ -79,6 +81,8 @@ const App = () => (
             <Route path="/client/onboarding/:token" element={<ClientOnboarding />} />
             <Route path="/client/forgot-password" element={<ClientForgotPassword />} />
             <Route path="/client/reset-password" element={<ClientResetPassword />} />
+            <Route path="/worker/forgot-password" element={<WorkerForgotPassword />} />
+            <Route path="/worker/reset-password" element={<WorkerResetPassword />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
 
             {/* Agency portal */}
