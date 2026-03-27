@@ -15,6 +15,8 @@ import ClientLogin from "@/pages/auth/ClientLogin";
 import WorkerLogin from "@/pages/auth/WorkerLogin";
 import Register from "@/pages/auth/Register";
 import Unauthorized from "@/pages/Unauthorized";
+import AgencyForgotPassword from "@/pages/auth/AgencyForgotPassword";
+import AgencyResetPassword from "@/pages/auth/AgencyResetPassword";
 
 // Agency pages
 import Dashboard from "@/pages/Dashboard";
