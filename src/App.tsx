@@ -41,6 +41,8 @@ import ClientPending from "@/pages/client/ClientPending";
 import ClientHistory from "@/pages/client/ClientHistory";
 import ClientTicketSign from "@/pages/client/ClientTicketSign";
 import ClientOnboarding from "@/pages/client/ClientOnboarding";
+import ClientForgotPassword from "@/pages/auth/ClientForgotPassword";
+import ClientResetPassword from "@/pages/auth/ClientResetPassword";
 
 // Worker pages
 import WorkerTickets from "@/pages/worker/WorkerTickets";
