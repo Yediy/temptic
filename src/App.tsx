@@ -47,6 +47,8 @@ import ClientResetPassword from "@/pages/auth/ClientResetPassword";
 // Worker pages
 import WorkerTickets from "@/pages/worker/WorkerTickets";
 import WorkerHours from "@/pages/worker/WorkerHours";
+import WorkerForgotPassword from "@/pages/auth/WorkerForgotPassword";
+import WorkerResetPassword from "@/pages/auth/WorkerResetPassword";
 
 import NotFound from "./pages/NotFound";
 import Unsubscribe from "@/pages/Unsubscribe";
