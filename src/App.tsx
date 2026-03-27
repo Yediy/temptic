@@ -15,6 +15,8 @@ import ClientLogin from "@/pages/auth/ClientLogin";
 import WorkerLogin from "@/pages/auth/WorkerLogin";
 import Register from "@/pages/auth/Register";
 import Unauthorized from "@/pages/Unauthorized";
+import AgencyForgotPassword from "@/pages/auth/AgencyForgotPassword";
+import AgencyResetPassword from "@/pages/auth/AgencyResetPassword";
 
 // Agency pages
 import Dashboard from "@/pages/Dashboard";
@@ -79,6 +81,8 @@ const App = () => (
             <Route path="/register" element={<Register />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="/client/onboarding/:token" element={<ClientOnboarding />} />
+            <Route path="/forgot-password" element={<AgencyForgotPassword />} />
+            <Route path="/reset-password" element={<AgencyResetPassword />} />
             <Route path="/client/forgot-password" element={<ClientForgotPassword />} />
             <Route path="/client/reset-password" element={<ClientResetPassword />} />
             <Route path="/worker/forgot-password" element={<WorkerForgotPassword />} />
