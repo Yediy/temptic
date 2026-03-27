@@ -81,6 +81,8 @@ const App = () => (
             <Route path="/register" element={<Register />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="/client/onboarding/:token" element={<ClientOnboarding />} />
+            <Route path="/forgot-password" element={<AgencyForgotPassword />} />
+            <Route path="/reset-password" element={<AgencyResetPassword />} />
             <Route path="/client/forgot-password" element={<ClientForgotPassword />} />
             <Route path="/client/reset-password" element={<ClientResetPassword />} />
             <Route path="/worker/forgot-password" element={<WorkerForgotPassword />} />
