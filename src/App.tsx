@@ -81,6 +81,8 @@ const App = () => (
             <Route path="/client/onboarding/:token" element={<ClientOnboarding />} />
             <Route path="/client/forgot-password" element={<ClientForgotPassword />} />
             <Route path="/client/reset-password" element={<ClientResetPassword />} />
+            <Route path="/worker/forgot-password" element={<WorkerForgotPassword />} />
+            <Route path="/worker/reset-password" element={<WorkerResetPassword />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
 
             {/* Agency portal */}

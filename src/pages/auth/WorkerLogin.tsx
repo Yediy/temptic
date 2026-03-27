@@ -45,7 +45,12 @@ export default function WorkerLogin() {
             <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} required className="mt-1" placeholder="worker@email.com" />
           </div>
           <div>
-            <Label htmlFor="password">Password</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Password</Label>
+              <Link to="/worker/forgot-password" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+                Forgot password?
+              </Link>
+            </div>
             <PasswordInput id="password" value={password} onChange={e => setPassword(e.target.value)} required className="mt-1" placeholder="••••••••" />
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
