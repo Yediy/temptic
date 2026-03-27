@@ -41,6 +41,8 @@ import ClientPending from "@/pages/client/ClientPending";
 import ClientHistory from "@/pages/client/ClientHistory";
 import ClientTicketSign from "@/pages/client/ClientTicketSign";
 import ClientOnboarding from "@/pages/client/ClientOnboarding";
+import ClientForgotPassword from "@/pages/auth/ClientForgotPassword";
+import ClientResetPassword from "@/pages/auth/ClientResetPassword";
 
 // Worker pages
 import WorkerTickets from "@/pages/worker/WorkerTickets";
@@ -75,6 +77,8 @@ const App = () => (
             <Route path="/register" element={<Register />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="/client/onboarding/:token" element={<ClientOnboarding />} />
+            <Route path="/client/forgot-password" element={<ClientForgotPassword />} />
+            <Route path="/client/reset-password" element={<ClientResetPassword />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
 
             {/* Agency portal */}
