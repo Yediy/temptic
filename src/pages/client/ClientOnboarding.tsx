@@ -20,7 +20,7 @@ export default function ClientOnboarding() {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const redirectPath = searchParams.get("redirect") || "/client/login";
+  const redirectPath = searchParams.get("redirect") || "/client";
 
   const [loading, setLoading] = useState(true);
   const [invite, setInvite] = useState<InviteData | null>(null);
@@ -47,7 +47,6 @@ export default function ClientOnboarding() {
         body: { action: "validate", token },
       });
 
-      // For non-2xx, supabase-js sets fnErr and data=null. Extract body from fnErr.context.
       let result = data;
       if (fnErr) {
         try {
@@ -126,13 +125,36 @@ export default function ClientOnboarding() {
         return;
       }
 
-      const isLoginRedirect = redirectPath === "/client/login";
+      // Try auto sign-in for new accounts
+      if (result.password_provided && result.email) {
+        try {
+          const { error: signInErr } = await supabase.auth.signInWithPassword({
+            email: result.email,
+            password: form.password,
+          });
+          if (!signInErr) {
+            // Successfully signed in — redirect directly
+            setSuccess("Account created! Redirecting…");
+            setTimeout(() => navigate(redirectPath, { replace: true }), 1500);
+            return;
+          }
+        } catch {
+          // Fall through to manual sign-in flow
+        }
+      }
+
+      // Existing account or auto sign-in failed — redirect to login
+      const isDefaultRedirect = redirectPath === "/client";
+      const loginPath = isDefaultRedirect
+        ? "/client/login"
+        : `/client/login?redirect=${encodeURIComponent(redirectPath)}`;
+
       setSuccess(
-        result.message || (isLoginRedirect
-          ? "Account created! Redirecting to login..."
-          : "Account created! Redirecting to your ticket...")
+        result.existing_account
+          ? "Your account has been linked. Redirecting to sign in…"
+          : "Account created! Redirecting to sign in…"
       );
-      setTimeout(() => navigate(isLoginRedirect ? "/client/login" : `/client/login?redirect=${encodeURIComponent(redirectPath)}`), 3000);
+      setTimeout(() => navigate(loginPath, { replace: true }), 3000);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
