@@ -20,9 +20,9 @@ serve(async (req) => {
     const internalSecret = req.headers.get("x-internal-secret");
     const authHeader = req.headers.get("Authorization");
     const isInternal = internalSecret === serviceKey;
-    const isCron = authHeader === `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`;
+    const isServiceRole = authHeader === `Bearer ${serviceKey}`;
 
-    if (!isInternal && !isCron) {
+    if (!isInternal && !isServiceRole) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 403,

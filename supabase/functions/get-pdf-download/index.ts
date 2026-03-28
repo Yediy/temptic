@@ -46,12 +46,14 @@ serve(async (req) => {
       .from("client_signers")
       .select("client_id")
       .eq("user_id", user.id)
+      .eq("is_active", true)
       .maybeSingle();
 
     const { data: worker } = await supabase
       .from("workers")
       .select("id")
       .eq("user_id", user.id)
+      .eq("is_active", true)
       .maybeSingle();
 
     // Fetch ticket with tenant isolation for agency users
