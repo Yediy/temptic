@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Building2, MapPin, Mail, Plus, UserPlus, Send, RefreshCw, XCircle, CheckCircle, Clock, Copy } from "lucide-react";
+import { Building2, MapPin, Mail, Plus, UserPlus, Send, RefreshCw, XCircle, CheckCircle, Clock, Copy, AlertTriangle } from "lucide-react";
 import { useClients, useCreateClient, useClientSites, useCreateClientSite } from "@/hooks/use-agency-data";
 import { useCreateClientSigner, useClientSigners } from "@/hooks/use-agency-data";
 import { useClientInvites, useSendInvite, useRevokeInvite, useResendInvite, type ClientInvite } from "@/hooks/use-client-invites";
