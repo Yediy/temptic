@@ -7,6 +7,13 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function jsonResponse(body: Record<string, unknown>, status = 200) {
+  return new Response(JSON.stringify(body), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    status,
+  });
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -20,6 +27,10 @@ serve(async (req) => {
     const { action, token, email, password, first_name, last_name } =
       await req.json();
 
+    if (!token || typeof token !== "string") {
+      return jsonResponse({ error: "Missing or invalid token" }, 400);
+    }
+
     // ── Validate token (public, no auth required) ──
     if (action === "validate") {
       const { data: invite, error } = await supabase
@@ -31,56 +42,42 @@ serve(async (req) => {
         .single();
 
       if (error || !invite) {
-        return new Response(
-          JSON.stringify({ error: "Invalid invite token" }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 }
-        );
+        return jsonResponse({ error: "Invalid invite token" }, 404);
       }
 
       if (invite.status === "accepted") {
-        return new Response(
-          JSON.stringify({ error: "already_accepted", invite }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
-        );
+        return jsonResponse({ error: "already_accepted", invite }, 400);
       }
 
       if (invite.status === "revoked") {
-        return new Response(
-          JSON.stringify({ error: "This invite has been revoked" }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
-        );
+        return jsonResponse({ error: "This invite has been revoked" }, 400);
       }
 
       if (new Date(invite.expires_at) < new Date()) {
-        // Auto-expire
         await supabase
           .from("client_invites")
           .update({ status: "expired" })
           .eq("id", invite.id);
-        return new Response(
-          JSON.stringify({ error: "This invite has expired. Please ask the agency to resend." }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+        return jsonResponse(
+          { error: "This invite has expired. Please ask the agency to resend." },
+          400
         );
       }
 
-      return new Response(
-        JSON.stringify({
-          invite: {
-            id: invite.id,
-            email: invite.email,
-            agency_name: (invite as any).agencies?.name,
-            client_company: (invite as any).clients?.company_name,
-            signer_first_name: (invite as any).client_signers?.first_name,
-            signer_last_name: (invite as any).client_signers?.last_name,
-          },
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return jsonResponse({
+        invite: {
+          id: invite.id,
+          email: invite.email,
+          agency_name: (invite as any).agencies?.name,
+          client_company: (invite as any).clients?.company_name,
+          signer_first_name: (invite as any).client_signers?.first_name,
+          signer_last_name: (invite as any).client_signers?.last_name,
+        },
+      });
     }
 
     // ── Accept invite (create account + link) ──
     if (action === "accept") {
-      // Look up the invite
       const { data: invite, error: invErr } = await supabase
         .from("client_invites")
         .select("*")
@@ -89,10 +86,7 @@ serve(async (req) => {
         .single();
 
       if (invErr || !invite) {
-        return new Response(
-          JSON.stringify({ error: "Invalid or expired invite" }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
-        );
+        return jsonResponse({ error: "Invalid or expired invite" }, 400);
       }
 
       if (new Date(invite.expires_at) < new Date()) {
@@ -100,91 +94,96 @@ serve(async (req) => {
           .from("client_invites")
           .update({ status: "expired" })
           .eq("id", invite.id);
-        return new Response(
-          JSON.stringify({ error: "This invite has expired" }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
-        );
+        return jsonResponse({ error: "This invite has expired" }, 400);
       }
 
-      // Check if user already exists with this email
-      const targetEmail = (email || invite.email).toLowerCase();
-      const { data: existingUsers } = await supabase.auth.admin.listUsers({
-        page: 1,
-        perPage: 1,
-      });
-      // listUsers doesn't support email filter — search manually in a targeted way
-      let existingUser = existingUsers?.users?.find(
-        (u) => u.email?.toLowerCase() === targetEmail
-      );
-      // If not found in first page, try a direct lookup approach
-      if (!existingUser) {
-        // Try signing in with a dummy password to check existence — not ideal
-        // Instead, just search with a broader page if needed
-        const { data: allUsers } = await supabase.auth.admin.listUsers({
-          page: 1,
-          perPage: 1000,
+      // ── Resolve target email ──
+      const targetEmail = (email || invite.email).toLowerCase().trim();
+
+      // ── Check if signer is already linked to a different user ──
+      const { data: signer } = await supabase
+        .from("client_signers")
+        .select("id, user_id, email")
+        .eq("id", invite.client_signer_id)
+        .single();
+
+      if (!signer) {
+        return jsonResponse({ error: "Signer record not found" }, 400);
+      }
+
+      if (signer.user_id) {
+        // Already linked — don't overwrite. Mark invite accepted since the signer is set up.
+        await supabase
+          .from("client_invites")
+          .update({ status: "accepted", accepted_at: new Date().toISOString() })
+          .eq("id", invite.id);
+        return jsonResponse({
+          success: true,
+          existing_account: true,
+          already_linked: true,
+          message: "This signer is already linked to an account. You can sign in to the client portal.",
         });
-        existingUser = allUsers?.users?.find(
-          (u) => u.email?.toLowerCase() === targetEmail
-        );
+      }
+
+      // ── Find existing user by email using getUserByEmail (no broad scan) ──
+      let existingUserId: string | null = null;
+
+      // Supabase Admin API: lookup user by email directly via REST
+      // supabase-js admin.listUsers doesn't support email filter, but we can use
+      // the REST API directly for a targeted lookup
+      const listResp = await fetch(
+        `${supabaseUrl}/auth/v1/admin/users?page=1&per_page=1&filter=${encodeURIComponent(targetEmail)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${serviceKey}`,
+            apikey: serviceKey,
+          },
+        }
+      );
+
+      if (listResp.ok) {
+        const listData = await listResp.json();
+        const users = listData.users || listData;
+        if (Array.isArray(users)) {
+          const match = users.find(
+            (u: any) => u.email?.toLowerCase() === targetEmail
+          );
+          if (match) existingUserId = match.id;
+        }
       }
 
       let userId: string;
 
-      if (existingUser) {
-        // User already has an account — just link them
-        userId = existingUser.id;
+      if (existingUserId) {
+        userId = existingUserId;
       } else {
         // Create new user
         if (!password || password.length < 6) {
-          return new Response(
-            JSON.stringify({ error: "Password must be at least 6 characters" }),
-            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+          return jsonResponse(
+            { error: "Password must be at least 6 characters" },
+            400
           );
         }
 
-        const { data: newUser, error: createErr } = await supabase.auth.admin.createUser({
-          email: email || invite.email,
-          password,
-          email_confirm: true,
-          user_metadata: {
-            first_name: first_name || "",
-            last_name: last_name || "",
-          },
-        });
+        const { data: newUser, error: createErr } =
+          await supabase.auth.admin.createUser({
+            email: targetEmail,
+            password,
+            email_confirm: true,
+            user_metadata: {
+              first_name: first_name || "",
+              last_name: last_name || "",
+            },
+          });
 
         if (createErr) {
-          return new Response(
-            JSON.stringify({ error: createErr.message }),
-            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
-          );
+          return jsonResponse({ error: createErr.message }, 400);
         }
 
         userId = newUser.user.id;
-
-        // Assign client_user role
-        await supabase.from("user_roles").insert({
-          user_id: userId,
-          role: "client_user",
-        });
       }
 
-      // Link user to client_signer record
-      await supabase
-        .from("client_signers")
-        .update({ user_id: userId })
-        .eq("id", invite.client_signer_id);
-
-      // Mark invite as accepted
-      await supabase
-        .from("client_invites")
-        .update({
-          status: "accepted",
-          accepted_at: new Date().toISOString(),
-        })
-        .eq("id", invite.id);
-
-      // Ensure client_user role exists (idempotent)
+      // ── Ensure client_user role (idempotent upsert) ──
       const { data: existingRole } = await supabase
         .from("user_roles")
         .select("id")
@@ -199,26 +198,66 @@ serve(async (req) => {
         });
       }
 
-      return new Response(
-        JSON.stringify({
-          success: true,
-          existing_account: !!existingUser,
-          message: existingUser
-            ? "Your account has been linked. You can now sign in."
-            : "Account created successfully. You can now sign in.",
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      // ── Link user to client_signer (safe: we already checked user_id is null above) ──
+      const { error: linkErr } = await supabase
+        .from("client_signers")
+        .update({ user_id: userId })
+        .eq("id", invite.client_signer_id)
+        .is("user_id", null); // Extra safety: only update if still null
+
+      if (linkErr) {
+        console.error("Failed to link signer:", linkErr);
+        return jsonResponse(
+          { error: "Failed to link your account to the signer record. Please contact the agency." },
+          500
+        );
+      }
+
+      // ── Mark invite as accepted ──
+      await supabase
+        .from("client_invites")
+        .update({
+          status: "accepted",
+          accepted_at: new Date().toISOString(),
+        })
+        .eq("id", invite.id);
+
+      // ── Try to generate a session for auto sign-in ──
+      let session_token: string | null = null;
+      let refresh_token: string | null = null;
+
+      if (!existingUserId && password) {
+        // For newly created users, we can generate a sign-in link
+        // or the client can sign in with the password they just set
+        try {
+          const { data: signInData } = await supabase.auth.admin.generateLink({
+            type: "magiclink",
+            email: targetEmail,
+          });
+          if (signInData?.properties?.hashed_token) {
+            session_token = signInData.properties.hashed_token;
+          }
+        } catch {
+          // Non-critical — user can still sign in manually
+        }
+      }
+
+      return jsonResponse({
+        success: true,
+        existing_account: !!existingUserId,
+        session_token,
+        refresh_token,
+        email: targetEmail,
+        password_provided: !existingUserId && !!password,
+        message: existingUserId
+          ? "Your account has been linked. You can now sign in."
+          : "Account created successfully. Signing you in…",
+      });
     }
 
-    return new Response(
-      JSON.stringify({ error: "Invalid action" }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
-    );
+    return jsonResponse({ error: "Invalid action" }, 400);
   } catch (err: any) {
-    return new Response(
-      JSON.stringify({ error: err.message }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-    );
+    console.error("accept-invite error:", err);
+    return jsonResponse({ error: err.message }, 500);
   }
 });

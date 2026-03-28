@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Building2, MapPin, Mail, Plus, UserPlus, Send, RefreshCw, XCircle, CheckCircle, Clock, Copy } from "lucide-react";
+import { Building2, MapPin, Mail, Plus, UserPlus, Send, RefreshCw, XCircle, CheckCircle, Clock, Copy, AlertTriangle } from "lucide-react";
 import { useClients, useCreateClient, useClientSites, useCreateClientSite } from "@/hooks/use-agency-data";
 import { useCreateClientSigner, useClientSigners } from "@/hooks/use-agency-data";
 import { useClientInvites, useSendInvite, useRevokeInvite, useResendInvite, type ClientInvite } from "@/hooks/use-client-invites";
@@ -212,9 +212,16 @@ function AddSignerDialog({ clientId }: { clientId: string }) {
   );
 }
 
+function getEffectiveInviteStatus(status: string, expiresAt: string) {
+  if (status === "accepted") return "accepted";
+  if (status === "revoked") return "revoked";
+  if (status === "expired") return "expired";
+  if (status === "pending" && new Date(expiresAt) < new Date()) return "expired";
+  return "pending";
+}
+
 function InviteStatusBadge({ status, expiresAt }: { status: string; expiresAt: string }) {
-  const isExpired = status === "pending" && new Date(expiresAt) < new Date();
-  const effectiveStatus = isExpired ? "expired" : status;
+  const effectiveStatus = getEffectiveInviteStatus(status, expiresAt);
 
   const styles: Record<string, string> = {
     pending: "bg-warning/15 text-warning",
@@ -401,7 +408,9 @@ function OnboardingProgress({ clientId }: { clientId: string }) {
   const hasSites = (sites?.length ?? 0) > 0;
   const hasSigners = (signers?.length ?? 0) > 0;
   const linkedSigners = signers?.filter((s) => s.user_id) ?? [];
-  const pendingInvites = invites?.filter((i) => i.status === "pending" && new Date(i.expires_at) > new Date()) ?? [];
+  const unlinkedSigners = signers?.filter((s) => !s.user_id) ?? [];
+  const pendingInvites = invites?.filter((i) => getEffectiveInviteStatus(i.status, i.expires_at) === "pending") ?? [];
+  const expiredInvites = invites?.filter((i) => getEffectiveInviteStatus(i.status, i.expires_at) === "expired") ?? [];
   const allLinked = hasSigners && linkedSigners.length === signers!.length;
 
   if (allLinked && hasSites) return null; // Fully onboarded
@@ -422,16 +431,20 @@ function OnboardingProgress({ clientId }: { clientId: string }) {
           <CheckCircle className="h-3 w-3 text-success" />
         ) : pendingInvites.length > 0 ? (
           <Clock className="h-3 w-3 text-warning" />
+        ) : unlinkedSigners.length > 0 ? (
+          <AlertTriangle className="h-3 w-3 text-destructive" />
         ) : (
           <Clock className="h-3 w-3 text-muted-foreground" />
         )}
         <span className={allLinked ? "text-success" : ""}>
           {allLinked
-            ? "All signers linked"
+            ? "All signers active"
             : linkedSigners.length > 0
-            ? `${linkedSigners.length}/${signers!.length} signers linked`
+            ? `${linkedSigners.length}/${signers!.length} signers active`
             : pendingInvites.length > 0
             ? `${pendingInvites.length} invite(s) pending`
+            : expiredInvites.length > 0
+            ? `${expiredInvites.length} invite(s) expired — resend needed`
             : "Invite signers to portal"}
         </span>
       </div>

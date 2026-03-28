@@ -136,11 +136,13 @@ export function useResendInvite() {
 
   return useMutation({
     mutationFn: async (oldInvite: ClientInvite) => {
-      // Revoke the old invite
-      await supabase
-        .from("client_invites")
-        .update({ status: "revoked" } as any)
-        .eq("id", oldInvite.id);
+      // Revoke/expire the old invite if still pending
+      if (oldInvite.status === "pending") {
+        await supabase
+          .from("client_invites")
+          .update({ status: "revoked" } as any)
+          .eq("id", oldInvite.id);
+      }
 
       // Create a new one
       const { data, error } = await supabase

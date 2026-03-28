@@ -18,9 +18,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 
-function getEffectiveStatus(invite: ClientInvite) {
+export function getEffectiveStatus(invite: ClientInvite) {
   if (invite.status === "accepted") return "accepted";
   if (invite.status === "revoked") return "revoked";
+  if (invite.status === "expired") return "expired";
   if (invite.status === "pending" && isPast(new Date(invite.expires_at))) return "expired";
   return "pending";
 }
@@ -82,8 +83,11 @@ export default function PendingInvites() {
     });
   }, [invites, statusFilter, clientFilter, searchQuery, clientMap]);
 
-  // Only pending invites in filtered view are selectable
-  const selectableInvites = filteredInvites.filter((i) => i.status === "pending");
+  // Actionable invites: pending OR expired (can resend expired)
+  const actionableInvites = filteredInvites.filter((i) => {
+    const s = getEffectiveStatus(i);
+    return s === "pending" || s === "expired";
+  });
 
   const toggleSelect = (id: string) => {
     setSelected((prev) => {
@@ -94,10 +98,10 @@ export default function PendingInvites() {
   };
 
   const toggleAll = () => {
-    if (selected.size === selectableInvites.length && selectableInvites.length > 0) {
+    if (selected.size === actionableInvites.length && actionableInvites.length > 0) {
       setSelected(new Set());
     } else {
-      setSelected(new Set(selectableInvites.map((i) => i.id)));
+      setSelected(new Set(actionableInvites.map((i) => i.id)));
     }
   };
 
@@ -122,6 +126,8 @@ export default function PendingInvites() {
     setBulkLoading(true);
     let success = 0;
     for (const id of selected) {
+      const eff = getEffectiveStatus(invites.find((i) => i.id === id)!);
+      if (eff !== "pending") continue; // Can only revoke truly pending
       try {
         await revokeInvite.mutateAsync(id);
         success++;
@@ -153,6 +159,7 @@ export default function PendingInvites() {
   // Stats
   const pendingCount = invites.filter((i) => getEffectiveStatus(i) === "pending").length;
   const expiredCount = invites.filter((i) => getEffectiveStatus(i) === "expired").length;
+  const acceptedCount = invites.filter((i) => getEffectiveStatus(i) === "accepted").length;
 
   // Expiring soon (within 24 hours)
   const now = new Date();
@@ -171,7 +178,7 @@ export default function PendingInvites() {
           <p className="text-sm text-muted-foreground">
             {isLoading
               ? "Loading…"
-              : `${invites.length} total · ${pendingCount} pending · ${expiredCount} expired`}
+              : `${invites.length} total · ${pendingCount} pending · ${expiredCount} expired · ${acceptedCount} accepted`}
           </p>
         </div>
 
@@ -261,7 +268,7 @@ export default function PendingInvites() {
               <TableRow>
                 <TableHead className="w-10">
                   <Checkbox
-                    checked={selectableInvites.length > 0 && selected.size === selectableInvites.length}
+                    checked={actionableInvites.length > 0 && selected.size === actionableInvites.length}
                     onCheckedChange={toggleAll}
                   />
                 </TableHead>
@@ -276,12 +283,14 @@ export default function PendingInvites() {
             <TableBody>
               {filteredInvites.map((invite) => {
                 const effectiveStatus = getEffectiveStatus(invite);
-                const canAct = invite.status === "pending";
+                const isPending = effectiveStatus === "pending";
+                const isExpired = effectiveStatus === "expired";
+                const canSelect = isPending || isExpired;
 
                 return (
-                  <TableRow key={invite.id}>
+                  <TableRow key={invite.id} className={isExpired ? "opacity-75" : ""}>
                     <TableCell>
-                      {canAct ? (
+                      {canSelect ? (
                         <Checkbox
                           checked={selected.has(invite.id)}
                           onCheckedChange={() => toggleSelect(invite.id)}
@@ -301,30 +310,38 @@ export default function PendingInvites() {
                     <TableCell className="text-sm text-muted-foreground">
                       {effectiveStatus === "expired"
                         ? "Expired"
+                        : effectiveStatus === "accepted" || effectiveStatus === "revoked"
+                        ? "—"
                         : format(new Date(invite.expires_at), "MMM d, yyyy")}
                     </TableCell>
                     <TableCell className="text-right">
-                      {canAct && (
-                        <div className="flex items-center justify-end gap-1">
+                      <div className="flex items-center justify-end gap-1">
+                        {/* Resend: available for pending and expired */}
+                        {(isPending || isExpired) && (
                           <Button
                             size="sm"
                             variant="ghost"
+                            title="Resend invite"
                             onClick={() => handleSingleResend(invite)}
                             disabled={resendInvite.isPending}
                           >
                             <RefreshCw className="h-3 w-3" />
                           </Button>
+                        )}
+                        {/* Revoke: only for truly pending */}
+                        {isPending && (
                           <Button
                             size="sm"
                             variant="ghost"
                             className="text-destructive hover:text-destructive"
+                            title="Revoke invite"
                             onClick={() => handleSingleRevoke(invite.id)}
                             disabled={revokeInvite.isPending}
                           >
                             <XCircle className="h-3 w-3" />
                           </Button>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
