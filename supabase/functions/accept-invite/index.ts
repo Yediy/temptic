@@ -31,6 +31,13 @@ serve(async (req) => {
       return jsonResponse({ error: "Missing or invalid token" }, 400);
     }
 
+    // Hash the incoming token for lookup
+    const encoder = new TextEncoder();
+    const hashBuffer = await crypto.subtle.digest("SHA-256", encoder.encode(token));
+    const tokenHash = Array.from(new Uint8Array(hashBuffer))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+
     // ── Validate token (public, no auth required) ──
     if (action === "validate") {
       const { data: invite, error } = await supabase
@@ -38,7 +45,7 @@ serve(async (req) => {
         .select(
           "*, clients!inner(company_name), agencies!inner(name), client_signers!inner(first_name, last_name, email)"
         )
-        .eq("token", token)
+        .eq("token_hash", tokenHash)
         .single();
 
       if (error || !invite) {
