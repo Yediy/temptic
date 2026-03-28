@@ -212,9 +212,16 @@ function AddSignerDialog({ clientId }: { clientId: string }) {
   );
 }
 
+function getEffectiveInviteStatus(status: string, expiresAt: string) {
+  if (status === "accepted") return "accepted";
+  if (status === "revoked") return "revoked";
+  if (status === "expired") return "expired";
+  if (status === "pending" && new Date(expiresAt) < new Date()) return "expired";
+  return "pending";
+}
+
 function InviteStatusBadge({ status, expiresAt }: { status: string; expiresAt: string }) {
-  const isExpired = status === "pending" && new Date(expiresAt) < new Date();
-  const effectiveStatus = isExpired ? "expired" : status;
+  const effectiveStatus = getEffectiveInviteStatus(status, expiresAt);
 
   const styles: Record<string, string> = {
     pending: "bg-warning/15 text-warning",
