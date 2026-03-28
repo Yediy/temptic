@@ -88,7 +88,7 @@ serve(async (req) => {
       const { data: invite, error: invErr } = await supabase
         .from("client_invites")
         .select("*")
-        .eq("token", token)
+        .eq("token_hash", tokenHash)
         .eq("status", "pending")
         .single();
 
