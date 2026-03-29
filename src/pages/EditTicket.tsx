@@ -48,7 +48,7 @@ const steps = [
   { label: "Worker", description: "Assign a worker" },
   { label: "Job Details", description: "Title, equipment, times" },
   { label: "Requirements", description: "PPE and logistics" },
-  { label: "Review", description: "Review and resend" },
+  { label: "Review", description: "Review and save or resend" },
 ];
 
 export default function EditTicket() {
@@ -270,7 +270,7 @@ export default function EditTicket() {
     );
   }
 
-  if (!ticket || !["draft", "rejected"].includes(ticket.status)) {
+  if (!ticket || !["draft", "rejected", "corrected"].includes(ticket.status)) {
     return <div className="py-24 text-center text-muted-foreground">Ticket cannot be edited (status: {ticket?.status || "not found"}).</div>;
   }
 

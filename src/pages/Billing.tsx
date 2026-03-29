@@ -103,7 +103,7 @@ export default function Billing() {
               disabled={loading === plan.priceId}
             >
               <CreditCard className="mr-1 h-4 w-4" />
-              {loading === plan.priceId ? "Loading…" : "Select Plan"}
+              {loading === plan.priceId ? "Loading…" : "Get Started"}
             </Button>
           </div>
         ))}

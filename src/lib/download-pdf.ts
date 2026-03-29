@@ -9,5 +9,6 @@ export async function downloadPdf(ticketId: string, pdfType: "draft" | "agency_c
   });
 
   if (error) throw error;
+  if (!data?.url) throw new Error("PDF not available. The document may not have been generated yet.");
   window.open(data.url, "_blank");
 }

@@ -127,10 +127,10 @@ export default function TicketDetail() {
         <div className="flex gap-2 flex-wrap">
           {["draft", "corrected"].includes(ticket.status) && (
             <Button onClick={handleSend} disabled={sendTicket.isPending}>
-              <Send className="mr-1 h-4 w-4" /> Send
+              <Send className="mr-1 h-4 w-4" /> {ticket.status === "corrected" ? "Resend" : "Send"}
             </Button>
           )}
-          {["draft", "rejected"].includes(ticket.status) && (
+          {["draft", "rejected", "corrected"].includes(ticket.status) && (
             <Button variant="outline" onClick={() => navigate(`/tickets/${id}/edit`)}>
               <FileText className="mr-1 h-4 w-4" /> Edit
             </Button>
