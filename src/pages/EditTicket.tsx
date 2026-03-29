@@ -170,7 +170,7 @@ export default function EditTicket() {
 
   const totalWeekHours = useMemo(() => days.reduce((s, d) => s + d.total_hours, 0), [days]);
 
-  const handleSave = async (status: "draft" | "sent") => {
+  const handleSave = async (andSend: boolean) => {
     if (!agencyId || !selectedClient || !selectedWorker || !ticket) return;
     setSaving(true);
     try {
@@ -178,7 +178,8 @@ export default function EditTicket() {
         ? [selectedSite.address_line1, selectedSite.city, selectedSite.state].filter(Boolean).join(", ")
         : null;
 
-      // Always save edits as corrected/draft first
+      // Save edits — always save as corrected when the ticket was rejected, otherwise keep draft
+      const newStatus = ticket.status === "rejected" ? "corrected" : "draft";
       const updateData: Record<string, any> = {
         client_id: form.client_id,
         site_id: form.site_id || null,
@@ -201,7 +202,7 @@ export default function EditTicket() {
         report_to_name_snapshot: selectedSite?.report_to_name ?? null,
         report_to_phone_snapshot: selectedSite?.report_to_phone ?? null,
         worker_name_snapshot: `${selectedWorker.first_name} ${selectedWorker.last_name}`,
-        status: status === "sent" ? "corrected" : "draft",
+        status: newStatus,
         rejection_reason: null,
         rejected_at: null,
         version_number: ticket.version_number + 1,
@@ -236,14 +237,14 @@ export default function EditTicket() {
       }
 
       // If sending, use the secure send-ticket edge function
-      if (status === "sent") {
+      if (andSend) {
         const { error: sendErr } = await supabase.functions.invoke("send-ticket", {
           body: { ticket_id: id },
         });
         if (sendErr) throw sendErr;
       }
 
-      toast.success(status === "sent" ? "Ticket resent for signature" : "Draft updated");
+      toast.success(andSend ? "Ticket resent for signature" : "Draft updated");
       qc.invalidateQueries({ queryKey: ["ticket", id] });
       qc.invalidateQueries({ queryKey: ["tickets"] });
       qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
@@ -487,10 +488,10 @@ export default function EditTicket() {
           </Button>
         ) : (
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => handleSave("draft")} disabled={saving}>
+            <Button variant="outline" onClick={() => handleSave(false)} disabled={saving}>
               <FileText className="mr-1 h-4 w-4" /> Save Draft
             </Button>
-            <Button onClick={() => handleSave("sent")} disabled={saving}>
+            <Button onClick={() => handleSave(true)} disabled={saving}>
               <Send className="mr-1 h-4 w-4" /> Resend for Signature
             </Button>
           </div>

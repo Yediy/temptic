@@ -32,7 +32,7 @@ export default function ClientPending() {
                 pending.map(t => (
                   <tr key={t.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-3 font-mono text-xs font-semibold tracking-wider">{t.ticket_number}</td>
-                    <td className="px-4 py-3 text-muted-foreground">{t.work_date || "—"}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{t.work_date || t.week_start_date || "—"}</td>
                     <td className="px-4 py-3">{t.worker_name_snapshot}</td>
                     <td className="px-4 py-3 text-muted-foreground">{t.job_title || "—"}</td>
                     <td className="px-4 py-3"><StatusBadge status={t.status as TicketStatus} /></td>

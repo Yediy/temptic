@@ -13,7 +13,7 @@ export default function AdminNotifications() {
       const { data, error } = await supabase
         .from("notifications")
         .select("id, ticket_id, recipient_type, recipient_email, template_key, status, error_message, created_at, sent_at")
-        .in("status", ["failed", "queued"])
+        .in("status", ["failed", "queued", "skipped"])
         .order("created_at", { ascending: false })
         .limit(100);
       if (error) throw error;
@@ -24,6 +24,7 @@ export default function AdminNotifications() {
   const statusColor = (s: string) => {
     if (s === "failed") return "destructive";
     if (s === "queued") return "secondary";
+    if (s === "skipped") return "outline";
     return "default";
   };
 
@@ -31,7 +32,7 @@ export default function AdminNotifications() {
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <AlertTriangle className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold text-foreground">Failed & Queued Notifications</h1>
+        <h1 className="text-2xl font-bold text-foreground">Notification Issues</h1>
       </div>
 
       <Card>
@@ -46,7 +47,7 @@ export default function AdminNotifications() {
               ))}
             </div>
           ) : !notifications?.length ? (
-            <p className="text-muted-foreground text-sm">No failed or queued notifications.</p>
+            <p className="text-muted-foreground text-sm">No notification issues found. All notifications are delivering normally.</p>
           ) : (
             <Table>
               <TableHeader>

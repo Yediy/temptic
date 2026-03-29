@@ -37,7 +37,7 @@ export default function WorkerHours() {
               ) : (
                 signed.map(t => (
                   <tr key={t.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                    <td className="px-4 py-3 text-muted-foreground">{t.work_date || "—"}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{t.work_date || t.week_start_date || "—"}</td>
                     <td className="px-4 py-3">
                       <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-secondary text-xs font-bold text-secondary-foreground">
                         {t.client_initials}

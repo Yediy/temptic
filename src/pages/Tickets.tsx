@@ -85,7 +85,7 @@ export default function Tickets() {
                     <td className="px-4 py-3">
                       <span className="rounded bg-secondary px-1.5 py-0.5 text-xs font-medium uppercase text-secondary-foreground">{ticket.ticket_type}</span>
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">{ticket.work_date || "—"}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{ticket.work_date || ticket.week_start_date || "—"}</td>
                     <td className="px-4 py-3 font-medium">{ticket.client_company_name_snapshot}</td>
                     <td className="px-4 py-3">{ticket.worker_name_snapshot}</td>
                     <td className="px-4 py-3 text-muted-foreground">{ticket.job_title || "—"}</td>

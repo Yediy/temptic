@@ -39,7 +39,7 @@ export default function ClientDashboard() {
               <Link key={t.id} to={`/client/ticket/${t.id}`} className="flex items-center justify-between px-4 py-3 hover:bg-muted/30 transition-colors">
                 <div>
                   <p className="font-mono text-xs font-semibold tracking-wider">{t.ticket_number}</p>
-                  <p className="text-sm text-muted-foreground">{t.worker_name_snapshot} · {t.work_date || "No date"}</p>
+                  <p className="text-sm text-muted-foreground">{t.worker_name_snapshot} · {t.work_date || t.week_start_date || "No date"}</p>
                 </div>
                 <StatusBadge status={t.status as TicketStatus} />
               </Link>
