@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Building2, MapPin, Mail, Plus, UserPlus, Send, RefreshCw, XCircle, CheckCircle, Clock, Copy, AlertTriangle } from "lucide-react";
+import { Building2, MapPin, Mail, Plus, UserPlus, Send, RefreshCw, XCircle, CheckCircle, Clock, AlertTriangle } from "lucide-react";
 import { useClients, useCreateClient, useClientSites, useCreateClientSite } from "@/hooks/use-agency-data";
 import { useCreateClientSigner, useClientSigners } from "@/hooks/use-agency-data";
 import { useClientInvites, useSendInvite, useRevokeInvite, useResendInvite, type ClientInvite } from "@/hooks/use-client-invites";
@@ -309,18 +309,6 @@ function SignerInviteActions({
         >
           <XCircle className="h-3 w-3" />
         </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-6 px-1.5 text-[10px]"
-          onClick={() => {
-            const link = `${window.location.origin}/client/onboarding/${latestInvite.token}`;
-            navigator.clipboard.writeText(link);
-            toast.success("Invite link copied");
-          }}
-        >
-          <Copy className="h-3 w-3" />
-        </Button>
       </div>
     );
   }
@@ -336,10 +324,8 @@ function SignerInviteActions({
           disabled={resendInvite.isPending}
           onClick={() => {
             resendInvite.mutate(latestInvite, {
-              onSuccess: (newInvite) => {
-                const link = `${window.location.origin}/client/onboarding/${newInvite.token}`;
-                navigator.clipboard.writeText(link);
-                toast.success("New invite sent — link copied to clipboard");
+              onSuccess: () => {
+                toast.success("New invite sent via email");
               },
               onError: (e) => toast.error(e.message),
             });
@@ -363,10 +349,8 @@ function SignerInviteActions({
           sendInvite.mutate(
             { client_id: clientId, client_signer_id: signer.id, email: signer.email!, signerName: `${signer.first_name} ${signer.last_name}`, clientCompany },
             {
-              onSuccess: (newInvite) => {
-                const link = `${window.location.origin}/client/onboarding/${newInvite.token}`;
-                navigator.clipboard.writeText(link);
-                toast.success("Invite created — link copied to clipboard");
+              onSuccess: () => {
+                toast.success("Invite sent via email");
               },
               onError: (e) => toast.error(e.message),
             }

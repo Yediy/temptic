@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { StatusBadge, type TicketStatus } from "@/components/StatusBadge";
 import { useTickets } from "@/hooks/use-agency-data";
 
-const statusFilters: (TicketStatus | "all")[] = ["all", "draft", "sent", "viewed", "signed", "rejected"];
+const statusFilters: (TicketStatus | "all")[] = ["all", "draft", "sent", "viewed", "signed", "rejected", "corrected", "closed"];
 
 export default function Tickets() {
   const { data: tickets, isLoading } = useTickets();

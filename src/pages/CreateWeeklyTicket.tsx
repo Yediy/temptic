@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useClients, useClientSites, useWorkers, useCreateTicket, generateTicketNumber } from "@/hooks/use-agency-data";
+import { useSendTicket } from "@/hooks/use-ticket-actions";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -71,6 +72,7 @@ export default function CreateWeeklyTicket() {
   const [ticketNumber, setTicketNumber] = useState("");
   const [saving, setSaving] = useState(false);
   const createTicket = useCreateTicket();
+  const sendTicket = useSendTicket();
 
   const monday = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
 
@@ -128,7 +130,7 @@ export default function CreateWeeklyTicket() {
 
   const weekEnd = format(addDays(parseISO(form.week_start), 6), "yyyy-MM-dd");
 
-  const handleSave = async (status: "draft" | "sent") => {
+  const handleSave = async (sendAfterCreate: boolean) => {
     if (!agencyId || !selectedClient || !selectedWorker) return;
     setSaving(true);
     try {
@@ -144,7 +146,7 @@ export default function CreateWeeklyTicket() {
         created_by: user?.id ?? null,
         ticket_number: ticketNumber,
         ticket_type: "weekly",
-        status,
+        status: "draft",
         week_start_date: form.week_start,
         week_end_date: weekEnd,
         total_hours: totalWeekHours,
@@ -166,7 +168,6 @@ export default function CreateWeeklyTicket() {
         report_to_name_snapshot: selectedSite?.report_to_name ?? null,
         report_to_phone_snapshot: selectedSite?.report_to_phone ?? null,
         worker_name_snapshot: `${selectedWorker.first_name} ${selectedWorker.last_name}`,
-        sent_at: status === "sent" ? new Date().toISOString() : null,
       });
 
       // Insert ticket_days
@@ -188,7 +189,12 @@ export default function CreateWeeklyTicket() {
         if (daysErr) throw daysErr;
       }
 
-      toast.success(status === "sent" ? "Weekly ticket sent for signature" : "Draft saved");
+      if (sendAfterCreate) {
+        await sendTicket.mutateAsync(ticket.id);
+        toast.success("Weekly ticket sent for signature");
+      } else {
+        toast.success("Draft saved");
+      }
       navigate("/tickets");
     } catch (err: any) {
       toast.error(err.message);
@@ -442,10 +448,10 @@ export default function CreateWeeklyTicket() {
           </Button>
         ) : (
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => handleSave("draft")} disabled={saving}>
+             <Button variant="outline" onClick={() => handleSave(false)} disabled={saving}>
               <FileText className="mr-1 h-4 w-4" /> Save Draft
             </Button>
-            <Button onClick={() => handleSave("sent")} disabled={saving}>
+            <Button onClick={() => handleSave(true)} disabled={saving}>
               <Send className="mr-1 h-4 w-4" /> Send for Signature
             </Button>
           </div>
