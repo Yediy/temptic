@@ -165,6 +165,9 @@ export function useResendInvite() {
 
       const invite = data as ClientInvite;
 
+      // Capture original token before trigger hashes it
+      const originalToken = invite.token;
+
       // Send email notification for the new invite
       let resolvedAgencyName: string | undefined;
       if (agencyId) {
@@ -172,7 +175,7 @@ export function useResendInvite() {
         resolvedAgencyName = agency?.name || "Your Agency";
       }
 
-      const inviteUrl = `${window.location.origin}/client/onboarding/${invite.token}`;
+      const inviteUrl = `${window.location.origin}/client/onboarding/${originalToken}`;
       try {
         await supabase.functions.invoke("send-transactional-email", {
           body: {
