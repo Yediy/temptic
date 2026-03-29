@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useClients, useClientSites, useWorkers, useCreateTicket, generateTicketNumber } from "@/hooks/use-agency-data";
+import { useSendTicket } from "@/hooks/use-ticket-actions";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
