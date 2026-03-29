@@ -17,7 +17,7 @@ export default function Archive() {
   const [workerFilter, setWorkerFilter] = useState<string>("all");
 
   const archivable = (tickets ?? []).filter(t =>
-    ["signed", "rejected", "closed", "corrected"].includes(t.status)
+    ["signed", "rejected", "closed"].includes(t.status)
   );
 
   const filtered = archivable.filter(t => {
