@@ -74,12 +74,10 @@ export function useSendInvite() {
         .single();
       if (error) throw error;
 
-      const invite = data as ClientInvite;
-
-      // The token returned from INSERT is the original plaintext token
-      // (before the AFTER INSERT trigger hashes it and replaces it with the row ID).
-      // We must capture it here — subsequent queries will NOT have the real token.
-      const originalToken = invite.token;
+      // The INSERT response includes the plaintext token before the AFTER INSERT trigger hashes it.
+      // We capture it here for the invite email — it's never stored or returned in subsequent reads.
+      const insertResponse = data as ClientInvite & { token?: string };
+      const originalToken = insertResponse.token;
 
       // Resolve agency name for email
       let resolvedAgencyName = input.agencyName;
