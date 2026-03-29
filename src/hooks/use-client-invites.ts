@@ -50,7 +50,6 @@ export function useAllClientInvites() {
 
 export function useSendInvite() {
   const qc = useQueryClient();
-  const { agencyId, user } = useAuth();
 
   return useMutation({
     mutationFn: async (input: {
@@ -61,53 +60,20 @@ export function useSendInvite() {
       clientCompany?: string;
       agencyName?: string;
     }) => {
-      const { data, error } = await supabase
-        .from("client_invites")
-        .insert({
-          agency_id: agencyId!,
+      const { data, error } = await supabase.functions.invoke("create-invite", {
+        body: {
           client_id: input.client_id,
           client_signer_id: input.client_signer_id,
           email: input.email,
-          created_by: user?.id ?? null,
-        } as any)
-        .select()
-        .single();
+          signer_name: input.signerName,
+          client_company: input.clientCompany,
+          agency_name: input.agencyName,
+          origin_url: window.location.origin,
+        },
+      });
       if (error) throw error;
-
-      // The INSERT response includes the plaintext token before the AFTER INSERT trigger hashes it.
-      // We capture it here for the invite email — it's never stored or returned in subsequent reads.
-      const insertResponse = data as ClientInvite & { token?: string };
-      const originalToken = insertResponse.token;
-
-      // Resolve agency name for email
-      let resolvedAgencyName = input.agencyName;
-      if (!resolvedAgencyName && agencyId) {
-        const { data: agency } = await supabase.from("agencies").select("name").eq("id", agencyId).single();
-        resolvedAgencyName = agency?.name || "Your Agency";
-      }
-
-      // Send email notification with onboarding link
-      const inviteUrl = `${window.location.origin}/client/onboarding/${originalToken}`;
-      try {
-        await supabase.functions.invoke("send-transactional-email", {
-          body: {
-            templateName: "client-invite",
-            recipientEmail: input.email,
-            idempotencyKey: `client-invite-${insertResponse.id}`,
-            templateData: {
-              agencyName: resolvedAgencyName || "Your Agency",
-              clientCompany: input.clientCompany || "Your Company",
-              signerName: input.signerName || "",
-              inviteUrl,
-            },
-          },
-        });
-      } catch (emailErr) {
-        // Don't fail the invite if email fails — invite was already created
-        console.error("Failed to send invite email:", emailErr);
-      }
-
-      return insertResponse as ClientInvite;
+      if (data?.error) throw new Error(data.error);
+      return data.invite as ClientInvite;
     },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["client_invites"] });
@@ -134,64 +100,21 @@ export function useRevokeInvite() {
 
 export function useResendInvite() {
   const qc = useQueryClient();
-  const { agencyId, user } = useAuth();
 
   return useMutation({
     mutationFn: async (oldInvite: ClientInvite) => {
-      // Revoke/expire the old invite if still pending
-      if (oldInvite.status === "pending") {
-        await supabase
-          .from("client_invites")
-          .update({ status: "revoked" } as any)
-          .eq("id", oldInvite.id);
-      }
-
-      // Create a new one
-      const { data, error } = await supabase
-        .from("client_invites")
-        .insert({
-          agency_id: agencyId!,
+      const { data, error } = await supabase.functions.invoke("create-invite", {
+        body: {
           client_id: oldInvite.client_id,
           client_signer_id: oldInvite.client_signer_id,
           email: oldInvite.email,
-          created_by: user?.id ?? null,
-        } as any)
-        .select()
-        .single();
+          origin_url: window.location.origin,
+          old_invite_id: oldInvite.status === "pending" ? oldInvite.id : undefined,
+        },
+      });
       if (error) throw error;
-
-      const resendResponse = data as ClientInvite & { token?: string };
-
-      // Capture original token before trigger hashes it
-      const originalToken = resendResponse.token;
-
-      // Send email notification for the new invite
-      let resolvedAgencyName: string | undefined;
-      if (agencyId) {
-        const { data: agency } = await supabase.from("agencies").select("name").eq("id", agencyId).single();
-        resolvedAgencyName = agency?.name || "Your Agency";
-      }
-
-      const inviteUrl = `${window.location.origin}/client/onboarding/${originalToken}`;
-      try {
-        await supabase.functions.invoke("send-transactional-email", {
-          body: {
-            templateName: "client-invite",
-            recipientEmail: oldInvite.email,
-            idempotencyKey: `client-invite-${resendResponse.id}`,
-            templateData: {
-              agencyName: resolvedAgencyName || "Your Agency",
-              clientCompany: "",
-              signerName: "",
-              inviteUrl,
-            },
-          },
-        });
-      } catch (emailErr) {
-        console.error("Failed to send resend invite email:", emailErr);
-      }
-
-      return resendResponse as ClientInvite;
+      if (data?.error) throw new Error(data.error);
+      return data.invite as ClientInvite;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["client_invites"] });
