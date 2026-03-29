@@ -349,10 +349,8 @@ function SignerInviteActions({
           sendInvite.mutate(
             { client_id: clientId, client_signer_id: signer.id, email: signer.email!, signerName: `${signer.first_name} ${signer.last_name}`, clientCompany },
             {
-              onSuccess: (newInvite) => {
-                const link = `${window.location.origin}/client/onboarding/${newInvite.token}`;
-                navigator.clipboard.writeText(link);
-                toast.success("Invite created — link copied to clipboard");
+              onSuccess: () => {
+                toast.success("Invite sent via email");
               },
               onError: (e) => toast.error(e.message),
             }
