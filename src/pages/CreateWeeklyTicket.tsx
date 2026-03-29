@@ -72,6 +72,7 @@ export default function CreateWeeklyTicket() {
   const [ticketNumber, setTicketNumber] = useState("");
   const [saving, setSaving] = useState(false);
   const createTicket = useCreateTicket();
+  const sendTicket = useSendTicket();
 
   const monday = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
 
