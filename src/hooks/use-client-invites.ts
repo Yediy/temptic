@@ -40,7 +40,7 @@ export function useAllClientInvites() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_invites")
-        .select("*")
+        .select("id, agency_id, client_id, client_signer_id, email, status, expires_at, accepted_at, created_by, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as ClientInvite[];
