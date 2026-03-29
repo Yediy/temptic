@@ -324,10 +324,8 @@ function SignerInviteActions({
           disabled={resendInvite.isPending}
           onClick={() => {
             resendInvite.mutate(latestInvite, {
-              onSuccess: (newInvite) => {
-                const link = `${window.location.origin}/client/onboarding/${newInvite.token}`;
-                navigator.clipboard.writeText(link);
-                toast.success("New invite sent — link copied to clipboard");
+              onSuccess: () => {
+                toast.success("New invite sent via email");
               },
               onError: (e) => toast.error(e.message),
             });
