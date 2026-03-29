@@ -130,7 +130,7 @@ export default function CreateWeeklyTicket() {
 
   const weekEnd = format(addDays(parseISO(form.week_start), 6), "yyyy-MM-dd");
 
-  const handleSave = async (status: "draft" | "sent") => {
+  const handleSave = async (sendAfterCreate: boolean) => {
     if (!agencyId || !selectedClient || !selectedWorker) return;
     setSaving(true);
     try {
@@ -146,7 +146,7 @@ export default function CreateWeeklyTicket() {
         created_by: user?.id ?? null,
         ticket_number: ticketNumber,
         ticket_type: "weekly",
-        status,
+        status: "draft",
         week_start_date: form.week_start,
         week_end_date: weekEnd,
         total_hours: totalWeekHours,
@@ -168,7 +168,6 @@ export default function CreateWeeklyTicket() {
         report_to_name_snapshot: selectedSite?.report_to_name ?? null,
         report_to_phone_snapshot: selectedSite?.report_to_phone ?? null,
         worker_name_snapshot: `${selectedWorker.first_name} ${selectedWorker.last_name}`,
-        sent_at: status === "sent" ? new Date().toISOString() : null,
       });
 
       // Insert ticket_days
@@ -190,7 +189,12 @@ export default function CreateWeeklyTicket() {
         if (daysErr) throw daysErr;
       }
 
-      toast.success(status === "sent" ? "Weekly ticket sent for signature" : "Draft saved");
+      if (sendAfterCreate) {
+        await sendTicket.mutateAsync(ticket.id);
+        toast.success("Weekly ticket sent for signature");
+      } else {
+        toast.success("Draft saved");
+      }
       navigate("/tickets");
     } catch (err: any) {
       toast.error(err.message);
