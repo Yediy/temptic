@@ -309,18 +309,6 @@ function SignerInviteActions({
         >
           <XCircle className="h-3 w-3" />
         </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-6 px-1.5 text-[10px]"
-          onClick={() => {
-            const link = `${window.location.origin}/client/onboarding/${latestInvite.token}`;
-            navigator.clipboard.writeText(link);
-            toast.success("Invite link copied");
-          }}
-        >
-          <Copy className="h-3 w-3" />
-        </Button>
       </div>
     );
   }
