@@ -24,6 +24,7 @@ export default function AdminNotifications() {
   const statusColor = (s: string) => {
     if (s === "failed") return "destructive";
     if (s === "queued") return "secondary";
+    if (s === "skipped") return "outline";
     return "default";
   };
 
