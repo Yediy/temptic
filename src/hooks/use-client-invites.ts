@@ -22,7 +22,7 @@ export function useClientInvites(clientId?: string) {
     queryFn: async () => {
       let q = supabase
         .from("client_invites")
-        .select("*")
+        .select("id, agency_id, client_id, client_signer_id, email, status, expires_at, accepted_at, created_by, created_at")
         .order("created_at", { ascending: false });
       if (clientId) q = q.eq("client_id", clientId);
       const { data, error } = await q;
