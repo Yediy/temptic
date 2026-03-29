@@ -178,7 +178,7 @@ export function useResendInvite() {
           body: {
             templateName: "client-invite",
             recipientEmail: oldInvite.email,
-            idempotencyKey: `client-invite-${invite.id}`,
+            idempotencyKey: `client-invite-${resendResponse.id}`,
             templateData: {
               agencyName: resolvedAgencyName || "Your Agency",
               clientCompany: "",
