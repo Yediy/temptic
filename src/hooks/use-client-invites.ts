@@ -8,7 +8,6 @@ export interface ClientInvite {
   client_id: string;
   client_signer_id: string;
   email: string;
-  token: string;
   status: string;
   expires_at: string;
   accepted_at: string | null;
