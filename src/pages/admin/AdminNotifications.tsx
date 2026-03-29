@@ -47,7 +47,7 @@ export default function AdminNotifications() {
               ))}
             </div>
           ) : !notifications?.length ? (
-            <p className="text-muted-foreground text-sm">No failed or queued notifications.</p>
+            <p className="text-muted-foreground text-sm">No notification issues found. All notifications are delivering normally.</p>
           ) : (
             <Table>
               <TableHeader>

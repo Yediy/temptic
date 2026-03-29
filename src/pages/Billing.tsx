@@ -66,6 +66,10 @@ export default function Billing() {
         <p className="text-sm text-muted-foreground">Choose the plan that fits your agency.</p>
       </div>
 
+      <div className="rounded-lg border border-warning/30 bg-warning/5 px-4 py-3 text-sm text-warning">
+        <strong>Setup required:</strong> Billing requires a Stripe account. Contact your administrator to configure payment processing.
+      </div>
+
       <div className="grid gap-6 sm:grid-cols-3">
         {plans.map(plan => (
           <div
