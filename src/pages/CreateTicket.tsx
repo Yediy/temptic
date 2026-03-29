@@ -28,6 +28,7 @@ export default function CreateTicket() {
   const [ticketNumber, setTicketNumber] = useState("");
   const [saving, setSaving] = useState(false);
   const createTicket = useCreateTicket();
+  const sendTicket = useSendTicket();
 
   const [form, setForm] = useState({
     client_id: "",
