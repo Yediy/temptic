@@ -69,7 +69,7 @@ export default function CreateTicket() {
     if (agencyId) generateTicketNumber(agencyId).then(setTicketNumber);
   }, [agencyId]);
 
-  const handleSave = async (status: "draft" | "sent") => {
+  const handleSave = async (sendAfterCreate: boolean) => {
     if (!agencyId || !selectedClient || !selectedWorker) return;
     setSaving(true);
     try {
@@ -77,7 +77,7 @@ export default function CreateTicket() {
         ? [selectedSite.address_line1, selectedSite.city, selectedSite.state].filter(Boolean).join(", ")
         : null;
 
-      await createTicket.mutateAsync({
+      const ticket = await createTicket.mutateAsync({
         agency_id: agencyId,
         client_id: form.client_id,
         site_id: form.site_id || null,
@@ -85,7 +85,7 @@ export default function CreateTicket() {
         created_by: user?.id ?? null,
         ticket_number: ticketNumber,
         ticket_type: "daily",
-        status,
+        status: "draft",
         work_date: form.date,
         start_time: form.start_time,
         job_title: form.job_title || null,
@@ -106,9 +106,14 @@ export default function CreateTicket() {
         report_to_name_snapshot: selectedSite?.report_to_name ?? null,
         report_to_phone_snapshot: selectedSite?.report_to_phone ?? null,
         worker_name_snapshot: `${selectedWorker.first_name} ${selectedWorker.last_name}`,
-        sent_at: status === "sent" ? new Date().toISOString() : null,
       });
-      toast.success(status === "sent" ? "Ticket sent for signature" : "Draft saved");
+
+      if (sendAfterCreate) {
+        await sendTicket.mutateAsync(ticket.id);
+        toast.success("Ticket sent for signature");
+      } else {
+        toast.success("Draft saved");
+      }
       navigate("/tickets");
     } catch (err: any) {
       toast.error(err.message);
