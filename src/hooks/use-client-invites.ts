@@ -160,10 +160,10 @@ export function useResendInvite() {
         .single();
       if (error) throw error;
 
-      const invite = data as ClientInvite;
+      const resendResponse = data as ClientInvite & { token?: string };
 
       // Capture original token before trigger hashes it
-      const originalToken = invite.token;
+      const originalToken = resendResponse.token;
 
       // Send email notification for the new invite
       let resolvedAgencyName: string | undefined;
