@@ -93,7 +93,7 @@ export function useSendInvite() {
           body: {
             templateName: "client-invite",
             recipientEmail: input.email,
-            idempotencyKey: `client-invite-${invite.id}`,
+            idempotencyKey: `client-invite-${insertResponse.id}`,
             templateData: {
               agencyName: resolvedAgencyName || "Your Agency",
               clientCompany: input.clientCompany || "Your Company",
