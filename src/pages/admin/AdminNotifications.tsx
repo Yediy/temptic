@@ -13,7 +13,7 @@ export default function AdminNotifications() {
       const { data, error } = await supabase
         .from("notifications")
         .select("id, ticket_id, recipient_type, recipient_email, template_key, status, error_message, created_at, sent_at")
-        .in("status", ["failed", "queued"])
+        .in("status", ["failed", "queued", "skipped"])
         .order("created_at", { ascending: false })
         .limit(100);
       if (error) throw error;
