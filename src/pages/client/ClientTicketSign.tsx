@@ -158,7 +158,7 @@ export default function ClientTicketSign() {
     ["Type", ticket.ticket_type?.toUpperCase()],
     ["Worker", ticket.worker_name_snapshot],
     ["Site", ticket.site_name_snapshot || ticket.site_address_snapshot || "—"],
-    ["Date", ticket.work_date || ticket.week_start_date || "—"],
+    ["Date", ticket.work_date || (ticket.week_start_date ? `${ticket.week_start_date} – ${ticket.week_end_date}` : "—")],
     ["Start Time", ticket.start_time || "—"],
     ["Job Title", ticket.job_title || "—"],
     ["Equipment", ticket.equipment_required || "—"],
