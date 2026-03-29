@@ -107,7 +107,7 @@ export function useSendInvite() {
         console.error("Failed to send invite email:", emailErr);
       }
 
-      return invite;
+      return insertResponse as ClientInvite;
     },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["client_invites"] });
