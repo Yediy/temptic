@@ -54,7 +54,7 @@ serve(async (req) => {
     if (ticketErr || !ticket) throw new Error("Ticket not found");
 
     if (!["draft", "corrected"].includes(ticket.status)) {
-      throw new Error("Ticket cannot be sent from current status");
+      throw new Error(`Ticket cannot be sent from "${ticket.status}" status. Only draft or corrected tickets can be sent.`);
     }
 
     const { data: updated, error: updateErr } = await supabase

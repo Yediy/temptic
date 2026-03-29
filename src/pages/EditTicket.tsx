@@ -48,7 +48,7 @@ const steps = [
   { label: "Worker", description: "Assign a worker" },
   { label: "Job Details", description: "Title, equipment, times" },
   { label: "Requirements", description: "PPE and logistics" },
-  { label: "Review", description: "Review and resend" },
+  { label: "Review", description: "Review and save or resend" },
 ];
 
 export default function EditTicket() {

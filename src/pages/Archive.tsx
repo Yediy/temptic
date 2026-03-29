@@ -95,7 +95,6 @@ export default function Archive() {
           <option value="signed">Signed</option>
           <option value="rejected">Rejected</option>
           <option value="closed">Closed</option>
-          <option value="corrected">Corrected</option>
         </select>
         <select
           value={clientFilter}

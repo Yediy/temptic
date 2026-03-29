@@ -34,11 +34,18 @@ export default function Tickets() {
             {isLoading ? "Loading…" : `${tickets?.length ?? 0} total tickets`}
           </p>
         </div>
-        <Button asChild>
-          <Link to="/tickets/create">
-            <Plus className="mr-1 h-4 w-4" /> Create Ticket
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" asChild>
+            <Link to="/tickets/create/weekly">
+              <Plus className="mr-1 h-4 w-4" /> Weekly
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link to="/tickets/create">
+              <Plus className="mr-1 h-4 w-4" /> Daily Ticket
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
