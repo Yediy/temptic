@@ -336,10 +336,10 @@ export default function CreateTicket() {
           </Button>
         ) : (
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => handleSave("draft")} disabled={saving}>
+            <Button variant="outline" onClick={() => handleSave(false)} disabled={saving}>
               <FileText className="mr-1 h-4 w-4" /> Save Draft
             </Button>
-            <Button onClick={() => handleSave("sent")} disabled={saving}>
+            <Button onClick={() => handleSave(true)} disabled={saving}>
               <Send className="mr-1 h-4 w-4" /> Send for Signature
             </Button>
           </div>
