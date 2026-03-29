@@ -8,7 +8,6 @@ export interface ClientInvite {
   client_id: string;
   client_signer_id: string;
   email: string;
-  token: string;
   status: string;
   expires_at: string;
   accepted_at: string | null;
@@ -22,7 +21,7 @@ export function useClientInvites(clientId?: string) {
     queryFn: async () => {
       let q = supabase
         .from("client_invites")
-        .select("*")
+        .select("id, agency_id, client_id, client_signer_id, email, status, expires_at, accepted_at, created_by, created_at")
         .order("created_at", { ascending: false });
       if (clientId) q = q.eq("client_id", clientId);
       const { data, error } = await q;
@@ -40,7 +39,7 @@ export function useAllClientInvites() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("client_invites")
-        .select("*")
+        .select("id, agency_id, client_id, client_signer_id, email, status, expires_at, accepted_at, created_by, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as ClientInvite[];
@@ -75,12 +74,10 @@ export function useSendInvite() {
         .single();
       if (error) throw error;
 
-      const invite = data as ClientInvite;
-
-      // The token returned from INSERT is the original plaintext token
-      // (before the AFTER INSERT trigger hashes it and replaces it with the row ID).
-      // We must capture it here — subsequent queries will NOT have the real token.
-      const originalToken = invite.token;
+      // The INSERT response includes the plaintext token before the AFTER INSERT trigger hashes it.
+      // We capture it here for the invite email — it's never stored or returned in subsequent reads.
+      const insertResponse = data as ClientInvite & { token?: string };
+      const originalToken = insertResponse.token;
 
       // Resolve agency name for email
       let resolvedAgencyName = input.agencyName;
@@ -96,7 +93,7 @@ export function useSendInvite() {
           body: {
             templateName: "client-invite",
             recipientEmail: input.email,
-            idempotencyKey: `client-invite-${invite.id}`,
+            idempotencyKey: `client-invite-${insertResponse.id}`,
             templateData: {
               agencyName: resolvedAgencyName || "Your Agency",
               clientCompany: input.clientCompany || "Your Company",
@@ -110,7 +107,7 @@ export function useSendInvite() {
         console.error("Failed to send invite email:", emailErr);
       }
 
-      return invite;
+      return insertResponse as ClientInvite;
     },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["client_invites"] });
@@ -163,10 +160,10 @@ export function useResendInvite() {
         .single();
       if (error) throw error;
 
-      const invite = data as ClientInvite;
+      const resendResponse = data as ClientInvite & { token?: string };
 
       // Capture original token before trigger hashes it
-      const originalToken = invite.token;
+      const originalToken = resendResponse.token;
 
       // Send email notification for the new invite
       let resolvedAgencyName: string | undefined;
@@ -181,7 +178,7 @@ export function useResendInvite() {
           body: {
             templateName: "client-invite",
             recipientEmail: oldInvite.email,
-            idempotencyKey: `client-invite-${invite.id}`,
+            idempotencyKey: `client-invite-${resendResponse.id}`,
             templateData: {
               agencyName: resolvedAgencyName || "Your Agency",
               clientCompany: "",
@@ -194,7 +191,7 @@ export function useResendInvite() {
         console.error("Failed to send resend invite email:", emailErr);
       }
 
-      return invite;
+      return resendResponse as ClientInvite;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["client_invites"] });
