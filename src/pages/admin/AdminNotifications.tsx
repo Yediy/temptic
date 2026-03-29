@@ -31,7 +31,7 @@ export default function AdminNotifications() {
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <AlertTriangle className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold text-foreground">Failed & Queued Notifications</h1>
+        <h1 className="text-2xl font-bold text-foreground">Notification Issues</h1>
       </div>
 
       <Card>
