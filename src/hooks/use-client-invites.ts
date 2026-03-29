@@ -77,6 +77,11 @@ export function useSendInvite() {
 
       const invite = data as ClientInvite;
 
+      // The token returned from INSERT is the original plaintext token
+      // (before the AFTER INSERT trigger hashes it and replaces it with the row ID).
+      // We must capture it here — subsequent queries will NOT have the real token.
+      const originalToken = invite.token;
+
       // Resolve agency name for email
       let resolvedAgencyName = input.agencyName;
       if (!resolvedAgencyName && agencyId) {
@@ -85,7 +90,7 @@ export function useSendInvite() {
       }
 
       // Send email notification with onboarding link
-      const inviteUrl = `${window.location.origin}/client/onboarding/${invite.token}`;
+      const inviteUrl = `${window.location.origin}/client/onboarding/${originalToken}`;
       try {
         await supabase.functions.invoke("send-transactional-email", {
           body: {
