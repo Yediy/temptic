@@ -270,7 +270,7 @@ export default function EditTicket() {
     );
   }
 
-  if (!ticket || !["draft", "rejected"].includes(ticket.status)) {
+  if (!ticket || !["draft", "rejected", "corrected"].includes(ticket.status)) {
     return <div className="py-24 text-center text-muted-foreground">Ticket cannot be edited (status: {ticket?.status || "not found"}).</div>;
   }
 
