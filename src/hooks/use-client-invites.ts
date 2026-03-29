@@ -191,7 +191,7 @@ export function useResendInvite() {
         console.error("Failed to send resend invite email:", emailErr);
       }
 
-      return invite;
+      return resendResponse as ClientInvite;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["client_invites"] });
