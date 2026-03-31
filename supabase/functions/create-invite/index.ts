@@ -120,7 +120,6 @@ serve(async (req) => {
         email: email.toLowerCase().trim(),
         created_by: user.id,
         token_hash: tokenHash,
-        token: null,
       })
       .select("id, agency_id, client_id, client_signer_id, email, status, expires_at, accepted_at, created_by, created_at")
       .single();
