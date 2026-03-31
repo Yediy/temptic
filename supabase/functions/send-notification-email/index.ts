@@ -11,8 +11,56 @@ function escapeHtml(str: string): string {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
+    .replace(/\"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+async function hashToken(token: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const hashBuffer = await crypto.subtle.digest("SHA-256", encoder.encode(token));
+  return Array.from(new Uint8Array(hashBuffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function createFreshClientInvite(params: {
+  supabase: ReturnType<typeof createClient>;
+  agencyId: string;
+  clientId: string;
+  clientSignerId: string;
+  email: string;
+}) {
+  const normalizedEmail = params.email.toLowerCase().trim();
+
+  await params.supabase
+    .from("client_invites")
+    .update({ status: "revoked" })
+    .eq("agency_id", params.agencyId)
+    .eq("client_signer_id", params.clientSignerId)
+    .eq("status", "pending");
+
+  const tokenBytes = new Uint8Array(32);
+  crypto.getRandomValues(tokenBytes);
+  const plainToken = Array.from(tokenBytes)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  const tokenHash = await hashToken(plainToken);
+
+  const { error } = await params.supabase
+    .from("client_invites")
+    .insert({
+      agency_id: params.agencyId,
+      client_id: params.clientId,
+      client_signer_id: params.clientSignerId,
+      email: normalizedEmail,
+      token_hash: tokenHash,
+      created_by: null,
+    });
+
+  if (error) throw error;
+
+  return plainToken;
 }
 
 serve(async (req) => {
@@ -83,48 +131,23 @@ serve(async (req) => {
         const ticketUrl = `${appUrl}${ticketPath}`;
         html = `<p>Ticket <strong>${ticketNum}</strong> is ready for your signature.</p>
                 <p><a href="${ticketUrl}" style="display:inline-block;padding:10px 20px;background:#2563eb;color:#fff;text-decoration:none;border-radius:6px;">Review & Sign Ticket</a></p>`;
+      } else if (signer?.id && signer?.email) {
+        // Signer has no account — generate a fresh secure invite with ticket redirect
+        const inviteToken = await createFreshClientInvite({
+          supabase,
+          agencyId: ticket.agency_id,
+          clientId: ticket.client_id,
+          clientSignerId: signer.id,
+          email: signer.email,
+        });
+
+        const onboardingUrl = `${appUrl}/client/onboarding/${inviteToken}?redirect=${encodeURIComponent(ticketPath)}`;
+        html = `<p>Ticket <strong>${ticketNum}</strong> is ready for your signature.</p>
+                <p>To get started, create your account first:</p>
+                <p><a href="${onboardingUrl}" style="display:inline-block;padding:10px 20px;background:#2563eb;color:#fff;text-decoration:none;border-radius:6px;">Set Up Account & Sign Ticket</a></p>`;
       } else if (signer?.id) {
-        // Signer has no account — check for a pending invite token
-        const { data: invite } = await supabase
-          .from("client_invites")
-          .select("token")
-          .eq("client_signer_id", signer.id)
-          .eq("status", "pending")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (invite?.token) {
-          // Redirect through onboarding with ticket redirect
-          const onboardingUrl = `${appUrl}/client/onboarding/${invite.token}?redirect=${encodeURIComponent(ticketPath)}`;
-          html = `<p>Ticket <strong>${ticketNum}</strong> is ready for your signature.</p>
-                  <p>To get started, create your account first:</p>
-                  <p><a href="${onboardingUrl}" style="display:inline-block;padding:10px 20px;background:#2563eb;color:#fff;text-decoration:none;border-radius:6px;">Set Up Account & Sign Ticket</a></p>`;
-        } else if (signer?.email) {
-          // No invite exists — auto-create one so the signer can onboard
-          const { data: newInvite } = await supabase
-            .from("client_invites")
-            .insert({
-              agency_id: ticket.agency_id,
-              client_id: ticket.client_id,
-              client_signer_id: signer.id,
-              email: signer.email,
-            })
-            .select("token")
-            .single();
-
-          if (newInvite?.token) {
-            const onboardingUrl = `${appUrl}/client/onboarding/${newInvite.token}?redirect=${encodeURIComponent(ticketPath)}`;
-            html = `<p>Ticket <strong>${ticketNum}</strong> is ready for your signature.</p>
-                    <p>To get started, create your account first:</p>
-                    <p><a href="${onboardingUrl}" style="display:inline-block;padding:10px 20px;background:#2563eb;color:#fff;text-decoration:none;border-radius:6px;">Set Up Account & Sign Ticket</a></p>`;
-          } else {
-            html = `<p>Ticket <strong>${ticketNum}</strong> is ready for your signature. Please contact your agency to set up portal access.</p>`;
-          }
-        } else {
-          // No email on signer — can't do anything
-          html = `<p>Ticket <strong>${ticketNum}</strong> is ready for your signature. Please contact your agency to set up portal access.</p>`;
-        }
+        // No email on signer — can't do anything
+        html = `<p>Ticket <strong>${ticketNum}</strong> is ready for your signature. Please contact your agency to set up portal access.</p>`;
       }
     } else if (template_key === "ticket_signed_agency") {
       // Find agency admin email — try profiles first, fall back to agency.email
