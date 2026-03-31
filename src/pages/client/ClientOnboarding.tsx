@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,11 +22,13 @@ export default function ClientOnboarding() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectPath = searchParams.get("redirect") || "/client";
+  const { refreshUserData } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [invite, setInvite] = useState<InviteData | null>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [signingIn, setSigningIn] = useState(false);
 
   const [form, setForm] = useState({
     first_name: "",
@@ -87,6 +90,13 @@ export default function ClientOnboarding() {
     }
   };
 
+  const buildLoginPath = () => {
+    const isDefaultRedirect = redirectPath === "/client";
+    return isDefaultRedirect
+      ? "/client/login"
+      : `/client/login?redirect=${encodeURIComponent(redirectPath)}`;
+  };
+
   const handleAccept = async (e: React.FormEvent) => {
     e.preventDefault();
     if (form.password !== form.confirm_password) {
@@ -125,21 +135,33 @@ export default function ClientOnboarding() {
         return;
       }
 
-      // Try auto sign-in for new accounts
+      // Already-linked signer — just redirect to login
+      if (result.already_linked) {
+        setSuccess("This signer is already linked to an account.");
+        setTimeout(() => navigate(buildLoginPath(), { replace: true }), 2000);
+        return;
+      }
+
+      // Try auto sign-in for newly created accounts
       if (result.password_provided && result.email) {
+        setSigningIn(true);
         try {
           const { error: signInErr } = await supabase.auth.signInWithPassword({
             email: result.email,
             password: form.password,
           });
           if (!signInErr) {
-            // Successfully signed in — redirect directly
+            // Refresh auth context so roles/portal are recognized immediately
+            await refreshUserData();
             setSuccess("Account created! Redirecting…");
-            setTimeout(() => navigate(redirectPath, { replace: true }), 1500);
+            // Navigate immediately — no artificial delay
+            navigate(redirectPath, { replace: true });
             return;
           }
         } catch {
-          // Fall through to manual sign-in flow
+          // Fall through to manual sign-in
+        } finally {
+          setSigningIn(false);
         }
       }
 
@@ -154,7 +176,7 @@ export default function ClientOnboarding() {
           ? "Your account has been linked. Redirecting to sign in…"
           : "Account created! Redirecting to sign in…"
       );
-      setTimeout(() => navigate(loginPath, { replace: true }), 3000);
+      setTimeout(() => navigate(buildLoginPath(), { replace: true }), 2500);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -173,34 +195,36 @@ export default function ClientOnboarding() {
           <p className="mt-1 text-sm text-muted-foreground">Client Portal — Accept Invitation</p>
         </div>
 
-        {loading && (
+        {(loading || signingIn) && (
           <div className="flex flex-col items-center gap-3 py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Validating your invite…</p>
+            <p className="text-sm text-muted-foreground">
+              {signingIn ? "Signing you in…" : "Validating your invite…"}
+            </p>
           </div>
         )}
 
-        {!loading && error && !invite && (
+        {!loading && !signingIn && error && !invite && (
           <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-center space-y-3">
             <AlertCircle className="mx-auto h-8 w-8 text-destructive" />
             <p className="font-medium text-destructive">{error}</p>
-            <Button variant="outline" onClick={() => navigate("/client/login")}>
+            <Button variant="outline" onClick={() => navigate(buildLoginPath())}>
               Go to Login
             </Button>
           </div>
         )}
 
-        {!loading && success && (
+        {!loading && !signingIn && success && (
           <div className="rounded-xl border border-success/30 bg-success/5 p-6 text-center space-y-3">
             <CheckCircle className="mx-auto h-8 w-8 text-success" />
             <p className="font-medium text-success">{success}</p>
-            <Button onClick={() => navigate("/client/login")}>
+            <Button onClick={() => navigate(buildLoginPath())}>
               Sign In to Portal
             </Button>
           </div>
         )}
 
-        {!loading && invite && !success && (
+        {!loading && !signingIn && invite && !success && (
           <div className="space-y-6">
             <div className="rounded-xl border bg-card p-5 space-y-3">
               <p className="text-sm">
@@ -271,7 +295,7 @@ export default function ClientOnboarding() {
 
             <p className="text-center text-xs text-muted-foreground">
               Already have an account?{" "}
-              <a href="/client/login" className="text-primary hover:underline">
+              <a href={buildLoginPath()} className="text-primary hover:underline">
                 Sign in here
               </a>
             </p>
