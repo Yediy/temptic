@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
 
@@ -25,19 +26,22 @@ const iconVariantStyles = {
   warning: "bg-warning/15 text-warning",
 };
 
-export function StatCard({ label, value, icon: Icon, trend, variant = "default" }: StatCardProps) {
-  return (
-    <div className={cn("rounded-xl border p-5 transition-all animate-fade-in", variantStyles[variant])}>
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm font-medium text-muted-foreground">{label}</p>
-          <p className="mt-1 text-3xl font-bold tracking-tight text-card-foreground">{value}</p>
-          {trend && <p className="mt-1 text-xs text-muted-foreground">{trend}</p>}
-        </div>
-        <div className={cn("flex h-10 w-10 items-center justify-center rounded-lg", iconVariantStyles[variant])}>
-          <Icon className="h-5 w-5" />
+export const StatCard = forwardRef<HTMLDivElement, StatCardProps>(
+  ({ label, value, icon: Icon, trend, variant = "default" }, ref) => {
+    return (
+      <div ref={ref} className={cn("rounded-xl border p-5 transition-all animate-fade-in", variantStyles[variant])}>
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">{label}</p>
+            <p className="mt-1 text-3xl font-bold tracking-tight text-card-foreground">{value}</p>
+            {trend && <p className="mt-1 text-xs text-muted-foreground">{trend}</p>}
+          </div>
+          <div className={cn("flex h-10 w-10 items-center justify-center rounded-lg", iconVariantStyles[variant])}>
+            <Icon className="h-5 w-5" />
+          </div>
         </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
+);
+StatCard.displayName = "StatCard";
