@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 
 export type TicketStatus = "draft" | "sent" | "viewed" | "signed" | "rejected" | "corrected" | "closed";
@@ -12,12 +13,15 @@ const statusConfig: Record<TicketStatus, { label: string; className: string }> =
   closed: { label: "Closed", className: "bg-status-closed/15 text-status-closed" },
 };
 
-export function StatusBadge({ status, className }: { status: TicketStatus; className?: string }) {
-  const config = statusConfig[status];
-  if (!config) return null;
-  return (
-    <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide", config.className, className)}>
-      {config.label}
-    </span>
-  );
-}
+export const StatusBadge = forwardRef<HTMLSpanElement, { status: TicketStatus; className?: string }>(
+  ({ status, className }, ref) => {
+    const config = statusConfig[status];
+    if (!config) return null;
+    return (
+      <span ref={ref} className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide", config.className, className)}>
+        {config.label}
+      </span>
+    );
+  }
+);
+StatusBadge.displayName = "StatusBadge";
