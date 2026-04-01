@@ -55,6 +55,35 @@ async function findUserByExactEmail(
   return match?.id ?? null;
 }
 
+// ── In-memory rate limiter ──
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute
+const RATE_LIMIT_MAX_VALIDATE = 20;   // validate is cheap — allow more
+const RATE_LIMIT_MAX_ACCEPT = 5;      // accept creates accounts — strict
+
+function isRateLimited(ip: string, action: string): boolean {
+  const key = `${ip}:${action}`;
+  const now = Date.now();
+  const entry = rateLimitMap.get(key);
+
+  // Prune stale entries periodically (keep map small)
+  if (rateLimitMap.size > 10_000) {
+    for (const [k, v] of rateLimitMap) {
+      if (v.resetAt < now) rateLimitMap.delete(k);
+    }
+  }
+
+  const max = action === "accept" ? RATE_LIMIT_MAX_ACCEPT : RATE_LIMIT_MAX_VALIDATE;
+
+  if (!entry || entry.resetAt < now) {
+    rateLimitMap.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+
+  entry.count++;
+  return entry.count > max;
+}
+
 async function handleValidate(
   supabase: ReturnType<typeof createClient>,
   tokenHash: string
@@ -273,7 +302,21 @@ serve(async (req) => {
 
     const { action, token, ...rest } = await req.json();
 
-    if (!token || typeof token !== "string" || token.length < 32) {
+    if (!action || !["validate", "accept"].includes(action)) {
+      return jsonResponse({ error: "Invalid action" }, 400);
+    }
+
+    // Rate limit by IP
+    const clientIp =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("cf-connecting-ip") ||
+      "unknown";
+
+    if (isRateLimited(clientIp, action)) {
+      return jsonResponse({ error: "Too many requests. Please try again later." }, 429);
+    }
+
+    if (!token || typeof token !== "string" || token.length < 32 || token.length > 128) {
       return jsonResponse({ error: "Missing or invalid token" }, 400);
     }
 
