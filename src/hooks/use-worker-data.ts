@@ -61,12 +61,3 @@ export function useWorkerHoursSummary() {
     enabled: !!user,
   });
 }
-
-function getInitials(name: string): string {
-  return name
-    .split(/\s+/)
-    .map(w => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 3);
-}
