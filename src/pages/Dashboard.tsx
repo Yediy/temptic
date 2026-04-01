@@ -1,3 +1,4 @@
+import React from "react";
 import { Link } from "react-router-dom";
 import { FileText, Send, CheckCircle2, XCircle, Clock, Plus } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
@@ -7,7 +8,7 @@ import { useDashboardStats, useTickets } from "@/hooks/use-agency-data";
 import { useAuth } from "@/lib/auth";
 import { format } from "date-fns";
 
-export default function Dashboard() {
+const Dashboard = React.forwardRef<HTMLDivElement, object>(function Dashboard(_props, ref) {
   const { data: stats } = useDashboardStats();
   const { data: tickets } = useTickets();
   const { user } = useAuth();
