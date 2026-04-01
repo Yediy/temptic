@@ -105,6 +105,7 @@ const App = () => (
                 <Route path="/templates" element={<Templates />} />
                 <Route path="/invites" element={<PendingInvites />} />
                 <Route path="/billing" element={<Billing />} />
+                <Route path="/qa" element={<QAChecklist />} />
               </Route>
             </Route>
 
