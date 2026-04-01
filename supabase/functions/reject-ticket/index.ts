@@ -33,6 +33,10 @@ serve(async (req) => {
 
     const { ticket_id, rejection_reason } = await req.json();
 
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!ticket_id || !UUID_RE.test(ticket_id)) throw new Error("Invalid ticket_id");
+    if (rejection_reason && typeof rejection_reason === "string" && rejection_reason.length > 2000) throw new Error("Rejection reason too long");
+
     const { data: signer, error: signerErr } = await supabase
       .from("client_signers")
       .select("*")

@@ -33,6 +33,11 @@ serve(async (req) => {
 
     const { ticket_id, pdf_type } = await req.json();
 
+    // Validate inputs
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!ticket_id || !UUID_RE.test(ticket_id)) throw new Error("Invalid ticket_id");
+    if (!["draft", "agency_copy", "client_copy", "worker_copy"].includes(pdf_type)) throw new Error("Invalid pdf_type");
+
     // Determine caller's relationship to the ticket
     const { data: membership } = await supabase
       .from("agency_members")

@@ -31,6 +31,7 @@ serve(async (req) => {
 
     if (userErr || !user) throw new Error("Unauthorized");
 
+    const body = await req.json();
     const {
       ticket_id,
       signer_name,
@@ -39,7 +40,13 @@ serve(async (req) => {
       signer_email,
       signature_image,
       signature_date,
-    } = await req.json();
+    } = body;
+
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!ticket_id || !UUID_RE.test(ticket_id)) throw new Error("Invalid ticket_id");
+    if (!signer_name || typeof signer_name !== "string" || signer_name.length > 200) throw new Error("Invalid signer_name");
+    if (signer_initials && signer_initials.length > 10) throw new Error("Invalid signer_initials");
+    if (signature_image && typeof signature_image === "string" && signature_image.length > 500_000) throw new Error("Signature image too large");
 
     const { data: signer, error: signerErr } = await supabase
       .from("client_signers")

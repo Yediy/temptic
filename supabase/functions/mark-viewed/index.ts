@@ -32,7 +32,9 @@ serve(async (req) => {
     if (userErr || !user) throw new Error("Unauthorized");
 
     const { ticket_id } = await req.json();
-    if (!ticket_id) throw new Error("Missing ticket_id");
+    if (!ticket_id || typeof ticket_id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(ticket_id)) {
+      throw new Error("Invalid ticket_id");
+    }
 
     // Verify caller is a client signer
     const { data: signer, error: signerErr } = await supabase

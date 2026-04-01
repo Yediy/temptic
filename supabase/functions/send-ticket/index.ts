@@ -34,6 +34,10 @@ serve(async (req) => {
 
     const { ticket_id } = await req.json();
 
+    if (!ticket_id || typeof ticket_id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(ticket_id)) {
+      throw new Error("Invalid ticket_id");
+    }
+
     const { data: membership } = await supabase
       .from("agency_members")
       .select("agency_id")
