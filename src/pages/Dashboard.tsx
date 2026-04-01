@@ -16,7 +16,7 @@ const Dashboard = React.forwardRef<HTMLDivElement, object>(function Dashboard(_p
   const today = format(new Date(), "EEEE, MMMM d, yyyy");
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div ref={ref} className="space-y-8 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
@@ -92,4 +92,8 @@ const Dashboard = React.forwardRef<HTMLDivElement, object>(function Dashboard(_p
       </div>
     </div>
   );
-}
+});
+
+Dashboard.displayName = "Dashboard";
+
+export default Dashboard;
