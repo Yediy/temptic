@@ -52,6 +52,7 @@ import WorkerHours from "@/pages/worker/WorkerHours";
 import WorkerForgotPassword from "@/pages/auth/WorkerForgotPassword";
 import WorkerResetPassword from "@/pages/auth/WorkerResetPassword";
 
+import QAChecklist from "@/pages/QAChecklist";
 import NotFound from "./pages/NotFound";
 import Unsubscribe from "@/pages/Unsubscribe";
 
