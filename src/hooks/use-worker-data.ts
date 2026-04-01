@@ -22,7 +22,7 @@ export function useWorkerTickets() {
         work_date: t.work_date,
         start_time: t.start_time,
         total_hours: t.total_hours,
-        client_initials: t.client_initials || getInitials(t.client_company_name_snapshot),
+        client_initials: t.client_initials || "—",
         job_title: t.job_title,
         week_start_date: t.week_start_date,
         week_end_date: t.week_end_date,
