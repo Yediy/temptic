@@ -302,7 +302,21 @@ serve(async (req) => {
 
     const { action, token, ...rest } = await req.json();
 
-    if (!token || typeof token !== "string" || token.length < 32) {
+    if (!action || !["validate", "accept"].includes(action)) {
+      return jsonResponse({ error: "Invalid action" }, 400);
+    }
+
+    // Rate limit by IP
+    const clientIp =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("cf-connecting-ip") ||
+      "unknown";
+
+    if (isRateLimited(clientIp, action)) {
+      return jsonResponse({ error: "Too many requests. Please try again later." }, 429);
+    }
+
+    if (!token || typeof token !== "string" || token.length < 32 || token.length > 128) {
       return jsonResponse({ error: "Missing or invalid token" }, 400);
     }
 
