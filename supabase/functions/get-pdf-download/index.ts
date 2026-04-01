@@ -68,12 +68,24 @@ serve(async (req) => {
       if (!ticketErr) ticket = data;
     }
 
-    // If not found via agency, try client/worker path
-    if (!ticket) {
+    // If not found via agency, try client path
+    if (!ticket && clientSigner?.client_id) {
       const { data } = await supabase
         .from("tickets")
         .select("*")
         .eq("id", ticket_id)
+        .eq("client_id", clientSigner.client_id)
+        .single();
+      ticket = data;
+    }
+
+    // Try worker path
+    if (!ticket && worker?.id) {
+      const { data } = await supabase
+        .from("tickets")
+        .select("*")
+        .eq("id", ticket_id)
+        .eq("worker_id", worker.id)
         .single();
       ticket = data;
     }
