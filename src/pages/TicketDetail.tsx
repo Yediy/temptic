@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Send, FileText, Clock, Eye, CheckCircle2, XCircle, RotateCcw, Download } from "lucide-react";
+import { ArrowLeft, Send, FileText, Clock, Eye, CheckCircle2, XCircle, RotateCcw, Download, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusBadge, type TicketStatus } from "@/components/StatusBadge";
 import { useSendTicket } from "@/hooks/use-ticket-actions";
@@ -147,6 +147,14 @@ export default function TicketDetail() {
           )}
         </div>
       </div>
+
+      {/* PDF availability note for signed tickets */}
+      {ticket.status === "signed" && (
+        <div className="rounded-lg border border-muted bg-muted/30 px-3 py-2 text-xs text-muted-foreground flex items-center gap-2">
+          <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+          PDF downloads depend on the document generation pipeline. If a download fails, the PDF may still be generating or the storage service may not be fully configured.
+        </div>
+      )}
 
       {/* Timeline */}
       <div className="rounded-xl border bg-card p-4">

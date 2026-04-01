@@ -10,7 +10,7 @@ export function useWorkerTickets() {
       // Worker RLS policy restricts to own tickets automatically
       const { data, error } = await supabase
         .from("tickets")
-        .select("id, ticket_number, ticket_type, status, work_date, start_time, total_hours, client_initials, client_company_name_snapshot, job_title, week_start_date, week_end_date")
+        .select("id, ticket_number, ticket_type, status, work_date, start_time, total_hours, client_initials, job_title, week_start_date, week_end_date")
         .order("created_at", { ascending: false });
       if (error) throw error;
       // Map to worker-safe view: only initials, no full company name
@@ -22,7 +22,7 @@ export function useWorkerTickets() {
         work_date: t.work_date,
         start_time: t.start_time,
         total_hours: t.total_hours,
-        client_initials: t.client_initials || getInitials(t.client_company_name_snapshot),
+        client_initials: t.client_initials || "—",
         job_title: t.job_title,
         week_start_date: t.week_start_date,
         week_end_date: t.week_end_date,
@@ -60,13 +60,4 @@ export function useWorkerHoursSummary() {
     },
     enabled: !!user,
   });
-}
-
-function getInitials(name: string): string {
-  return name
-    .split(/\s+/)
-    .map(w => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 3);
 }

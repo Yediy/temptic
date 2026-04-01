@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Archive as ArchiveIcon, Download, Search, FileText } from "lucide-react";
+import { Archive as ArchiveIcon, Download, Search, FileText, AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { StatusBadge, type TicketStatus } from "@/components/StatusBadge";
@@ -38,8 +38,8 @@ export default function Archive() {
   const handleDownload = async (ticketId: string, pdfType: "agency_copy" | "client_copy" | "worker_copy") => {
     try {
       await downloadPdf(ticketId, pdfType);
-    } catch {
-      toast.error("PDF not available for this ticket.");
+    } catch (err: any) {
+      toast.error(err.message || "PDF not available for this ticket.");
     }
   };
 
@@ -79,6 +79,11 @@ export default function Archive() {
           <Download className="mr-1 h-4 w-4" />
           Export CSV ({filtered.length})
         </Button>
+      </div>
+
+      <div className="rounded-lg border border-muted bg-muted/30 px-3 py-2 text-xs text-muted-foreground flex items-center gap-2">
+        <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+        PDF downloads require the document generation pipeline to be configured. If downloads fail, PDFs may not have been generated for older tickets.
       </div>
 
       <div className="flex flex-wrap items-center gap-3">

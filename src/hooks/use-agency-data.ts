@@ -25,9 +25,11 @@ export function useCreateClient() {
   const { agencyId } = useAuth();
   return useMutation({
     mutationFn: async (input: Omit<TablesInsert<"clients">, "agency_id">) => {
+      if (!agencyId) throw new Error("No agency context");
+      if (!input.company_name?.trim()) throw new Error("Company name is required");
       const { data, error } = await supabase
         .from("clients")
-        .insert({ ...input, agency_id: agencyId! })
+        .insert({ ...input, agency_id: agencyId })
         .select()
         .single();
       if (error) throw error;
@@ -58,6 +60,7 @@ export function useCreateClientSite() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: TablesInsert<"client_sites">) => {
+      if (!input.address_line1?.trim()) throw new Error("Address is required");
       const { data, error } = await supabase
         .from("client_sites")
         .insert(input)
@@ -91,6 +94,8 @@ export function useCreateClientSigner() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: Omit<TablesInsert<"client_signers">, "initials"> & { client_id: string }) => {
+      if (!input.first_name?.trim() || !input.last_name?.trim()) throw new Error("First and last name are required");
+      if (!input.email?.trim()) throw new Error("Email is required for portal invitations");
       const initials = `${(input.first_name || "")[0] || ""}${(input.last_name || "")[0] || ""}`.toUpperCase();
       const { data, error } = await supabase
         .from("client_signers")
@@ -126,9 +131,11 @@ export function useCreateWorker() {
   const { agencyId } = useAuth();
   return useMutation({
     mutationFn: async (input: Omit<TablesInsert<"workers">, "agency_id">) => {
+      if (!agencyId) throw new Error("No agency context");
+      if (!input.first_name?.trim() || !input.last_name?.trim()) throw new Error("First and last name are required");
       const { data, error } = await supabase
         .from("workers")
-        .insert({ ...input, agency_id: agencyId! })
+        .insert({ ...input, agency_id: agencyId })
         .select()
         .single();
       if (error) throw error;
@@ -166,14 +173,22 @@ export function useCreateTicket() {
         .single();
       if (error) throw error;
 
-      // Generate draft PDF
-      await supabase.functions.invoke("generate-pdf", {
-        body: { ticket_id: data.id, pdf_type: "draft" },
-      });
+      // Generate draft PDF — non-blocking, log failures silently
+      try {
+        await supabase.functions.invoke("generate-pdf", {
+          body: { ticket_id: data.id, pdf_type: "draft" },
+        });
+      } catch {
+        // PDF generation failure should not block ticket creation
+        console.warn("Draft PDF generation failed — PDF pipeline may not be configured");
+      }
 
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["tickets"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["tickets"] });
+      qc.invalidateQueries({ queryKey: ["dashboard-stats"] });
+    },
   });
 }
 

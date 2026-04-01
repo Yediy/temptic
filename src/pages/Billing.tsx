@@ -3,7 +3,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { CreditCard, Check } from "lucide-react";
+import { CreditCard, Check, AlertTriangle } from "lucide-react";
 
 const plans = [
   {
@@ -50,10 +50,15 @@ export default function Billing() {
       if (data?.url) {
         window.location.href = data.url;
       } else {
-        toast.info(data?.message || "Stripe checkout is not fully configured yet.");
+        toast.info("Stripe checkout is not configured yet. Contact your administrator to connect Stripe.");
       }
     } catch (err: any) {
-      toast.error(err.message || "Failed to start checkout");
+      const msg = err.message?.toLowerCase() || "";
+      if (msg.includes("fetch") || msg.includes("function") || msg.includes("not found")) {
+        toast.info("Billing is not active yet. Stripe integration needs to be configured.");
+      } else {
+        toast.error(err.message || "Failed to start checkout");
+      }
     } finally {
       setLoading(null);
     }
@@ -66,8 +71,14 @@ export default function Billing() {
         <p className="text-sm text-muted-foreground">Choose the plan that fits your agency.</p>
       </div>
 
-      <div className="rounded-lg border border-warning/30 bg-warning/5 px-4 py-3 text-sm text-warning">
-        <strong>Setup required:</strong> Billing requires a Stripe account. Contact your administrator to configure payment processing.
+      <div className="rounded-lg border border-warning/30 bg-warning/5 px-4 py-3 text-sm flex items-start gap-2">
+        <AlertTriangle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
+        <div>
+          <strong className="text-warning">Activation pending</strong>
+          <p className="text-muted-foreground mt-0.5">
+            Billing requires a Stripe account to be connected. Plans shown below are for reference — checkout will be enabled once Stripe is configured by your administrator.
+          </p>
+        </div>
       </div>
 
       <div className="grid gap-6 sm:grid-cols-3">

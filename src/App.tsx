@@ -52,6 +52,7 @@ import WorkerHours from "@/pages/worker/WorkerHours";
 import WorkerForgotPassword from "@/pages/auth/WorkerForgotPassword";
 import WorkerResetPassword from "@/pages/auth/WorkerResetPassword";
 
+import QAChecklist from "@/pages/QAChecklist";
 import NotFound from "./pages/NotFound";
 import Unsubscribe from "@/pages/Unsubscribe";
 
@@ -104,6 +105,7 @@ const App = () => (
                 <Route path="/templates" element={<Templates />} />
                 <Route path="/invites" element={<PendingInvites />} />
                 <Route path="/billing" element={<Billing />} />
+                <Route path="/qa" element={<QAChecklist />} />
               </Route>
             </Route>
 
