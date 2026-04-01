@@ -152,6 +152,8 @@ function generateTicketHtml(ticket: any, pdfType: string, days?: any[]): string 
 </html>`;
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -160,9 +162,34 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    // Only allow internal/service-role callers
+    const internalSecret = req.headers.get("x-internal-secret");
+    const authHeader = req.headers.get("Authorization");
+    if (internalSecret !== serviceKey && authHeader !== `Bearer ${serviceKey}`) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 403,
+      });
+    }
+
     const supabase = createClient(supabaseUrl, serviceKey);
 
     const { ticket_id, pdf_type } = (await req.json()) as PdfRequest;
+
+    if (!ticket_id || !UUID_RE.test(ticket_id)) {
+      return new Response(JSON.stringify({ error: "Invalid ticket_id" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+
+    if (!["draft", "agency_copy", "client_copy", "worker_copy"].includes(pdf_type)) {
+      return new Response(JSON.stringify({ error: "Invalid pdf_type" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
 
     // Fetch ticket using service role (called internally after auth verification)
     const { data: ticket, error: ticketErr } = await supabase
