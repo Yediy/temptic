@@ -10,7 +10,7 @@ export function useWorkerTickets() {
       // Worker RLS policy restricts to own tickets automatically
       const { data, error } = await supabase
         .from("tickets")
-        .select("id, ticket_number, ticket_type, status, work_date, start_time, total_hours, client_initials, client_company_name_snapshot, job_title, week_start_date, week_end_date")
+        .select("id, ticket_number, ticket_type, status, work_date, start_time, total_hours, client_initials, job_title, week_start_date, week_end_date")
         .order("created_at", { ascending: false });
       if (error) throw error;
       // Map to worker-safe view: only initials, no full company name
