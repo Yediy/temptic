@@ -1,3 +1,4 @@
+import React from "react";
 import { Link } from "react-router-dom";
 import { FileText, Send, CheckCircle2, XCircle, Clock, Plus } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
@@ -7,7 +8,7 @@ import { useDashboardStats, useTickets } from "@/hooks/use-agency-data";
 import { useAuth } from "@/lib/auth";
 import { format } from "date-fns";
 
-export default function Dashboard() {
+const Dashboard = React.forwardRef<HTMLDivElement, object>(function Dashboard(_props, ref) {
   const { data: stats } = useDashboardStats();
   const { data: tickets } = useTickets();
   const { user } = useAuth();
@@ -15,7 +16,7 @@ export default function Dashboard() {
   const today = format(new Date(), "EEEE, MMMM d, yyyy");
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div ref={ref} className="space-y-8 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
@@ -91,4 +92,8 @@ export default function Dashboard() {
       </div>
     </div>
   );
-}
+});
+
+Dashboard.displayName = "Dashboard";
+
+export default Dashboard;
