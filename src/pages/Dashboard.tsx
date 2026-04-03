@@ -7,11 +7,17 @@ import { Button } from "@/components/ui/button";
 import { useDashboardStats, useTickets } from "@/hooks/use-agency-data";
 import { useAuth } from "@/lib/auth";
 import { format } from "date-fns";
+import SuperAdminDashboard from "@/pages/admin/SuperAdminDashboard";
 
 const Dashboard = React.forwardRef<HTMLDivElement, object>(function Dashboard(_props, ref) {
   const { data: stats } = useDashboardStats();
   const { data: tickets } = useTickets();
-  const { user } = useAuth();
+  const { user, roles } = useAuth();
+
+  if (roles.includes("super_admin")) {
+    return <SuperAdminDashboard />;
+  }
+
   const recentTickets = (tickets ?? []).slice(0, 5);
   const today = format(new Date(), "EEEE, MMMM d, yyyy");
 
