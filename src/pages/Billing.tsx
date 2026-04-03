@@ -5,43 +5,31 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CreditCard, Check, AlertTriangle } from "lucide-react";
 
-const plans = [
-  {
-    name: "Starter",
-    price: "$29",
-    period: "/mo",
-    features: ["Up to 50 tickets/mo", "1 agency user", "PDF generation", "Email notifications"],
-    priceId: "starter",
-  },
-  {
-    name: "Growth",
-    price: "$79",
-    period: "/mo",
-    features: ["Up to 300 tickets/mo", "5 agency users", "Custom templates", "Priority support"],
-    priceId: "growth",
-    popular: true,
-  },
-  {
-    name: "Pro",
-    price: "$149",
-    period: "/mo",
-    features: ["Unlimited tickets", "Unlimited users", "Custom branding", "API access", "Dedicated support"],
-    priceId: "pro",
-  },
+const features = [
+  "Agency portal",
+  "Client portal",
+  "Worker portal",
+  "Daily and weekly tickets",
+  "Client onboarding and invites",
+  "Approval tracking",
+  "Archive and records",
+  "Template support",
+  "Admin tools",
+  "Email notifications when configured",
 ];
 
 export default function Billing() {
   const { agencyId } = useAuth();
   const [loading, setLoading] = useState<string | null>(null);
 
-  const handleCheckout = async (priceId: string) => {
+  const handleCheckout = async (interval: "monthly" | "annual") => {
     if (!agencyId) return;
-    setLoading(priceId);
+    setLoading(interval);
     try {
       const { data, error } = await supabase.functions.invoke("create-checkout-session", {
         body: {
           agency_id: agencyId,
-          plan: priceId,
+          plan: interval,
           success_url: `${window.location.origin}/billing?session_id={CHECKOUT_SESSION_ID}`,
           cancel_url: `${window.location.origin}/billing`,
         },
@@ -65,10 +53,12 @@ export default function Billing() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Billing & Plans</h1>
-        <p className="text-sm text-muted-foreground">Choose the plan that fits your agency.</p>
+    <div className="mx-auto max-w-xl space-y-8 animate-fade-in">
+      <div className="text-center">
+        <h1 className="text-2xl font-bold tracking-tight">One simple price for your agency</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Create tickets, onboard client approvers, manage worker records, and keep approvals organized in one place.
+        </p>
       </div>
 
       <div className="rounded-lg border border-warning/30 bg-warning/5 px-4 py-3 text-sm flex items-start gap-2">
@@ -76,49 +66,64 @@ export default function Billing() {
         <div>
           <strong className="text-warning">Activation pending</strong>
           <p className="text-muted-foreground mt-0.5">
-            Billing requires a Stripe account to be connected. Plans shown below are for reference — checkout will be enabled once Stripe is configured by your administrator.
+            Billing requires a Stripe account to be connected. Pricing shown below is for reference — checkout will be enabled once Stripe is configured.
           </p>
         </div>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-3">
-        {plans.map(plan => (
-          <div
-            key={plan.priceId}
-            className={`rounded-xl border p-6 transition-all ${
-              plan.popular ? "border-primary ring-1 ring-primary shadow-lg" : "bg-card hover:shadow-md"
-            }`}
-          >
-            {plan.popular && (
-              <span className="mb-3 inline-block rounded-full bg-primary px-2.5 py-0.5 text-xs font-semibold text-primary-foreground">
-                Most Popular
-              </span>
-            )}
-            <h3 className="text-lg font-bold">{plan.name}</h3>
-            <div className="mt-2 mb-4">
-              <span className="text-3xl font-bold">{plan.price}</span>
-              <span className="text-sm text-muted-foreground">{plan.period}</span>
-            </div>
-            <ul className="space-y-2 mb-6">
-              {plan.features.map(f => (
-                <li key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Check className="h-4 w-4 text-success" />
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <Button
-              className="w-full"
-              variant={plan.popular ? "default" : "outline"}
-              onClick={() => handleCheckout(plan.priceId)}
-              disabled={loading === plan.priceId}
-            >
-              <CreditCard className="mr-1 h-4 w-4" />
-              {loading === plan.priceId ? "Loading…" : "Get Started"}
-            </Button>
+      {/* Plan Card */}
+      <div className="rounded-2xl border-2 border-primary bg-card shadow-lg">
+        <div className="border-b border-border/60 px-8 py-6 text-center">
+          <p className="text-sm font-semibold uppercase tracking-wider text-accent">Temp Tic Agency</p>
+          <div className="mt-4 flex items-baseline justify-center gap-1">
+            <span className="text-5xl font-extrabold tracking-tight text-foreground">$80</span>
+            <span className="text-lg text-muted-foreground">/month</span>
           </div>
-        ))}
+          <p className="mt-2 text-sm text-muted-foreground">
+            or <span className="font-semibold text-foreground">$816/year</span>
+          </p>
+          <span className="mt-2 inline-block rounded-full bg-accent/15 px-3 py-1 text-xs font-semibold text-accent">
+            Save 15% with annual billing
+          </span>
+        </div>
+
+        <div className="px-8 py-6">
+          <ul className="space-y-3">
+            {features.map((f) => (
+              <li key={f} className="flex items-start gap-3 text-sm text-foreground">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                {f}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="flex flex-col gap-3 border-t border-border/60 px-8 py-6">
+          <Button
+            className="w-full"
+            size="lg"
+            onClick={() => handleCheckout("monthly")}
+            disabled={loading === "monthly"}
+          >
+            <CreditCard className="mr-1.5 h-4 w-4" />
+            {loading === "monthly" ? "Loading…" : "Start Monthly"}
+          </Button>
+          <Button
+            className="w-full"
+            variant="outline"
+            size="lg"
+            onClick={() => handleCheckout("annual")}
+            disabled={loading === "annual"}
+          >
+            <CreditCard className="mr-1.5 h-4 w-4" />
+            {loading === "annual" ? "Loading…" : "Start Annual"}
+          </Button>
+        </div>
       </div>
+
+      <p className="text-center text-sm font-semibold text-muted-foreground">
+        One agency. One price. No per-worker nonsense.
+      </p>
     </div>
   );
 }

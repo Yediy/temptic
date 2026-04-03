@@ -6,12 +6,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Map internal plan names to Stripe price IDs.
-// Replace these with real Stripe price IDs once created in the Stripe Dashboard.
+// Two billing intervals for the single Temp Tic Agency plan.
+// Replace with real Stripe price IDs once created in the Stripe Dashboard.
 const PRICE_MAP: Record<string, string> = {
-  starter: "price_starter_placeholder",
-  growth: "price_growth_placeholder",
-  pro: "price_pro_placeholder",
+  monthly: "price_monthly_placeholder",
+  annual: "price_annual_placeholder",
 };
 
 serve(async (req) => {
@@ -27,7 +26,6 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    // Authenticate user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("Missing auth header");
 
@@ -41,7 +39,7 @@ serve(async (req) => {
     const { agency_id, plan, success_url, cancel_url } = await req.json();
 
     if (!plan || !PRICE_MAP[plan]) {
-      throw new Error("Invalid plan: " + plan);
+      throw new Error("Invalid plan: " + plan + ". Use 'monthly' or 'annual'.");
     }
 
     // Verify user belongs to agency
@@ -56,7 +54,6 @@ serve(async (req) => {
     if (!membership) throw new Error("Not authorized for this agency");
 
     if (!stripeKey) {
-      // Stripe not configured — return helpful message
       return new Response(
         JSON.stringify({
           message: "Stripe is not configured yet. Add STRIPE_SECRET_KEY to edge function secrets and update PRICE_MAP with real Stripe price IDs.",
@@ -67,10 +64,8 @@ serve(async (req) => {
       );
     }
 
-    // ─── Real Stripe Checkout Session ───
     const priceId = PRICE_MAP[plan];
 
-    // Check if placeholder IDs are still in use
     if (priceId.includes("placeholder")) {
       return new Response(
         JSON.stringify({
@@ -82,7 +77,7 @@ serve(async (req) => {
       );
     }
 
-    // Look up or create a Stripe customer for this user
+    // Look up or create Stripe customer
     const customerSearchRes = await fetch("https://api.stripe.com/v1/customers/search?" + new URLSearchParams({
       query: `email:"${user.email}"`,
     }), {
