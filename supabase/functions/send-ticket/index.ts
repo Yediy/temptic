@@ -37,20 +37,20 @@ serve(async (req) => {
   }
 
   try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, serviceKey);
+
     const clientIp =
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
       req.headers.get("cf-connecting-ip") ||
       "unknown";
-    if (isRateLimited(`send-ticket:${clientIp}`)) {
+    if (await isRateLimited(supabase, `send-ticket:${clientIp}`)) {
       return new Response(JSON.stringify({ error: "Too many requests. Please try again later." }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 429,
       });
     }
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, serviceKey);
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("Missing auth header");
