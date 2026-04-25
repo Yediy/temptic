@@ -598,6 +598,27 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limits: {
+        Row: {
+          count: number
+          created_at: string
+          key: string
+          reset_at: string
+        }
+        Insert: {
+          count?: number
+          created_at?: string
+          key: string
+          reset_at: string
+        }
+        Update: {
+          count?: number
+          created_at?: string
+          key?: string
+          reset_at?: string
+        }
+        Relationships: []
+      }
       template_field_mappings: {
         Row: {
           created_at: string
@@ -1112,6 +1133,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_rate_limit: {
+        Args: { _key: string; _max_requests: number; _window_seconds: number }
+        Returns: boolean
+      }
       current_user_agency_ids: { Args: never; Returns: string[] }
       current_user_client_ids: { Args: never; Returns: string[] }
       current_user_has_role: {
