@@ -333,6 +333,6 @@ serve(async (req) => {
     return jsonResponse({ error: "Invalid action" }, 400);
   } catch (err: any) {
     console.error("accept-invite error:", err);
-    return jsonResponse({ error: err.message }, 500);
+    return jsonResponse({ error: "An unexpected error occurred." }, 500);
   }
 });
