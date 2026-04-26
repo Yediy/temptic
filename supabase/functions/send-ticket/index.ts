@@ -31,6 +31,29 @@ async function isRateLimited(
   }
 }
 
+async function logRateLimitEvent(
+  supabase: ReturnType<typeof createClient>,
+  payload: {
+    endpoint: string;
+    rate_key: string;
+    ip_address: string | null;
+    user_id?: string | null;
+    user_role?: string | null;
+  },
+): Promise<void> {
+  try {
+    await supabase.from("rate_limit_events").insert({
+      endpoint: payload.endpoint,
+      rate_key: payload.rate_key,
+      ip_address: payload.ip_address,
+      user_id: payload.user_id ?? null,
+      user_role: payload.user_role ?? null,
+    });
+  } catch (e) {
+    console.error("Failed to log rate limit event:", e);
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
