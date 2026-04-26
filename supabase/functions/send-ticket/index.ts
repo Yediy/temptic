@@ -149,10 +149,22 @@ serve(async (req) => {
         ip_address: identity.ip,
         user_role: "agency",
       });
-      return new Response(JSON.stringify({ error: "Too many requests. Please try again later." }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 429,
-      });
+      return new Response(
+        JSON.stringify({
+          error: "rate_limited",
+          code: "rate_limited",
+          message: "Too many requests. Please try again later.",
+          retry_after_seconds: RATE_LIMIT_WINDOW_SECONDS,
+        }),
+        {
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+            "Retry-After": String(RATE_LIMIT_WINDOW_SECONDS),
+          },
+          status: 429,
+        },
+      );
     }
 
     const authHeader = req.headers.get("Authorization");
