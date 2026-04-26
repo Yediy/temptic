@@ -23,6 +23,7 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          is_demo: boolean
           logo_url: string | null
           name: string
           phone: string | null
@@ -37,6 +38,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          is_demo?: boolean
           logo_url?: string | null
           name: string
           phone?: string | null
@@ -51,6 +53,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          is_demo?: boolean
           logo_url?: string | null
           name?: string
           phone?: string | null
@@ -1176,6 +1179,7 @@ export type Database = {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean
       }
+      current_user_is_demo: { Args: never; Returns: boolean }
       current_user_worker_ids: { Args: never; Returns: string[] }
       get_user_agency_id: { Args: { _user_id: string }; Returns: string }
       get_user_client_id: { Args: { _user_id: string }; Returns: string }
@@ -1187,6 +1191,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_demo_agency: { Args: { _agency_id: string }; Returns: boolean }
       next_ticket_number: { Args: { _agency_id: string }; Returns: string }
       register_agency:
         | { Args: { _agency_name: string }; Returns: string }
