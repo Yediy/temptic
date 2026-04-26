@@ -598,6 +598,39 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limit_events: {
+        Row: {
+          attempt_count: number | null
+          created_at: string
+          endpoint: string
+          id: string
+          ip_address: string | null
+          rate_key: string
+          user_id: string | null
+          user_role: string | null
+        }
+        Insert: {
+          attempt_count?: number | null
+          created_at?: string
+          endpoint: string
+          id?: string
+          ip_address?: string | null
+          rate_key: string
+          user_id?: string | null
+          user_role?: string | null
+        }
+        Update: {
+          attempt_count?: number | null
+          created_at?: string
+          endpoint?: string
+          id?: string
+          ip_address?: string | null
+          rate_key?: string
+          user_id?: string | null
+          user_role?: string | null
+        }
+        Relationships: []
+      }
       rate_limits: {
         Row: {
           count: number
