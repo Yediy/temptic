@@ -53,7 +53,7 @@ async function sha256Hex(input: string): Promise<string> {
 interface ClientIdentity {
   ip: string | null;
   rateKey: string;
-  source: "cf" | "true-client" | "fly" | "x-real-ip" | "xff" | "user" | "ua-hash";
+  source: "cf" | "true-client" | "fly" | "x-real-ip" | "xff" | "user" | "user+ip" | "ua-hash";
 }
 
 async function resolveClientIp(req: Request): Promise<{ ip: string | null; source: ClientIdentity["source"] | null }> {
