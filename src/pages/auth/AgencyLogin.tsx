@@ -15,6 +15,7 @@ export default function AgencyLogin() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +27,32 @@ export default function AgencyLogin() {
       setError(error);
     } else {
       navigate("/");
+    }
+  };
+
+  const handleDemo = async () => {
+    setError("");
+    setDemoLoading(true);
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke("demo-login");
+      if (fnError || !data?.access_token) {
+        setError(data?.error ?? fnError?.message ?? "Demo unavailable. Try again shortly.");
+        setDemoLoading(false);
+        return;
+      }
+      const { error: sessionErr } = await supabase.auth.setSession({
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+      });
+      if (sessionErr) {
+        setError(sessionErr.message);
+        setDemoLoading(false);
+        return;
+      }
+      navigate("/");
+    } catch (e) {
+      setError((e as Error).message ?? "Demo unavailable.");
+      setDemoLoading(false);
     }
   };
 
