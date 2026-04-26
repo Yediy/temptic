@@ -57,43 +57,47 @@ async function sha256Hex(input: string): Promise<string> {
 interface ClientIdentity {
   ip: string | null; // best-effort public IP, or null
   rateKey: string; // stable identifier for rate-limit bucketing
-  source: "cf" | "true-client" | "fly" | "x-real-ip" | "xff" | "user" | "ua-hash";
+  source: "cf" | "true-client" | "fly" | "x-real-ip" | "xff" | "user" | "user+ip" | "ua-hash";
+}
+
+async function resolveClientIp(req: Request): Promise<{ ip: string | null; source: ClientIdentity["source"] | null }> {
+  const headers = req.headers;
+  const cf = isValidPublicIp(headers.get("cf-connecting-ip"));
+  if (cf) return { ip: cf, source: "cf" };
+  const trueClient = isValidPublicIp(headers.get("true-client-ip"));
+  if (trueClient) return { ip: trueClient, source: "true-client" };
+  const fly = isValidPublicIp(headers.get("fly-client-ip"));
+  if (fly) return { ip: fly, source: "fly" };
+  const xReal = isValidPublicIp(headers.get("x-real-ip"));
+  if (xReal) return { ip: xReal, source: "x-real-ip" };
+  const xff = headers.get("x-forwarded-for");
+  if (xff) {
+    for (const candidate of xff.split(",")) {
+      const ip = isValidPublicIp(candidate);
+      if (ip) return { ip, source: "xff" };
+    }
+  }
+  return { ip: null, source: null };
 }
 
 async function resolveClientIdentity(
   req: Request,
   endpoint: string,
 ): Promise<ClientIdentity> {
-  const headers = req.headers;
+  const { ip, source: ipSource } = await resolveClientIp(req);
+  const sub = jwtSubUnverified(req.headers.get("Authorization"));
 
-  // 1. Trusted single-value CDN headers first.
-  const cf = isValidPublicIp(headers.get("cf-connecting-ip"));
-  if (cf) return { ip: cf, rateKey: `${endpoint}:ip:${cf}`, source: "cf" };
-
-  const trueClient = isValidPublicIp(headers.get("true-client-ip"));
-  if (trueClient)
-    return { ip: trueClient, rateKey: `${endpoint}:ip:${trueClient}`, source: "true-client" };
-
-  const fly = isValidPublicIp(headers.get("fly-client-ip"));
-  if (fly) return { ip: fly, rateKey: `${endpoint}:ip:${fly}`, source: "fly" };
-
-  const xReal = isValidPublicIp(headers.get("x-real-ip"));
-  if (xReal) return { ip: xReal, rateKey: `${endpoint}:ip:${xReal}`, source: "x-real-ip" };
-
-  // 2. x-forwarded-for: walk left-to-right, return first valid public IP.
-  const xff = headers.get("x-forwarded-for");
-  if (xff) {
-    for (const candidate of xff.split(",")) {
-      const ip = isValidPublicIp(candidate);
-      if (ip) return { ip, rateKey: `${endpoint}:ip:${ip}`, source: "xff" };
-    }
+  // Best: combine user + IP — handles NATs/shared devices without coupling
+  // distinct users into one bucket and without letting one user evade limits
+  // by hopping IPs.
+  if (sub && ip) {
+    return { ip, rateKey: `${endpoint}:u:${sub}:ip:${ip}`, source: "user+ip" };
   }
-
-  // 3. Authenticated user fallback — keeps logged-in attackers bucketed.
-  const sub = jwtSubUnverified(headers.get("Authorization"));
   if (sub) return { ip: null, rateKey: `${endpoint}:user:${sub}`, source: "user" };
+  if (ip) return { ip, rateKey: `${endpoint}:ip:${ip}`, source: ipSource ?? "xff" };
 
-  // 4. Last resort: hash UA + accept-language to avoid one giant shared bucket.
+  // Last resort: hash UA + accept-language to avoid one giant shared bucket.
+  const headers = req.headers;
   const fingerprint = `${headers.get("user-agent") ?? ""}|${headers.get("accept-language") ?? ""}`;
   const hash = (await sha256Hex(fingerprint)).slice(0, 16);
   return { ip: null, rateKey: `${endpoint}:ua:${hash}`, source: "ua-hash" };
