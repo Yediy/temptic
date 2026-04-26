@@ -138,16 +138,15 @@ serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    const clientIp =
-      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      req.headers.get("cf-connecting-ip") ||
-      "unknown";
-    const rateKey = `send-ticket:${clientIp}`;
-    if (await isRateLimited(supabase, rateKey)) {
+    const identity = await resolveClientIdentity(req, "send-ticket");
+    if (await isRateLimited(supabase, identity.rateKey)) {
+      console.warn(
+        `[send-ticket] rate limited source=${identity.source} key=${identity.rateKey}`,
+      );
       await logRateLimitEvent(supabase, {
         endpoint: "send-ticket",
-        rate_key: rateKey,
-        ip_address: clientIp,
+        rate_key: identity.rateKey,
+        ip_address: identity.ip,
         user_role: "agency",
       });
       return new Response(JSON.stringify({ error: "Too many requests. Please try again later." }), {
