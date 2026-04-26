@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { FileText, Send, CheckCircle2, XCircle, Clock, Plus } from "lucide-react";
+import { FileText, Send, CheckCircle2, XCircle, Clock, Plus, HardHat, Building2, CalendarPlus } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
 import { StatusBadge, type TicketStatus } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -42,16 +42,24 @@ const Dashboard = React.forwardRef<HTMLDivElement, object>(function Dashboard(_p
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Draft Tickets" value={stats?.drafts ?? 0} icon={FileText} variant="default" />
-        <StatCard label="Unsigned" value={stats?.unsigned ?? 0} icon={Send} variant="destructive" />
-        <StatCard label="Signed" value={stats?.signed ?? 0} icon={CheckCircle2} variant="success" />
-        <StatCard label="Rejected" value={stats?.rejected ?? 0} icon={XCircle} variant="destructive" />
+      <div>
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">This Month</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard label="Created" value={stats?.createdThisMonth ?? 0} icon={CalendarPlus} variant="accent" />
+          <StatCard label="Pending Approvals" value={stats?.pendingApprovals ?? 0} icon={Send} variant="warning" />
+          <StatCard label="Signed" value={stats?.signedThisMonth ?? 0} icon={CheckCircle2} variant="success" />
+          <StatCard label="Rejected" value={stats?.rejectedThisMonth ?? 0} icon={XCircle} variant="destructive" />
+        </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <StatCard label="Total Hours" value={stats?.totalHours ?? 0} icon={Clock} variant="default" trend="All tickets" />
-        <StatCard label="Total Tickets" value={stats?.total ?? 0} icon={FileText} variant="accent" trend="All time" />
+      <div>
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Overview</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard label="Draft Tickets" value={stats?.drafts ?? 0} icon={FileText} variant="default" />
+          <StatCard label="Active Workers" value={stats?.activeWorkers ?? 0} icon={HardHat} variant="default" />
+          <StatCard label="Active Clients" value={stats?.activeClients ?? 0} icon={Building2} variant="default" />
+          <StatCard label="Total Hours" value={stats?.totalHours ?? 0} icon={Clock} variant="default" trend="All tickets" />
+        </div>
       </div>
 
       <div>

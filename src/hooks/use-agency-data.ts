@@ -220,12 +220,24 @@ export function useDashboardStats() {
   return useQuery({
     queryKey: ["dashboard-stats", agencyId],
     queryFn: async () => {
-      const { data: tickets, error } = await supabase
-        .from("tickets")
-        .select("status, total_hours");
-      if (error) throw error;
+      const monthStart = new Date();
+      monthStart.setDate(1);
+      monthStart.setHours(0, 0, 0, 0);
+      const monthStartIso = monthStart.toISOString();
 
-      const all = tickets ?? [];
+      const [ticketsRes, workersRes, clientsRes] = await Promise.all([
+        supabase
+          .from("tickets")
+          .select("status, total_hours, created_at, signed_at, rejected_at"),
+        supabase.from("workers").select("id", { count: "exact", head: true }).eq("is_active", true),
+        supabase.from("clients").select("id", { count: "exact", head: true }).eq("is_active", true),
+      ]);
+
+      if (ticketsRes.error) throw ticketsRes.error;
+
+      const all = ticketsRes.data ?? [];
+      const inMonth = (iso: string | null) => !!iso && iso >= monthStartIso;
+
       return {
         drafts: all.filter(t => t.status === "draft").length,
         sent: all.filter(t => t.status === "sent").length,
@@ -234,6 +246,13 @@ export function useDashboardStats() {
         rejected: all.filter(t => t.status === "rejected").length,
         totalHours: all.reduce((s, t) => s + (Number(t.total_hours) || 0), 0),
         total: all.length,
+        // This month
+        createdThisMonth: all.filter(t => inMonth(t.created_at)).length,
+        signedThisMonth: all.filter(t => inMonth(t.signed_at)).length,
+        rejectedThisMonth: all.filter(t => inMonth(t.rejected_at)).length,
+        pendingApprovals: all.filter(t => ["sent", "viewed"].includes(t.status)).length,
+        activeWorkers: workersRes.count ?? 0,
+        activeClients: clientsRes.count ?? 0,
       };
     },
     enabled: !!agencyId,

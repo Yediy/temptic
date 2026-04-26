@@ -54,6 +54,11 @@ import WorkerForgotPassword from "@/pages/auth/WorkerForgotPassword";
 import WorkerResetPassword from "@/pages/auth/WorkerResetPassword";
 
 import QAChecklist from "@/pages/QAChecklist";
+import Help from "@/pages/Help";
+import Handoff from "@/pages/admin/Handoff";
+import Terms from "@/pages/legal/Terms";
+import Privacy from "@/pages/legal/Privacy";
+import Contact from "@/pages/legal/Contact";
 import NotFound from "./pages/NotFound";
 import Unsubscribe from "@/pages/Unsubscribe";
 
@@ -91,10 +96,16 @@ const App = () => (
             <Route path="/worker/reset-password" element={<WorkerResetPassword />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
 
+            {/* Public legal / info routes */}
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/contact" element={<Contact />} />
+
             {/* Agency portal */}
             <Route element={<ProtectedRoute allowedRoles={["super_admin", "agency_admin", "dispatcher", "payroll", "viewer"]} redirectTo="/login" />}>
               <Route element={<AppLayout />}>
                 <Route path="/" element={<Dashboard />} />
+                <Route path="/help" element={<Help />} />
                 <Route path="/tickets" element={<Tickets />} />
                 <Route path="/tickets/create" element={<CreateTicket />} />
                 <Route path="/tickets/create/weekly" element={<CreateWeeklyTicket />} />
@@ -117,6 +128,7 @@ const App = () => (
                 <Route path="/admin/tickets" element={<AdminTicketSearch />} />
                 <Route path="/admin/notifications" element={<AdminNotifications />} />
                 <Route path="/admin/rate-limits" element={<AdminRateLimits />} />
+                <Route path="/handoff" element={<Handoff />} />
               </Route>
             </Route>
 

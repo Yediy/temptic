@@ -20,6 +20,8 @@ import {
   Shield,
   Mail,
   Gauge,
+  LifeBuoy,
+  Briefcase,
 } from "lucide-react";
 
 const navItems = [
@@ -31,6 +33,7 @@ const navItems = [
   { label: "PDF Archive", icon: Archive, path: "/archive" },
   { label: "Templates", icon: Layers, path: "/templates" },
   { label: "Billing", icon: CreditCard, path: "/billing" },
+  { label: "Help", icon: LifeBuoy, path: "/help" },
 ];
 
 const adminItems = [
@@ -38,6 +41,7 @@ const adminItems = [
   { label: "Ticket Search", icon: Search, path: "/admin/tickets" },
   { label: "Notifications", icon: AlertTriangle, path: "/admin/notifications" },
   { label: "Rate Limits", icon: Gauge, path: "/admin/rate-limits" },
+  { label: "Handoff Pack", icon: Briefcase, path: "/handoff" },
 ];
 
 export function AppSidebar() {
