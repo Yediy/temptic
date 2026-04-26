@@ -85,7 +85,7 @@ function isRateLimited(ip: string, action: string): boolean {
 }
 
 async function handleValidate(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   tokenHash: string
 ) {
   const { data: invite, error } = await supabase
@@ -132,7 +132,7 @@ async function handleValidate(
 }
 
 async function handleAccept(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   supabaseUrl: string,
   serviceKey: string,
   tokenHash: string,
