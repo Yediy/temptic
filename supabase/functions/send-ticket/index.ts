@@ -68,7 +68,14 @@ serve(async (req) => {
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
       req.headers.get("cf-connecting-ip") ||
       "unknown";
-    if (await isRateLimited(supabase, `send-ticket:${clientIp}`)) {
+    const rateKey = `send-ticket:${clientIp}`;
+    if (await isRateLimited(supabase, rateKey)) {
+      await logRateLimitEvent(supabase, {
+        endpoint: "send-ticket",
+        rate_key: rateKey,
+        ip_address: clientIp,
+        user_role: "agency",
+      });
       return new Response(JSON.stringify({ error: "Too many requests. Please try again later." }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 429,
