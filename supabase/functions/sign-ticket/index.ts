@@ -10,6 +10,95 @@ const corsHeaders = {
 const RATE_LIMIT_WINDOW_SECONDS = 60;
 const RATE_LIMIT_MAX = 10;
 
+// ---------- Reliable client-IP extraction ----------
+// Honors common CDN/proxy headers in priority order, validates the value,
+// and skips private/loopback hops in x-forwarded-for chains.
+const PRIVATE_IP_RE =
+  /^(10\.|127\.|169\.254\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|::1$|fc[0-9a-f]{2}:|fd[0-9a-f]{2}:|fe80:)/i;
+const IPV4_RE = /^(?:\d{1,3}\.){3}\d{1,3}$/;
+const IPV6_RE = /^[0-9a-f:]+$/i;
+
+function isValidPublicIp(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const ip = raw.trim().replace(/^\[|\]$/g, "");
+  if (!ip) return null;
+  if (!IPV4_RE.test(ip) && !IPV6_RE.test(ip)) return null;
+  if (PRIVATE_IP_RE.test(ip)) return null;
+  return ip;
+}
+
+// Decode JWT `sub` claim WITHOUT verifying the signature.
+// Used only as a stable fallback rate-limit key, never for authorization.
+function jwtSubUnverified(authHeader: string | null): string | null {
+  if (!authHeader) return null;
+  const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+  const parts = token.split(".");
+  if (parts.length !== 3) return null;
+  try {
+    const payload = JSON.parse(
+      atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")),
+    );
+    return typeof payload?.sub === "string" ? payload.sub : null;
+  } catch {
+    return null;
+  }
+}
+
+async function sha256Hex(input: string): Promise<string> {
+  const buf = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(input),
+  );
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+interface ClientIdentity {
+  ip: string | null; // best-effort public IP, or null
+  rateKey: string; // stable identifier for rate-limit bucketing
+  source: "cf" | "true-client" | "fly" | "x-real-ip" | "xff" | "user" | "ua-hash";
+}
+
+async function resolveClientIdentity(
+  req: Request,
+  endpoint: string,
+): Promise<ClientIdentity> {
+  const headers = req.headers;
+
+  // 1. Trusted single-value CDN headers first.
+  const cf = isValidPublicIp(headers.get("cf-connecting-ip"));
+  if (cf) return { ip: cf, rateKey: `${endpoint}:ip:${cf}`, source: "cf" };
+
+  const trueClient = isValidPublicIp(headers.get("true-client-ip"));
+  if (trueClient)
+    return { ip: trueClient, rateKey: `${endpoint}:ip:${trueClient}`, source: "true-client" };
+
+  const fly = isValidPublicIp(headers.get("fly-client-ip"));
+  if (fly) return { ip: fly, rateKey: `${endpoint}:ip:${fly}`, source: "fly" };
+
+  const xReal = isValidPublicIp(headers.get("x-real-ip"));
+  if (xReal) return { ip: xReal, rateKey: `${endpoint}:ip:${xReal}`, source: "x-real-ip" };
+
+  // 2. x-forwarded-for: walk left-to-right, return first valid public IP.
+  const xff = headers.get("x-forwarded-for");
+  if (xff) {
+    for (const candidate of xff.split(",")) {
+      const ip = isValidPublicIp(candidate);
+      if (ip) return { ip, rateKey: `${endpoint}:ip:${ip}`, source: "xff" };
+    }
+  }
+
+  // 3. Authenticated user fallback — keeps logged-in attackers bucketed.
+  const sub = jwtSubUnverified(headers.get("Authorization"));
+  if (sub) return { ip: null, rateKey: `${endpoint}:user:${sub}`, source: "user" };
+
+  // 4. Last resort: hash UA + accept-language to avoid one giant shared bucket.
+  const fingerprint = `${headers.get("user-agent") ?? ""}|${headers.get("accept-language") ?? ""}`;
+  const hash = (await sha256Hex(fingerprint)).slice(0, 16);
+  return { ip: null, rateKey: `${endpoint}:ua:${hash}`, source: "ua-hash" };
+}
+
 async function isRateLimited(
   supabase: ReturnType<typeof createClient>,
   key: string,
