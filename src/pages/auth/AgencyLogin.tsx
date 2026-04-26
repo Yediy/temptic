@@ -67,6 +67,15 @@ export default function AgencyLogin() {
             <Link to="/worker/login" className="text-xs hover:text-foreground transition-colors">Worker Portal →</Link>
           </div>
         </div>
+
+        <footer className="pt-6 text-center text-[11px] text-muted-foreground">
+          <nav className="flex flex-wrap justify-center gap-x-4 gap-y-1">
+            <Link to="/terms" className="hover:text-foreground">Terms</Link>
+            <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
+            <Link to="/contact" className="hover:text-foreground">Contact</Link>
+            <Link to="/help" className="hover:text-foreground">Help</Link>
+          </nav>
+        </footer>
       </div>
     </div>
   );
