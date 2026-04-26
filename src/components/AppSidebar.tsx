@@ -19,6 +19,7 @@ import {
   AlertTriangle,
   Shield,
   Mail,
+  Gauge,
 } from "lucide-react";
 
 const navItems = [
