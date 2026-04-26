@@ -216,7 +216,7 @@ export default function EditTicket() {
         updateData.start_time = form.start_time;
       }
 
-      const { error } = await supabase.from("tickets").update(updateData).eq("id", id!);
+      const { error } = await supabase.from("tickets").update(updateData as any).eq("id", id!);
       if (error) throw error;
 
       // Update weekly days
