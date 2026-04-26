@@ -36,6 +36,7 @@ const adminItems = [
   { label: "Agencies", icon: Shield, path: "/admin/agencies" },
   { label: "Ticket Search", icon: Search, path: "/admin/tickets" },
   { label: "Notifications", icon: AlertTriangle, path: "/admin/notifications" },
+  { label: "Rate Limits", icon: Gauge, path: "/admin/rate-limits" },
 ];
 
 export function AppSidebar() {
