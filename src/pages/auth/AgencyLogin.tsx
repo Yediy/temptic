@@ -88,6 +88,24 @@ export default function AgencyLogin() {
           </Button>
         </form>
 
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+          <div className="relative flex justify-center text-[11px] uppercase tracking-wider">
+            <span className="bg-background px-2 text-muted-foreground">or</span>
+          </div>
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={handleDemo}
+          disabled={demoLoading}
+        >
+          <Sparkles className="mr-2 h-4 w-4 text-accent" />
+          {demoLoading ? "Loading demo…" : "Try Live Demo"}
+        </Button>
+
         <div className="text-center text-sm text-muted-foreground space-y-1">
           <p>Don't have an account? <Link to="/register" className="font-medium text-primary hover:underline">Register</Link></p>
           <div className="flex justify-center gap-4 pt-2">
