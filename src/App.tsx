@@ -55,6 +55,7 @@ import WorkerResetPassword from "@/pages/auth/WorkerResetPassword";
 
 import QAChecklist from "@/pages/QAChecklist";
 import Help from "@/pages/Help";
+import Security from "@/pages/Security";
 import Handoff from "@/pages/admin/Handoff";
 import Terms from "@/pages/legal/Terms";
 import Privacy from "@/pages/legal/Privacy";
