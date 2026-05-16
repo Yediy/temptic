@@ -74,6 +74,20 @@ export default function AgencyLogin() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      {mfaFactorId && (
+        <MfaChallengeDialog
+          factorId={mfaFactorId}
+          onVerified={async () => {
+            setMfaFactorId(null);
+            await refreshUserData();
+            navigate("/");
+          }}
+          onCancel={async () => {
+            setMfaFactorId(null);
+            await supabase.auth.signOut();
+          }}
+        />
+      )}
       <div className="w-full max-w-sm space-y-8 animate-fade-in">
         <div className="text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-primary">
