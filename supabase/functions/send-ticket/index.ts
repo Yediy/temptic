@@ -183,7 +183,9 @@ serve(async (req) => {
     }
 
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("Missing auth header");
+    if (!authHeader) {
+      return unauthorizedResponse(corsHeaders, "unauthenticated");
+    }
 
     const userClient = createClient(
       supabaseUrl,
@@ -196,7 +198,9 @@ serve(async (req) => {
       error: userErr,
     } = await userClient.auth.getUser();
 
-    if (userErr || !user) throw new Error("Unauthorized");
+    if (userErr || !user) {
+      return unauthorizedResponse(corsHeaders, "invalid_token");
+    }
 
     const { ticket_id } = await req.json();
 
