@@ -6,28 +6,44 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
+import { MfaChallengeDialog } from "@/components/MfaChallengeDialog";
 import { FileText, ArrowRight, Sparkles } from "lucide-react";
 
 export default function AgencyLogin() {
-  const { signIn } = useAuth();
+  const { signIn, refreshUserData } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [demoLoading, setDemoLoading] = useState(false);
+  const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
+
+  const checkMfaAndProceed = async () => {
+    const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aalData?.currentLevel !== aalData?.nextLevel && aalData?.nextLevel === "aal2") {
+      const { data: factorsData } = await supabase.auth.mfa.listFactors();
+      const totp = factorsData?.totp?.find((f) => f.status === "verified");
+      if (totp) {
+        setMfaFactorId(totp.id);
+        return;
+      }
+    }
+    navigate("/");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     const { error } = await signIn(email, password);
-    setLoading(false);
     if (error) {
+      setLoading(false);
       setError(error);
-    } else {
-      navigate("/");
+      return;
     }
+    await checkMfaAndProceed();
+    setLoading(false);
   };
 
   const handleDemo = async () => {
@@ -58,6 +74,20 @@ export default function AgencyLogin() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      {mfaFactorId && (
+        <MfaChallengeDialog
+          factorId={mfaFactorId}
+          onVerified={async () => {
+            setMfaFactorId(null);
+            await refreshUserData();
+            navigate("/");
+          }}
+          onCancel={async () => {
+            setMfaFactorId(null);
+            await supabase.auth.signOut();
+          }}
+        />
+      )}
       <div className="w-full max-w-sm space-y-8 animate-fade-in">
         <div className="text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-primary">

@@ -34,6 +34,7 @@ const navItems = [
   { label: "Templates", icon: Layers, path: "/templates" },
   { label: "Billing", icon: CreditCard, path: "/billing" },
   { label: "Help", icon: LifeBuoy, path: "/help" },
+  { label: "Security", icon: Shield, path: "/security" },
 ];
 
 const adminItems = [
