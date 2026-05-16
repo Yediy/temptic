@@ -11,6 +11,7 @@ import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuthGuardedAction } from "@/hooks/use-auth-guarded-action";
 import { addDays, format, parseISO } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
 
