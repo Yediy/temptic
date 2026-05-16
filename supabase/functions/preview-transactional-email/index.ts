@@ -29,11 +29,17 @@ Deno.serve(async (req) => {
   // Verify the caller is authorized with LOVABLE_API_KEY
   const authHeader = req.headers.get('Authorization')
   const token = authHeader?.replace(/^Bearer\s+/i, '')
+  if (!authHeader) {
+    return new Response(
+      JSON.stringify({ error: 'Authentication required.', code: 'unauthenticated' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+    )
+  }
   if (token !== apiKey) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+    return new Response(
+      JSON.stringify({ error: 'Invalid or expired session.', code: 'invalid_token' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+    )
   }
 
   const templateNames = Object.keys(TEMPLATES)
