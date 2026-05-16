@@ -93,13 +93,19 @@ async function handlePreview(req: Request): Promise<Response> {
   const apiKey = Deno.env.get('LOVABLE_API_KEY')
   const authHeader = req.headers.get('Authorization')
 
+  // Missing-token path returns a generic JSON body — never expose whether
+  // the server is misconfigured vs. caller forgot/garbled the header.
+  if (!authHeader || !/^Bearer\s+\S/i.test(authHeader)) {
+    return new Response(
+      JSON.stringify({ error: 'Authentication required.', code: 'unauthenticated' }),
+      { status: 401, headers: { ...previewCorsHeaders, 'Content-Type': 'application/json' } },
+    )
+  }
   if (!apiKey || authHeader !== `Bearer ${apiKey}`) {
-    const code = !authHeader ? 'unauthenticated' : 'invalid_token'
-    const message = !authHeader ? 'Authentication required.' : 'Invalid or expired session.'
-    return new Response(JSON.stringify({ error: message, code }), {
-      status: 401,
-      headers: { ...previewCorsHeaders, 'Content-Type': 'application/json' },
-    })
+    return new Response(
+      JSON.stringify({ error: 'Invalid or expired session.', code: 'invalid_token' }),
+      { status: 401, headers: { ...previewCorsHeaders, 'Content-Type': 'application/json' } },
+    )
   }
 
   let type: string

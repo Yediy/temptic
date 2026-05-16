@@ -26,16 +26,18 @@ Deno.serve(async (req) => {
     )
   }
 
-  // Verify the caller is authorized with LOVABLE_API_KEY
+  // Verify the caller is authorized with LOVABLE_API_KEY.
+  // Missing-token path returns a generic JSON body that does NOT reveal
+  // whether the server is misconfigured vs. caller forgot the header.
   const authHeader = req.headers.get('Authorization')
-  const token = authHeader?.replace(/^Bearer\s+/i, '')
-  if (!authHeader) {
+  if (!authHeader || !/^Bearer\s+\S/i.test(authHeader)) {
     return new Response(
       JSON.stringify({ error: 'Authentication required.', code: 'unauthenticated' }),
       { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     )
   }
-  if (token !== apiKey) {
+  const token = authHeader.replace(/^Bearer\s+/i, '').trim()
+  if (!apiKey || token !== apiKey) {
     return new Response(
       JSON.stringify({ error: 'Invalid or expired session.', code: 'invalid_token' }),
       { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },

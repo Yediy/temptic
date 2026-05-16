@@ -24,15 +24,15 @@ serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    // Authenticate the caller
+    // Authenticate the caller — generic JSON contract, no detail leakage.
     const authHeader = req.headers.get("authorization");
-    if (!authHeader) {
+    if (!authHeader || !/^Bearer\s+\S/i.test(authHeader)) {
       return jsonResponse({ error: "Authentication required.", code: "unauthenticated" }, 401);
     }
 
     const anonClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!);
     const { data: { user }, error: authErr } = await anonClient.auth.getUser(
-      authHeader.replace("Bearer ", "")
+      authHeader.replace(/^Bearer\s+/i, "").trim()
     );
     if (authErr || !user) {
       return jsonResponse({ error: "Invalid or expired session.", code: "invalid_token" }, 401);
@@ -47,7 +47,10 @@ serve(async (req) => {
       .maybeSingle();
 
     if (!roleCheck) {
-      return jsonResponse({ error: "Only agency admins can send invites" }, 403);
+      return jsonResponse(
+        { error: "You do not have permission to perform this action.", code: "forbidden" },
+        403,
+      );
     }
 
     // Get caller's agency
@@ -59,7 +62,10 @@ serve(async (req) => {
       .single();
 
     if (!membership) {
-      return jsonResponse({ error: "No active agency membership" }, 403);
+      return jsonResponse(
+        { error: "You do not have permission to perform this action.", code: "forbidden" },
+        403,
+      );
     }
 
     const agencyId = membership.agency_id;
