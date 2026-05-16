@@ -29,13 +29,19 @@ export default function Billing() {
     enabled: !!agencyId,
     queryKey: ["agency-billing", agencyId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("agencies")
         .select("subscription_status, subscription_plan, subscription_current_period_end, subscription_cancel_at, stripe_customer_id")
         .eq("id", agencyId!)
         .maybeSingle();
       if (error) throw error;
-      return data;
+      return data as {
+        subscription_status: string | null;
+        subscription_plan: string | null;
+        subscription_current_period_end: string | null;
+        subscription_cancel_at: string | null;
+        stripe_customer_id: string | null;
+      } | null;
     },
   });
 
