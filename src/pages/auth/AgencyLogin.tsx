@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/PasswordInput";
+import { MfaChallengeDialog } from "@/components/MfaChallengeDialog";
 import { FileText, ArrowRight, Sparkles } from "lucide-react";
 
 export default function AgencyLogin() {
