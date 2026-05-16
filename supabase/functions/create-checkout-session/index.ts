@@ -8,10 +8,9 @@ const corsHeaders = {
 };
 
 // Two billing intervals for the single Temp Tic Agency plan.
-// Replace with real Stripe price IDs once created in the Stripe Dashboard.
 const PRICE_MAP: Record<string, string> = {
-  monthly: "price_monthly_placeholder",
-  annual: "price_annual_placeholder",
+  monthly: "price_1TXclAAjMcXyRGlsIDhJUlvS",
+  annual: "price_1TXcmuAjMcXyRGlsZg8itV53",
 };
 
 serve(async (req) => {
