@@ -28,6 +28,12 @@ export type Database = {
           name: string
           phone: string | null
           state: string | null
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          subscription_cancel_at: string | null
+          subscription_current_period_end: string | null
+          subscription_plan: string | null
+          subscription_status: string | null
           zip: string | null
         }
         Insert: {
@@ -43,6 +49,12 @@ export type Database = {
           name: string
           phone?: string | null
           state?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_cancel_at?: string | null
+          subscription_current_period_end?: string | null
+          subscription_plan?: string | null
+          subscription_status?: string | null
           zip?: string | null
         }
         Update: {
@@ -58,6 +70,12 @@ export type Database = {
           name?: string
           phone?: string | null
           state?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_cancel_at?: string | null
+          subscription_current_period_end?: string | null
+          subscription_plan?: string | null
+          subscription_status?: string | null
           zip?: string | null
         }
         Relationships: []
@@ -652,6 +670,30 @@ export type Database = {
           created_at?: string
           key?: string
           reset_at?: string
+        }
+        Relationships: []
+      }
+      stripe_events: {
+        Row: {
+          id: string
+          payload: Json
+          processed_at: string | null
+          received_at: string
+          type: string
+        }
+        Insert: {
+          id: string
+          payload: Json
+          processed_at?: string | null
+          received_at?: string
+          type: string
+        }
+        Update: {
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+          received_at?: string
+          type?: string
         }
         Relationships: []
       }

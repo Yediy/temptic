@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -20,7 +22,58 @@ const features = [
 
 export default function Billing() {
   const { agencyId } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState<string | null>(null);
+
+  const { data: agency, refetch } = useQuery({
+    enabled: !!agencyId,
+    queryKey: ["agency-billing", agencyId],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("agencies")
+        .select("subscription_status, subscription_plan, subscription_current_period_end, subscription_cancel_at, stripe_customer_id")
+        .eq("id", agencyId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data as {
+        subscription_status: string | null;
+        subscription_plan: string | null;
+        subscription_current_period_end: string | null;
+        subscription_cancel_at: string | null;
+        stripe_customer_id: string | null;
+      } | null;
+    },
+  });
+
+  // Handle Stripe checkout return — webhook is the source of truth, so just poll briefly.
+  useEffect(() => {
+    const sessionId = searchParams.get("session_id");
+    if (!sessionId) return;
+    toast.success("Payment received — activating your subscription…");
+    let cancelled = false;
+    let tries = 0;
+    const poll = async () => {
+      tries += 1;
+      const { data } = await refetch();
+      if (cancelled) return;
+      if (data?.subscription_status === "active" || data?.subscription_status === "trialing") {
+        toast.success("Subscription active.");
+        searchParams.delete("session_id");
+        setSearchParams(searchParams, { replace: true });
+        return;
+      }
+      if (tries < 10) setTimeout(poll, 1500);
+      else {
+        toast.info("Activation is taking longer than expected. Refresh in a moment.");
+        searchParams.delete("session_id");
+        setSearchParams(searchParams, { replace: true });
+      }
+    };
+    poll();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   const handleCheckout = async (interval: "monthly" | "annual") => {
     if (!agencyId) return;
@@ -61,15 +114,39 @@ export default function Billing() {
         </p>
       </div>
 
-      <div className="rounded-lg border border-warning/30 bg-warning/5 px-4 py-3 text-sm flex items-start gap-2">
-        <AlertTriangle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
-        <div>
-          <strong className="text-warning">Activation pending</strong>
-          <p className="text-muted-foreground mt-0.5">
-            Billing requires a Stripe account to be connected. Pricing shown below is for reference — checkout will be enabled once Stripe is configured.
-          </p>
+      {agency?.subscription_status ? (
+        <div className="rounded-lg border border-accent/30 bg-accent/5 px-4 py-3 text-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <strong className="text-foreground">Current plan: </strong>
+              <span className="capitalize">{agency.subscription_plan ?? "—"}</span>
+              <span className="ml-2 inline-block rounded-full bg-accent/15 px-2 py-0.5 text-xs font-semibold text-accent capitalize">
+                {agency.subscription_status}
+              </span>
+            </div>
+            {agency.subscription_current_period_end && (
+              <span className="text-xs text-muted-foreground">
+                Renews {new Date(agency.subscription_current_period_end).toLocaleDateString()}
+              </span>
+            )}
+          </div>
+          {agency.subscription_cancel_at && (
+            <p className="mt-1 text-xs text-warning">
+              Scheduled to cancel on {new Date(agency.subscription_cancel_at).toLocaleDateString()}
+            </p>
+          )}
         </div>
-      </div>
+      ) : (
+        <div className="rounded-lg border border-warning/30 bg-warning/5 px-4 py-3 text-sm flex items-start gap-2">
+          <AlertTriangle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
+          <div>
+            <strong className="text-warning">Activation pending</strong>
+            <p className="text-muted-foreground mt-0.5">
+              Billing requires a Stripe account to be connected. Pricing shown below is for reference — checkout will be enabled once Stripe is configured.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Plan Card */}
       <div className="rounded-2xl border-2 border-primary bg-card shadow-lg">

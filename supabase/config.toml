@@ -15,3 +15,5 @@ project_id = "nwyjqphqszonzlulezsq"
     verify_jwt = true
   [functions.demo-login]
     verify_jwt = false
+  [functions.handle-stripe-webhook]
+    verify_jwt = false
