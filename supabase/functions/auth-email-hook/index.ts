@@ -94,7 +94,9 @@ async function handlePreview(req: Request): Promise<Response> {
   const authHeader = req.headers.get('Authorization')
 
   if (!apiKey || authHeader !== `Bearer ${apiKey}`) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+    const code = !authHeader ? 'unauthenticated' : 'invalid_token'
+    const message = !authHeader ? 'Authentication required.' : 'Invalid or expired session.'
+    return new Response(JSON.stringify({ error: message, code }), {
       status: 401,
       headers: { ...previewCorsHeaders, 'Content-Type': 'application/json' },
     })
