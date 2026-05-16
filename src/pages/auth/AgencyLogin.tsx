@@ -10,25 +10,40 @@ import { MfaChallengeDialog } from "@/components/MfaChallengeDialog";
 import { FileText, ArrowRight, Sparkles } from "lucide-react";
 
 export default function AgencyLogin() {
-  const { signIn } = useAuth();
+  const { signIn, refreshUserData } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [demoLoading, setDemoLoading] = useState(false);
+  const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
+
+  const checkMfaAndProceed = async () => {
+    const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aalData?.currentLevel !== aalData?.nextLevel && aalData?.nextLevel === "aal2") {
+      const { data: factorsData } = await supabase.auth.mfa.listFactors();
+      const totp = factorsData?.totp?.find((f) => f.status === "verified");
+      if (totp) {
+        setMfaFactorId(totp.id);
+        return;
+      }
+    }
+    navigate("/");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     const { error } = await signIn(email, password);
-    setLoading(false);
     if (error) {
+      setLoading(false);
       setError(error);
-    } else {
-      navigate("/");
+      return;
     }
+    await checkMfaAndProceed();
+    setLoading(false);
   };
 
   const handleDemo = async () => {
