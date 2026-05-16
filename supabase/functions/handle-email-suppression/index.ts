@@ -59,20 +59,20 @@ Deno.serve(async (req) => {
       switch (error.code) {
         case 'invalid_signature':
           console.error('Invalid webhook signature')
-          return jsonResponse({ error: 'Invalid signature' }, 401)
+          return jsonResponse({ error: 'Invalid signature.', code: 'invalid_token' }, 401)
         case 'stale_timestamp':
           console.error('Stale webhook timestamp')
-          return jsonResponse({ error: 'Stale timestamp' }, 401)
+          return jsonResponse({ error: 'Stale timestamp.', code: 'invalid_token' }, 401)
         case 'invalid_payload':
         case 'invalid_json':
           console.error('Invalid payload', { code: error.code })
-          return jsonResponse({ error: 'Invalid payload' }, 400)
+          return jsonResponse({ error: 'Invalid payload.', code: 'invalid_payload' }, 400)
         default:
           console.error('Webhook verification failed', {
             code: error.code,
             message: error.message,
           })
-          return jsonResponse({ error: 'Verification failed' }, 401)
+          return jsonResponse({ error: 'Verification failed.', code: 'invalid_token' }, 401)
       }
     }
     console.error('Unexpected error during verification', { error })

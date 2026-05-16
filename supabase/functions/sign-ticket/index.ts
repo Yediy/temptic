@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { unauthorizedResponse } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -188,7 +189,9 @@ serve(async (req) => {
     }
 
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("Missing auth header");
+    if (!authHeader) {
+      return unauthorizedResponse(corsHeaders, "unauthenticated");
+    }
 
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
@@ -199,7 +202,9 @@ serve(async (req) => {
       error: userErr,
     } = await userClient.auth.getUser();
 
-    if (userErr || !user) throw new Error("Unauthorized");
+    if (userErr || !user) {
+      return unauthorizedResponse(corsHeaders, "invalid_token");
+    }
 
     const body = await req.json();
     const {

@@ -27,7 +27,7 @@ serve(async (req) => {
     // Authenticate the caller
     const authHeader = req.headers.get("authorization");
     if (!authHeader) {
-      return jsonResponse({ error: "Missing authorization header" }, 401);
+      return jsonResponse({ error: "Authentication required.", code: "unauthenticated" }, 401);
     }
 
     const anonClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!);
@@ -35,7 +35,7 @@ serve(async (req) => {
       authHeader.replace("Bearer ", "")
     );
     if (authErr || !user) {
-      return jsonResponse({ error: "Unauthorized" }, 401);
+      return jsonResponse({ error: "Invalid or expired session.", code: "invalid_token" }, 401);
     }
 
     // Verify caller is agency_admin
