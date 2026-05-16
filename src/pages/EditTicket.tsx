@@ -55,6 +55,7 @@ const steps = [
 export default function EditTicket() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const guard = useAuthGuardedAction();
   const { agencyId, user } = useAuth();
   const qc = useQueryClient();
   const [step, setStep] = useState(0);
