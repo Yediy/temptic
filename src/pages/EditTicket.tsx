@@ -11,6 +11,7 @@ import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuthGuardedAction } from "@/hooks/use-auth-guarded-action";
 import { addDays, format, parseISO } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -54,6 +55,7 @@ const steps = [
 export default function EditTicket() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const guard = useAuthGuardedAction();
   const { agencyId, user } = useAuth();
   const qc = useQueryClient();
   const [step, setStep] = useState(0);
@@ -236,12 +238,14 @@ export default function EditTicket() {
         }
       }
 
-      // If sending, use the secure send-ticket edge function
+      // If sending, use the secure send-ticket edge function (route-guarded).
       if (andSend) {
-        const { error: sendErr } = await supabase.functions.invoke("send-ticket", {
-          body: { ticket_id: id },
+        await guard(async () => {
+          const { error: sendErr } = await supabase.functions.invoke("send-ticket", {
+            body: { ticket_id: id },
+          });
+          if (sendErr) throw sendErr;
         });
-        if (sendErr) throw sendErr;
       }
 
       toast.success(andSend ? "Ticket resent for signature" : "Draft updated");
