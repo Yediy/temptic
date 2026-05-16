@@ -22,7 +22,52 @@ const features = [
 
 export default function Billing() {
   const { agencyId } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState<string | null>(null);
+
+  const { data: agency, refetch } = useQuery({
+    enabled: !!agencyId,
+    queryKey: ["agency-billing", agencyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("agencies")
+        .select("subscription_status, subscription_plan, subscription_current_period_end, subscription_cancel_at, stripe_customer_id")
+        .eq("id", agencyId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Handle Stripe checkout return — webhook is the source of truth, so just poll briefly.
+  useEffect(() => {
+    const sessionId = searchParams.get("session_id");
+    if (!sessionId) return;
+    toast.success("Payment received — activating your subscription…");
+    let cancelled = false;
+    let tries = 0;
+    const poll = async () => {
+      tries += 1;
+      const { data } = await refetch();
+      if (cancelled) return;
+      if (data?.subscription_status === "active" || data?.subscription_status === "trialing") {
+        toast.success("Subscription active.");
+        searchParams.delete("session_id");
+        setSearchParams(searchParams, { replace: true });
+        return;
+      }
+      if (tries < 10) setTimeout(poll, 1500);
+      else {
+        toast.info("Activation is taking longer than expected. Refresh in a moment.");
+        searchParams.delete("session_id");
+        setSearchParams(searchParams, { replace: true });
+      }
+    };
+    poll();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   const handleCheckout = async (interval: "monthly" | "annual") => {
     if (!agencyId) return;
