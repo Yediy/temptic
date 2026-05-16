@@ -23,10 +23,10 @@ serve(async (req) => {
     const isServiceRole = authHeader === `Bearer ${serviceKey}`;
 
     if (!isInternal && !isServiceRole) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 403,
-      });
+      return new Response(
+        JSON.stringify({ error: "You do not have permission to perform this action.", code: "forbidden" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 },
+      );
     }
 
     // Get agency settings for reminder threshold (default 24 hours)
