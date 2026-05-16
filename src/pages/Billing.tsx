@@ -114,15 +114,39 @@ export default function Billing() {
         </p>
       </div>
 
-      <div className="rounded-lg border border-warning/30 bg-warning/5 px-4 py-3 text-sm flex items-start gap-2">
-        <AlertTriangle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
-        <div>
-          <strong className="text-warning">Activation pending</strong>
-          <p className="text-muted-foreground mt-0.5">
-            Billing requires a Stripe account to be connected. Pricing shown below is for reference — checkout will be enabled once Stripe is configured.
-          </p>
+      {agency?.subscription_status ? (
+        <div className="rounded-lg border border-accent/30 bg-accent/5 px-4 py-3 text-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <strong className="text-foreground">Current plan: </strong>
+              <span className="capitalize">{agency.subscription_plan ?? "—"}</span>
+              <span className="ml-2 inline-block rounded-full bg-accent/15 px-2 py-0.5 text-xs font-semibold text-accent capitalize">
+                {agency.subscription_status}
+              </span>
+            </div>
+            {agency.subscription_current_period_end && (
+              <span className="text-xs text-muted-foreground">
+                Renews {new Date(agency.subscription_current_period_end).toLocaleDateString()}
+              </span>
+            )}
+          </div>
+          {agency.subscription_cancel_at && (
+            <p className="mt-1 text-xs text-warning">
+              Scheduled to cancel on {new Date(agency.subscription_cancel_at).toLocaleDateString()}
+            </p>
+          )}
         </div>
-      </div>
+      ) : (
+        <div className="rounded-lg border border-warning/30 bg-warning/5 px-4 py-3 text-sm flex items-start gap-2">
+          <AlertTriangle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
+          <div>
+            <strong className="text-warning">Activation pending</strong>
+            <p className="text-muted-foreground mt-0.5">
+              Billing requires a Stripe account to be connected. Pricing shown below is for reference — checkout will be enabled once Stripe is configured.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Plan Card */}
       <div className="rounded-2xl border-2 border-primary bg-card shadow-lg">
