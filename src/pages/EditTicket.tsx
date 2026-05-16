@@ -238,12 +238,14 @@ export default function EditTicket() {
         }
       }
 
-      // If sending, use the secure send-ticket edge function
+      // If sending, use the secure send-ticket edge function (route-guarded).
       if (andSend) {
-        const { error: sendErr } = await supabase.functions.invoke("send-ticket", {
-          body: { ticket_id: id },
+        await guard(async () => {
+          const { error: sendErr } = await supabase.functions.invoke("send-ticket", {
+            body: { ticket_id: id },
+          });
+          if (sendErr) throw sendErr;
         });
-        if (sendErr) throw sendErr;
       }
 
       toast.success(andSend ? "Ticket resent for signature" : "Draft updated");
