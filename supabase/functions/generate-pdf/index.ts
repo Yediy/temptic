@@ -167,10 +167,10 @@ serve(async (req) => {
     const internalSecret = req.headers.get("x-internal-secret");
     const authHeader = req.headers.get("Authorization");
     if (internalSecret !== serviceKey && authHeader !== `Bearer ${serviceKey}`) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 403,
-      });
+      return new Response(
+        JSON.stringify({ error: "You do not have permission to perform this action.", code: "forbidden" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 },
+      );
     }
 
     const supabase = createClient(supabaseUrl, serviceKey);
