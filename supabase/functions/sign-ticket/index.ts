@@ -189,7 +189,7 @@ serve(async (req) => {
     }
 
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
+    if (!authHeader || !/^Bearer\s+\S/i.test(authHeader)) {
       return unauthorizedResponse(corsHeaders, "unauthenticated");
     }
 
