@@ -120,6 +120,7 @@ export function useWorkers() {
       const { data, error } = await supabase
         .from("workers")
         .select("*")
+        .eq("agency_id", agencyId!)
         .order("last_name");
       if (error) throw error;
       return data as Tables<"workers">[];
@@ -127,6 +128,7 @@ export function useWorkers() {
     enabled: !!agencyId,
   });
 }
+
 
 export function useCreateWorker() {
   const qc = useQueryClient();
