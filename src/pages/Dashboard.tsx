@@ -194,7 +194,9 @@ const Dashboard = React.forwardRef<HTMLDivElement, object>(function Dashboard(_p
         </div>
       </div>
 
-
+      <div>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Recent Tickets</h2>
           <Button variant="ghost" size="sm" asChild>
             <Link to="/tickets">View all</Link>
           </Button>
