@@ -83,8 +83,118 @@ const Dashboard = React.forwardRef<HTMLDivElement, object>(function Dashboard(_p
       </div>
 
       <div>
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Recent Tickets</h2>
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Approval Performance</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <StatCard label="Avg Approval Time" value={formatDuration(analytics?.avgApprovalHours)} icon={Timer} variant="default" trend="Sent → Signed" />
+          <StatCard label="Avg Signature Delay" value={formatDuration(analytics?.avgSignatureDelayHours)} icon={Clock} variant="default" trend="Sent → Signed" />
+          <StatCard
+            label="Rejection Rate (This Month)"
+            value={analytics?.rejectedPctMonth == null ? "—" : `${analytics.rejectedPctMonth.toFixed(1)}%`}
+            icon={PercentIcon}
+            variant={(analytics?.rejectedPctMonth ?? 0) > 10 ? "destructive" : "default"}
+          />
+        </div>
+      </div>
+
+      <div>
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Client Performance</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <ClientCard
+            label="Fastest Client"
+            icon={Zap}
+            variant="success"
+            primary={analytics?.fastestClient?.name}
+            secondary={analytics?.fastestClient ? formatDuration(analytics.fastestClient.avgHours) : null}
+            emptyText="No signed tickets yet"
+            loading={analyticsLoading}
+          />
+          <ClientCard
+            label="Slowest Client"
+            icon={TurtleIcon}
+            variant="warning"
+            primary={analytics?.slowestClient?.name}
+            secondary={analytics?.slowestClient ? formatDuration(analytics.slowestClient.avgHours) : null}
+            emptyText="No signed tickets yet"
+            loading={analyticsLoading}
+          />
+          <ClientCard
+            label="Top Client (This Month)"
+            icon={Trophy}
+            variant="accent"
+            primary={analytics?.topClientMonth?.name}
+            secondary={analytics?.topClientMonth ? `${analytics.topClientMonth.count} tickets` : null}
+            emptyText="No tickets this month"
+            loading={analyticsLoading}
+          />
+        </div>
+      </div>
+
+      <div>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Worker Performance</h2>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-3">
+          <div className="lg:col-span-1">
+            <ClientCard
+              label="Top Worker (This Month)"
+              icon={Trophy}
+              variant="accent"
+              primary={analytics?.topWorkerMonth?.name}
+              secondary={analytics?.topWorkerMonth ? `${analytics.topWorkerMonth.hours.toFixed(1)}h` : null}
+              emptyText="No ticket hours this month"
+              loading={analyticsLoading}
+            />
+          </div>
+          <div className="rounded-xl border bg-card lg:col-span-2">
+            <div className="border-b px-4 py-3">
+              <h3 className="text-sm font-semibold">Worker Utilization · This Month</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-muted/50">
+                    <th className="px-4 py-2 text-left font-semibold text-muted-foreground">Worker</th>
+                    <th className="px-4 py-2 text-right font-semibold text-muted-foreground">Total Hours</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {analyticsLoading ? (
+                    <tr><td colSpan={2} className="px-4 py-6"><Skeleton className="h-4 w-full" /></td></tr>
+                  ) : (analytics?.workerUtilization?.length ?? 0) === 0 ? (
+                    <tr><td colSpan={2} className="px-4 py-8 text-center text-muted-foreground">No worker hours logged this month.</td></tr>
+                  ) : (
+                    analytics!.workerUtilization.map((w) => (
+                      <tr key={w.name} className="border-b last:border-0">
+                        <td className="px-4 py-2 font-medium">{w.name}</td>
+                        <td className="px-4 py-2 text-right font-mono">{w.hours.toFixed(1)}h</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Revenue Estimate</h2>
+        <div className="rounded-xl border bg-card p-6 flex items-start gap-4">
+          <div className="rounded-lg bg-muted p-3"><DollarSign className="h-5 w-5 text-muted-foreground" /></div>
+          <div className="flex-1">
+            <h3 className="text-sm font-semibold">Monthly Revenue Estimate</h3>
+            {analytics?.hasRateData && analytics.monthlyRevenueEstimate != null ? (
+              <p className="mt-1 text-2xl font-bold">${analytics.monthlyRevenueEstimate.toFixed(2)}</p>
+            ) : (
+              <p className="mt-1 text-sm text-muted-foreground">
+                Connect billing/payroll data to estimate revenue.
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+
           <Button variant="ghost" size="sm" asChild>
             <Link to="/tickets">View all</Link>
           </Button>
