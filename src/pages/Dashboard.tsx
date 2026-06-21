@@ -126,7 +126,8 @@ const Dashboard = React.forwardRef<HTMLDivElement, object>(function Dashboard(_p
         <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Approval Performance</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <StatCard label="Avg Approval Time" value={formatDuration(analytics?.avgApprovalHours)} icon={Timer} variant="default" trend="Sent → Signed" />
-          <StatCard label="Avg Signature Delay" value={formatDuration(analytics?.avgSignatureDelayHours)} icon={Clock} variant="default" trend="Sent → Signed" />
+          <StatCard label="Avg Signature Delay" value={formatDuration(analytics?.avgSignatureDelayHours)} icon={Clock} variant="default" trend="Viewed → Signed" />
+
           <StatCard
             label="Rejection Rate (This Month)"
             value={analytics?.rejectedPctMonth == null ? "—" : `${analytics.rejectedPctMonth.toFixed(1)}%`}
