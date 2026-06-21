@@ -146,8 +146,27 @@ serve(async (req) => {
       resolvedAgencyName = agency?.name || "Your Agency";
     }
 
-    // Build invite URL and send email
-    const baseUrl = origin_url || "https://temptic.lovable.app";
+    // Build invite URL — only allow known app origins to prevent phishing via
+    // attacker-controlled domains in invite emails sent from our trusted sender.
+    const ALLOWED_ORIGINS = [
+      "https://temptic.lovable.app",
+      "https://temptic.com",
+      "https://www.temptic.com",
+    ];
+    let baseUrl = "https://temptic.lovable.app";
+    if (typeof origin_url === "string" && origin_url.length > 0) {
+      try {
+        const parsed = new URL(origin_url);
+        const normalized = `${parsed.protocol}//${parsed.host}`;
+        if (ALLOWED_ORIGINS.includes(normalized)) {
+          baseUrl = normalized;
+        } else {
+          console.warn("Rejected origin_url not in allowlist:", normalized);
+        }
+      } catch {
+        console.warn("Invalid origin_url ignored");
+      }
+    }
     const inviteUrl = `${baseUrl}/client/onboarding/${plainToken}`;
 
     try {
