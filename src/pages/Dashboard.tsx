@@ -52,6 +52,17 @@ const Dashboard = React.forwardRef<HTMLDivElement, object>(function Dashboard(_p
       </div>
 
       <div>
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Today</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <StatCard label="Tickets Created Today" value={analyticsLoading ? "—" : (analytics?.ticketsToday ?? 0)} icon={CalendarDays} variant="accent" />
+          <StatCard label="Hours This Week" value={analyticsLoading ? "—" : Number(analytics?.weeklyHours ?? 0).toFixed(1)} icon={Clock} variant="default" trend="Mon–Sun" />
+          <StatCard label="Pending Approvals" value={stats?.pendingApprovals ?? 0} icon={Send} variant="warning" />
+        </div>
+      </div>
+
+
+
+      <div>
         <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">This Month</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Created" value={stats?.createdThisMonth ?? 0} icon={CalendarPlus} variant="accent" />
