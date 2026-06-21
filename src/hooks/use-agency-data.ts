@@ -377,10 +377,12 @@ export function useDashboardStats() {
       const [ticketsRes, workersRes, clientsRes] = await Promise.all([
         supabase
           .from("tickets")
-          .select("status, total_hours, created_at, signed_at, rejected_at"),
-        supabase.from("workers").select("id", { count: "exact", head: true }).eq("is_active", true),
-        supabase.from("clients").select("id", { count: "exact", head: true }).eq("is_active", true),
+          .select("status, total_hours, created_at, signed_at, rejected_at")
+          .eq("agency_id", agencyId!),
+        supabase.from("workers").select("id", { count: "exact", head: true }).eq("agency_id", agencyId!).eq("is_active", true),
+        supabase.from("clients").select("id", { count: "exact", head: true }).eq("agency_id", agencyId!).eq("is_active", true),
       ]);
+
 
       if (ticketsRes.error) throw ticketsRes.error;
 
