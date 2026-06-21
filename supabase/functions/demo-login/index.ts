@@ -13,6 +13,17 @@ const DEMO_EMAIL = "demo@temptic.app";
 // Random fixed password — only the function ever uses it.
 const DEMO_PASSWORD = "Tt-Demo-Acct-2026!read-only";
 
+function resolveClientIp(req: Request): string {
+  const h = req.headers;
+  return (
+    h.get("cf-connecting-ip") ||
+    h.get("true-client-ip") ||
+    h.get("x-real-ip") ||
+    (h.get("x-forwarded-for") || "").split(",")[0].trim() ||
+    "unknown"
+  );
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -26,6 +37,20 @@ Deno.serve(async (req) => {
     const admin = createClient(url, serviceKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
+
+    // Rate limit: 10 requests per minute per IP to prevent abuse of expensive admin APIs.
+    const ip = resolveClientIp(req);
+    const { data: limited } = await admin.rpc("check_rate_limit", {
+      _key: `demo-login:ip:${ip}`,
+      _max_requests: 10,
+      _window_seconds: 60,
+    });
+    if (limited === true) {
+      return new Response(
+        JSON.stringify({ error: "Too many requests. Please try again shortly." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
 
     // 1. Locate the seeded demo agency.
     const { data: agency, error: agencyErr } = await admin
