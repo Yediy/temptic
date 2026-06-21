@@ -253,24 +253,38 @@ export function useDashboardAnalytics() {
       const dayStartIso = dayStart.toISOString();
       const monthStartIso = monthStart.toISOString();
       const weekStartIso = weekStart.toISOString();
+      const weekStartDate = weekStart.toISOString().slice(0, 10);
+      const monthStartDate = monthStart.toISOString().slice(0, 10);
 
       const { data, error } = await supabase
         .from("tickets")
-        .select("id, status, total_hours, created_at, sent_at, signed_at, rejected_at, client_id, client_company_name_snapshot, worker_id, worker_name_snapshot");
+        .select("id, ticket_type, status, total_hours, created_at, sent_at, viewed_at, signed_at, rejected_at, work_date, week_start_date, week_end_date, client_id, client_company_name_snapshot, worker_id, worker_name_snapshot")
+        .eq("agency_id", agencyId!);
       if (error) throw error;
       const tickets = data ?? [];
 
       const HOUR = 1000 * 60 * 60;
-      const signed = tickets.filter(t => t.sent_at && t.signed_at);
-      const delays = signed.map(t => (new Date(t.signed_at!).getTime() - new Date(t.sent_at!).getTime()) / HOUR);
+      // Approval time: sent_at → signed_at
+      const approvalSamples = tickets.filter(t => t.sent_at && t.signed_at);
+      const approvalDelays = approvalSamples.map(
+        t => (new Date(t.signed_at!).getTime() - new Date(t.sent_at!).getTime()) / HOUR,
+      );
       const avg = (xs: number[]) => xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null;
-      const avgApprovalHours = avg(delays);
+      const avgApprovalHours = avg(approvalDelays);
 
-      // Per-client avg approval
-      const byClient = new Map<string, { name: string; hours: number[]; count: number }>();
-      for (const t of signed) {
+      // Signature delay: viewed_at → signed_at (distinct from approval time)
+      const signatureSamples = tickets.filter(t => t.viewed_at && t.signed_at);
+      const avgSignatureDelayHours = avg(
+        signatureSamples.map(
+          t => (new Date(t.signed_at!).getTime() - new Date(t.viewed_at!).getTime()) / HOUR,
+        ),
+      );
+
+      // Per-client avg approval (sent → signed)
+      const byClient = new Map<string, { name: string; hours: number[] }>();
+      for (const t of approvalSamples) {
         const key = t.client_id || t.client_company_name_snapshot || "unknown";
-        const entry = byClient.get(key) ?? { name: t.client_company_name_snapshot || "Unknown", hours: [], count: 0 };
+        const entry = byClient.get(key) ?? { name: t.client_company_name_snapshot || "Unknown", hours: [] };
         entry.hours.push((new Date(t.signed_at!).getTime() - new Date(t.sent_at!).getTime()) / HOUR);
         byClient.set(key, entry);
       }
@@ -281,14 +295,27 @@ export function useDashboardAnalytics() {
       const slowestClient = clientAverages.length ? clientAverages.reduce((a, b) => a.avgHours > b.avgHours ? a : b) : null;
 
       const ticketsToday = tickets.filter(t => t.created_at && t.created_at >= dayStartIso).length;
+
+      // Hours bucketing — use the date the work actually occurred so daily & weekly tickets
+      // both fall into their correct period. Daily: work_date. Weekly: week_start_date.
+      // Falls back to created_at if neither is set.
+      const ticketWorkDate = (t: { ticket_type: string | null; work_date: string | null; week_start_date: string | null; created_at: string | null }): string | null => {
+        if (t.ticket_type === "weekly") return t.week_start_date || t.work_date || (t.created_at ? t.created_at.slice(0, 10) : null);
+        return t.work_date || (t.created_at ? t.created_at.slice(0, 10) : null);
+      };
+
       const weeklyHours = tickets
-        .filter(t => t.created_at && t.created_at >= weekStartIso)
+        .filter(t => {
+          const d = ticketWorkDate(t);
+          return d != null && d >= weekStartDate;
+        })
         .reduce((s, t) => s + (Number(t.total_hours) || 0), 0);
 
-      // Worker utilization (this month)
+      // Worker utilization (this month) — same bucketing rule
       const workerMap = new Map<string, { name: string; hours: number }>();
       for (const t of tickets) {
-        if (!t.created_at || t.created_at < monthStartIso) continue;
+        const d = ticketWorkDate(t);
+        if (!d || d < monthStartDate) continue;
         const key = t.worker_id || t.worker_name_snapshot || "unknown";
         const entry = workerMap.get(key) ?? { name: t.worker_name_snapshot || "Unknown", hours: 0 };
         entry.hours += Number(t.total_hours) || 0;
@@ -299,7 +326,7 @@ export function useDashboardAnalytics() {
         .slice(0, 5);
       const topWorkerMonth = workerUtilization[0] ?? null;
 
-      // Month totals
+      // Month totals (by creation)
       const monthTickets = tickets.filter(t => t.created_at && t.created_at >= monthStartIso);
       const monthRejected = monthTickets.filter(t => t.status === "rejected").length;
       const rejectedPctMonth = monthTickets.length ? (monthRejected / monthTickets.length) * 100 : null;
@@ -318,7 +345,7 @@ export function useDashboardAnalytics() {
 
       return {
         avgApprovalHours,
-        avgSignatureDelayHours: avgApprovalHours, // same metric, labeled differently
+        avgSignatureDelayHours,
         fastestClient,
         slowestClient,
         ticketsToday,
@@ -334,6 +361,7 @@ export function useDashboardAnalytics() {
     enabled: !!agencyId,
   });
 }
+
 
 // ─── Dashboard Stats ───
 export function useDashboardStats() {
