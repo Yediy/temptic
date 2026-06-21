@@ -12,6 +12,7 @@ export function useClients() {
       const { data, error } = await supabase
         .from("clients")
         .select("*")
+        .eq("agency_id", agencyId!)
         .order("company_name");
       if (error) throw error;
       return data as Tables<"clients">[];
@@ -19,6 +20,7 @@ export function useClients() {
     enabled: !!agencyId,
   });
 }
+
 
 export function useCreateClient() {
   const qc = useQueryClient();
