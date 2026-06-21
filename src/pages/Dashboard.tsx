@@ -20,6 +20,7 @@ function formatDuration(hours: number | null | undefined): string {
 const Dashboard = React.forwardRef<HTMLDivElement, object>(function Dashboard(_props, ref) {
   const { data: stats } = useDashboardStats();
   const { data: tickets } = useTickets();
+  const { data: analytics, isLoading: analyticsLoading } = useDashboardAnalytics();
   const { user, roles } = useAuth();
 
   if (roles.includes("super_admin")) {
