@@ -6,6 +6,16 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function escapeHtml(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -105,8 +115,8 @@ serve(async (req) => {
               from: Deno.env.get("EMAIL_FROM") || "Temp Tic <no-reply@temptic.com>",
               to: [signer.email],
               subject: `Reminder: Ticket ${ticket.ticket_number} awaiting signature`,
-              html: `<p>Hi${signer.first_name ? ` ${signer.first_name}` : ""},</p>
-                <p>This is a reminder that ticket <strong>${ticket.ticket_number}</strong> is still awaiting your signature.</p>
+              html: `<p>Hi${signer.first_name ? ` ${escapeHtml(signer.first_name)}` : ""},</p>
+                <p>This is a reminder that ticket <strong>${escapeHtml(ticket.ticket_number)}</strong> is still awaiting your signature.</p>
                 <p>Please log in to sign or reject the ticket at your earliest convenience.</p>`,
             }),
           });
