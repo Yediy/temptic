@@ -158,6 +158,7 @@ export function useTickets() {
       const { data, error } = await supabase
         .from("tickets")
         .select("*")
+        .eq("agency_id", agencyId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as Tables<"tickets">[];
@@ -165,6 +166,7 @@ export function useTickets() {
     enabled: !!agencyId,
   });
 }
+
 
 export function useCreateTicket() {
   const qc = useQueryClient();
