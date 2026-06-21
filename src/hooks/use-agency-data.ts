@@ -214,6 +214,121 @@ export async function generateTicketNumber(agencyId?: string | null): Promise<st
   return `${prefix}${String(seq).padStart(6, "0")}`;
 }
 
+// ─── Dashboard Analytics ───
+export type DashboardAnalytics = {
+  avgApprovalHours: number | null;
+  avgSignatureDelayHours: number | null;
+  fastestClient: { name: string; avgHours: number } | null;
+  slowestClient: { name: string; avgHours: number } | null;
+  ticketsToday: number;
+  weeklyHours: number;
+  workerUtilization: Array<{ name: string; hours: number }>;
+  rejectedPctMonth: number | null;
+  topClientMonth: { name: string; count: number } | null;
+  topWorkerMonth: { name: string; hours: number } | null;
+  hasRateData: boolean;
+  monthlyRevenueEstimate: number | null;
+};
+
+export function useDashboardAnalytics() {
+  const { agencyId } = useAuth();
+  return useQuery({
+    queryKey: ["dashboard-analytics", agencyId],
+    queryFn: async (): Promise<DashboardAnalytics> => {
+      const now = new Date();
+      const dayStart = new Date(now); dayStart.setHours(0, 0, 0, 0);
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      // Week: start Monday
+      const weekStart = new Date(now);
+      const dow = (weekStart.getDay() + 6) % 7; // 0 = Monday
+      weekStart.setDate(weekStart.getDate() - dow);
+      weekStart.setHours(0, 0, 0, 0);
+
+      const dayStartIso = dayStart.toISOString();
+      const monthStartIso = monthStart.toISOString();
+      const weekStartIso = weekStart.toISOString();
+
+      const { data, error } = await supabase
+        .from("tickets")
+        .select("id, status, total_hours, created_at, sent_at, signed_at, rejected_at, client_id, client_company_name_snapshot, worker_id, worker_name_snapshot");
+      if (error) throw error;
+      const tickets = data ?? [];
+
+      const HOUR = 1000 * 60 * 60;
+      const signed = tickets.filter(t => t.sent_at && t.signed_at);
+      const delays = signed.map(t => (new Date(t.signed_at!).getTime() - new Date(t.sent_at!).getTime()) / HOUR);
+      const avg = (xs: number[]) => xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null;
+      const avgApprovalHours = avg(delays);
+
+      // Per-client avg approval
+      const byClient = new Map<string, { name: string; hours: number[]; count: number }>();
+      for (const t of signed) {
+        const key = t.client_id || t.client_company_name_snapshot || "unknown";
+        const entry = byClient.get(key) ?? { name: t.client_company_name_snapshot || "Unknown", hours: [], count: 0 };
+        entry.hours.push((new Date(t.signed_at!).getTime() - new Date(t.sent_at!).getTime()) / HOUR);
+        byClient.set(key, entry);
+      }
+      const clientAverages = Array.from(byClient.values())
+        .filter(c => c.hours.length > 0)
+        .map(c => ({ name: c.name, avgHours: c.hours.reduce((a, b) => a + b, 0) / c.hours.length }));
+      const fastestClient = clientAverages.length ? clientAverages.reduce((a, b) => a.avgHours < b.avgHours ? a : b) : null;
+      const slowestClient = clientAverages.length ? clientAverages.reduce((a, b) => a.avgHours > b.avgHours ? a : b) : null;
+
+      const ticketsToday = tickets.filter(t => t.created_at && t.created_at >= dayStartIso).length;
+      const weeklyHours = tickets
+        .filter(t => t.created_at && t.created_at >= weekStartIso)
+        .reduce((s, t) => s + (Number(t.total_hours) || 0), 0);
+
+      // Worker utilization (this month)
+      const workerMap = new Map<string, { name: string; hours: number }>();
+      for (const t of tickets) {
+        if (!t.created_at || t.created_at < monthStartIso) continue;
+        const key = t.worker_id || t.worker_name_snapshot || "unknown";
+        const entry = workerMap.get(key) ?? { name: t.worker_name_snapshot || "Unknown", hours: 0 };
+        entry.hours += Number(t.total_hours) || 0;
+        workerMap.set(key, entry);
+      }
+      const workerUtilization = Array.from(workerMap.values())
+        .sort((a, b) => b.hours - a.hours)
+        .slice(0, 5);
+      const topWorkerMonth = workerUtilization[0] ?? null;
+
+      // Month totals
+      const monthTickets = tickets.filter(t => t.created_at && t.created_at >= monthStartIso);
+      const monthRejected = monthTickets.filter(t => t.status === "rejected").length;
+      const rejectedPctMonth = monthTickets.length ? (monthRejected / monthTickets.length) * 100 : null;
+
+      // Top client (most tickets this month)
+      const clientCountMap = new Map<string, { name: string; count: number }>();
+      for (const t of monthTickets) {
+        const key = t.client_id || t.client_company_name_snapshot || "unknown";
+        const entry = clientCountMap.get(key) ?? { name: t.client_company_name_snapshot || "Unknown", count: 0 };
+        entry.count += 1;
+        clientCountMap.set(key, entry);
+      }
+      const topClientMonth = clientCountMap.size
+        ? Array.from(clientCountMap.values()).reduce((a, b) => a.count > b.count ? a : b)
+        : null;
+
+      return {
+        avgApprovalHours,
+        avgSignatureDelayHours: avgApprovalHours, // same metric, labeled differently
+        fastestClient,
+        slowestClient,
+        ticketsToday,
+        weeklyHours,
+        workerUtilization,
+        rejectedPctMonth,
+        topClientMonth,
+        topWorkerMonth,
+        hasRateData: false,
+        monthlyRevenueEstimate: null,
+      };
+    },
+    enabled: !!agencyId,
+  });
+}
+
 // ─── Dashboard Stats ───
 export function useDashboardStats() {
   const { agencyId } = useAuth();
