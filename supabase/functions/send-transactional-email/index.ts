@@ -54,6 +54,38 @@ Deno.serve(async (req) => {
     )
   }
 
+  // Reject anonymous callers. The Supabase anon key is public, so verify_jwt
+  // alone allows any unauthenticated user to invoke this function. Require either
+  // the service role (internal callers like create-invite) or an authenticated user.
+  const authHeader = req.headers.get('authorization') || req.headers.get('Authorization')
+  const token = authHeader?.replace(/^Bearer\s+/i, '').trim()
+  if (!token) {
+    return new Response(
+      JSON.stringify({ error: 'Authentication required.', code: 'unauthenticated' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+    )
+  }
+  // Service role bypasses JWT decoding
+  if (token !== supabaseServiceKey) {
+    try {
+      const [, payloadB64] = token.split('.')
+      const padded = payloadB64 + '='.repeat((4 - payloadB64.length % 4) % 4)
+      const claims = JSON.parse(atob(padded.replace(/-/g, '+').replace(/_/g, '/')))
+      if (!claims?.sub || claims?.role === 'anon') {
+        return new Response(
+          JSON.stringify({ error: 'Authentication required.', code: 'unauthenticated' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        )
+      }
+    } catch {
+      return new Response(
+        JSON.stringify({ error: 'Invalid token.', code: 'invalid_token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      )
+    }
+  }
+
+
   // Parse request body
   let templateName: string
   let recipientEmail: string
