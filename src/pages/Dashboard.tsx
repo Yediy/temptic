@@ -17,6 +17,46 @@ function formatDuration(hours: number | null | undefined): string {
   return `${(hours / 24).toFixed(1)}d`;
 }
 
+type CardVariant = "default" | "accent" | "success" | "warning" | "destructive";
+
+function ClientCard({
+  label, icon: Icon, primary, secondary, emptyText, loading, variant = "default",
+}: {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  primary?: string | null;
+  secondary?: string | null;
+  emptyText: string;
+  loading?: boolean;
+  variant?: CardVariant;
+}) {
+  const accent =
+    variant === "success" ? "text-success" :
+    variant === "warning" ? "text-warning" :
+    variant === "destructive" ? "text-destructive" :
+    variant === "accent" ? "text-accent-foreground" : "text-foreground";
+  return (
+    <div className="rounded-xl border bg-card p-4">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
+        <Icon className={`h-4 w-4 ${accent}`} />
+      </div>
+      {loading ? (
+        <Skeleton className="mt-3 h-6 w-32" />
+      ) : primary ? (
+        <>
+          <p className="mt-2 text-lg font-semibold truncate" title={primary}>{primary}</p>
+          {secondary && <p className="text-sm text-muted-foreground">{secondary}</p>}
+        </>
+      ) : (
+        <p className="mt-2 text-sm text-muted-foreground">{emptyText}</p>
+      )}
+    </div>
+  );
+}
+
+
+
 const Dashboard = React.forwardRef<HTMLDivElement, object>(function Dashboard(_props, ref) {
   const { data: stats } = useDashboardStats();
   const { data: tickets } = useTickets();
