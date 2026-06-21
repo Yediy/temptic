@@ -1,13 +1,21 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { FileText, Send, CheckCircle2, XCircle, Clock, Plus, HardHat, Building2, CalendarPlus } from "lucide-react";
+import { FileText, Send, CheckCircle2, XCircle, Clock, Plus, HardHat, Building2, CalendarPlus, Timer, Zap, TurtleIcon, CalendarDays, TrendingUp, DollarSign, PercentIcon, Trophy } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
 import { StatusBadge, type TicketStatus } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
-import { useDashboardStats, useTickets } from "@/hooks/use-agency-data";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useDashboardStats, useTickets, useDashboardAnalytics } from "@/hooks/use-agency-data";
 import { useAuth } from "@/lib/auth";
 import { format } from "date-fns";
 import SuperAdminDashboard from "@/pages/admin/SuperAdminDashboard";
+
+function formatDuration(hours: number | null | undefined): string {
+  if (hours == null || !isFinite(hours)) return "—";
+  if (hours < 1) return `${Math.round(hours * 60)}m`;
+  if (hours < 48) return `${hours.toFixed(1)}h`;
+  return `${(hours / 24).toFixed(1)}d`;
+}
 
 const Dashboard = React.forwardRef<HTMLDivElement, object>(function Dashboard(_props, ref) {
   const { data: stats } = useDashboardStats();
