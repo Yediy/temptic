@@ -297,7 +297,7 @@ serve(async (req) => {
     if (pdfErr) throw pdfErr;
 
     return new Response(
-      JSON.stringify({ id: pdfDoc.id, storage_url: storagePath, file_name: fileName }),
+      JSON.stringify({ id: pdfDoc.id, storage_url: storagePath, file_name: docName }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
   } catch (err: any) {
