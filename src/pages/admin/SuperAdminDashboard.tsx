@@ -1,8 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
+import * as Sentry from "@sentry/react";
 import { supabase } from "@/integrations/supabase/client";
 import { StatCard } from "@/components/StatCard";
 import { StatusBadge, type TicketStatus } from "@/components/StatusBadge";
-import { Building2, FileText, Users, Clock, CheckCircle2, XCircle, Send } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth";
+import { Building2, FileText, Users, CheckCircle2, XCircle, Send, Bug } from "lucide-react";
 import { format } from "date-fns";
 
 function useAdminStats() {
@@ -52,13 +56,32 @@ function useRecentTickets() {
 export default function SuperAdminDashboard() {
   const { data: stats, isLoading: statsLoading } = useAdminStats();
   const { data: recentTickets = [], isLoading: ticketsLoading } = useRecentTickets();
+  const { roles } = useAuth();
   const today = format(new Date(), "EEEE, MMMM d, yyyy");
+  const sentryEnabled = Boolean(import.meta.env.VITE_SENTRY_DSN);
+
+  const triggerSentryTest = () => {
+    try {
+      Sentry.captureException(new Error("Sentry test error from Super Admin Dashboard"));
+      toast({ title: "Sentry test error sent", description: "Check your Sentry dashboard." });
+    } catch (err) {
+      toast({ title: "Failed to send", description: String(err), variant: "destructive" });
+    }
+  };
 
   return (
     <div className="space-y-8 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Super Admin Dashboard</h1>
-        <p className="text-sm text-muted-foreground">{today}</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Super Admin Dashboard</h1>
+          <p className="text-sm text-muted-foreground">{today}</p>
+        </div>
+        {roles.includes("super_admin") && sentryEnabled && (
+          <Button variant="outline" size="sm" onClick={triggerSentryTest}>
+            <Bug className="mr-2 h-4 w-4" />
+            Send Sentry test error
+          </Button>
+        )}
       </div>
 
       {/* Primary counts */}
