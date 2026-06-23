@@ -1,6 +1,25 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthGuardedAction } from "@/hooks/use-auth-guarded-action";
+import { Sentry, trackStep } from "@/instrument";
+
+async function invokeWithBreadcrumb<T>(
+  fn: string,
+  body: Record<string, unknown>,
+  ticketId: string,
+): Promise<T> {
+  trackStep("ticket", `${fn} start`, { ticket_id: ticketId });
+  const { data, error } = await supabase.functions.invoke(fn, { body });
+  if (error) {
+    trackStep("ticket", `${fn} failed`, { ticket_id: ticketId, message: error.message }, "error");
+    Sentry.captureException(error, {
+      tags: { feature: "ticket_action", action: fn, ticket_id: ticketId },
+    });
+    throw error;
+  }
+  trackStep("ticket", `${fn} success`, { ticket_id: ticketId });
+  return data as T;
+}
 
 export function useSendTicket() {
   const qc = useQueryClient();
@@ -8,13 +27,7 @@ export function useSendTicket() {
 
   return useMutation({
     mutationFn: async (ticketId: string) =>
-      guard(async () => {
-        const { data, error } = await supabase.functions.invoke("send-ticket", {
-          body: { ticket_id: ticketId },
-        });
-        if (error) throw error;
-        return data;
-      }),
+      guard(() => invokeWithBreadcrumb("send-ticket", { ticket_id: ticketId }, ticketId)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["tickets"] });
       qc.invalidateQueries({ queryKey: ["ticket"] });
@@ -37,13 +50,7 @@ export function useSignTicket() {
       signature_image: string;
       signature_date: string;
     }) =>
-      guard(async () => {
-        const { data, error } = await supabase.functions.invoke("sign-ticket", {
-          body: payload,
-        });
-        if (error) throw error;
-        return data;
-      }),
+      guard(() => invokeWithBreadcrumb("sign-ticket", payload, payload.ticket_id)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["client-tickets"] });
       qc.invalidateQueries({ queryKey: ["client-ticket"] });
@@ -59,17 +66,8 @@ export function useRejectTicket() {
   const guard = useAuthGuardedAction();
 
   return useMutation({
-    mutationFn: async (payload: {
-      ticket_id: string;
-      rejection_reason: string;
-    }) =>
-      guard(async () => {
-        const { data, error } = await supabase.functions.invoke("reject-ticket", {
-          body: payload,
-        });
-        if (error) throw error;
-        return data;
-      }),
+    mutationFn: async (payload: { ticket_id: string; rejection_reason: string }) =>
+      guard(() => invokeWithBreadcrumb("reject-ticket", payload, payload.ticket_id)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["client-tickets"] });
       qc.invalidateQueries({ queryKey: ["client-ticket"] });

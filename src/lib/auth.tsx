@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { setSentryUser, trackStep } from "@/instrument";
 import type { User, Session } from "@supabase/supabase-js";
 
 export type AppRole = "super_admin" | "agency_admin" | "dispatcher" | "payroll" | "viewer" | "client_user" | "worker_user";
@@ -69,17 +70,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loadUserData = useCallback(async (user: User | null, session: Session | null) => {
     if (!user) {
+      setSentryUser(null);
+      trackStep("auth", "signed out");
       setState({ user: null, session: null, roles: [], agencyId: null, loading: false, portalType: null });
       return;
     }
     const [roles, agencyId] = await Promise.all([fetchRoles(user.id), fetchAgencyId(user.id)]);
+    const portalType = derivePortal(roles);
+    setSentryUser({ id: user.id, portal: portalType, roles, agencyId });
+    trackStep("auth", "session loaded", { portal: portalType, has_agency: Boolean(agencyId) });
     setState({
       user,
       session,
       roles,
       agencyId,
       loading: false,
-      portalType: derivePortal(roles),
+      portalType,
     });
   }, []);
 
