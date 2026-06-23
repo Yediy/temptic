@@ -210,44 +210,86 @@ serve(async (req) => {
       days = data ?? [];
     }
 
-    // Generate HTML
-    const html = generateTicketHtml(ticket, pdf_type, days);
-    const htmlBytes = new TextEncoder().encode(html);
+    // LOCK: once a ticket is signed, the PDFs for the current version are
+    // immutable. If one already exists for this (ticket, pdf_type,
+    // version_number), return it instead of regenerating.
+    const isLocked = ticket.status === "signed" || ticket.status === "closed";
+    if (isLocked && pdf_type !== "draft") {
+      const { data: locked } = await supabase
+        .from("pdf_documents")
+        .select("*")
+        .eq("ticket_id", ticket_id)
+        .eq("pdf_type", pdf_type)
+        .eq("version_number", ticket.version_number)
+        .order("generated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (locked) {
+        return new Response(
+          JSON.stringify({
+            id: locked.id,
+            storage_url: locked.storage_url,
+            file_name: locked.file_name,
+            locked: true,
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 },
+        );
+      }
+    }
 
-    // Upload to Storage
-    const storagePath = `${ticket.agency_id}/${ticket_id}/${ticket.ticket_number}_${pdf_type}_v${ticket.version_number}.html`;
+    // Render HTML -> PDF via DocRaptor
+    const docraptorKey = Deno.env.get("DOCRAPTOR_API_KEY");
+    if (!docraptorKey) throw new Error("DOCRAPTOR_API_KEY not configured");
+
+    const html = generateTicketHtml(ticket, pdf_type, days);
+    const docName = `${ticket.ticket_number}_${pdf_type}.pdf`;
+    const testMode = (Deno.env.get("DOCRAPTOR_TEST") ?? "false").toLowerCase() === "true";
+
+    const docResp = await fetch("https://docraptor.com/docs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_credentials: docraptorKey,
+        doc: {
+          document_content: html,
+          type: "pdf",
+          name: docName,
+          test: testMode,
+          prince_options: { media: "print" },
+        },
+      }),
+    });
+
+    if (!docResp.ok) {
+      const errText = await docResp.text();
+      console.error("[generate-pdf] DocRaptor error:", docResp.status, errText);
+      throw new Error(`PDF render failed (${docResp.status})`);
+    }
+
+    const pdfBytes = new Uint8Array(await docResp.arrayBuffer());
+
+    // Upload PDF to Storage
+    const storagePath = `${ticket.agency_id}/${ticket_id}/${ticket.ticket_number}_${pdf_type}_v${ticket.version_number}.pdf`;
 
     const { error: uploadErr } = await supabase.storage
       .from("ticket-assets")
-      .upload(storagePath, htmlBytes, {
-        contentType: "text/html",
-        upsert: true,
+      .upload(storagePath, pdfBytes, {
+        contentType: "application/pdf",
+        upsert: !isLocked, // never overwrite a locked, signed PDF
       });
 
     if (uploadErr) throw uploadErr;
 
-    // Get existing version count
-    const { data: existing } = await supabase
-      .from("pdf_documents")
-      .select("version_number")
-      .eq("ticket_id", ticket_id)
-      .eq("pdf_type", pdf_type)
-      .order("version_number", { ascending: false })
-      .limit(1);
-
-    const version = (existing?.[0]?.version_number ?? 0) + 1;
-
-    const fileName = `${ticket.ticket_number}_${pdf_type}.html`;
-
-    // Insert PDF document record
+    // Insert PDF document record using the ticket's version_number so locked
+    // lookups match exactly.
     const { data: pdfDoc, error: pdfErr } = await supabase
       .from("pdf_documents")
       .insert({
         ticket_id,
         pdf_type,
-        file_name: fileName,
+        file_name: docName,
         storage_url: storagePath,
-        version_number: version,
+        version_number: ticket.version_number,
       })
       .select()
       .single();
@@ -255,7 +297,7 @@ serve(async (req) => {
     if (pdfErr) throw pdfErr;
 
     return new Response(
-      JSON.stringify({ id: pdfDoc.id, storage_url: storagePath, file_name: fileName }),
+      JSON.stringify({ id: pdfDoc.id, storage_url: storagePath, file_name: docName }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
   } catch (err: any) {
