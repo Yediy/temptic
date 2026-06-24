@@ -52,9 +52,9 @@ export default function Register() {
         }
       }
 
-      // Now session is active, call register_agency RPC
-      const { error: rpcErr } = await supabase.rpc("register_agency", {
-        _agency_name: form.agency_name,
+      // Now session is active, call register-agency edge function
+      const { error: rpcErr } = await supabase.functions.invoke("register-agency", {
+        body: { agency_name: form.agency_name },
       });
       if (rpcErr) {
         setError(rpcErr.message);
