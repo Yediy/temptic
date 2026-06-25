@@ -1,6 +1,7 @@
 // Demo login: creates (or fetches) a fixed demo user, links it to the seeded
 // demo agency, and returns a Supabase session the frontend can persist.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { withSentry } from "../_shared/sentry.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -24,7 +25,7 @@ function resolveClientIp(req: Request): string {
   );
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withSentry("demo-login", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -152,4 +153,4 @@ Deno.serve(async (req) => {
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
-});
+}));

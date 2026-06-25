@@ -14,6 +14,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
+import { withSentry } from "../_shared/sentry.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,7 +28,7 @@ function json(body: unknown, status = 200) {
   });
 }
 
-serve(async (req) => {
+serve(withSentry("handle-stripe-webhook", async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
@@ -159,4 +160,4 @@ serve(async (req) => {
     // Don't 500 — Stripe will retry. We already recorded the event; allow manual reprocessing.
     return json({ received: true, error: "deferred" });
   }
-});
+}));

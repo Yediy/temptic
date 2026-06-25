@@ -69,6 +69,16 @@ export default function SuperAdminDashboard() {
     }
   };
 
+  const triggerEdgeSentryTest = async () => {
+    try {
+      await supabase.functions.invoke("admin-test-sentry", { body: {} });
+      toast({ title: "Edge Sentry test triggered", description: "Check your Sentry dashboard for the edge function event." });
+    } catch (err) {
+      // The edge function intentionally returns 500 — that's the success path.
+      toast({ title: "Edge Sentry test triggered", description: "Check your Sentry dashboard for the edge function event." });
+    }
+  };
+
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="flex items-start justify-between gap-4">
@@ -77,10 +87,16 @@ export default function SuperAdminDashboard() {
           <p className="text-sm text-muted-foreground">{today}</p>
         </div>
         {roles.includes("super_admin") && sentryEnabled && (
-          <Button variant="outline" size="sm" onClick={triggerSentryTest}>
-            <Bug className="mr-2 h-4 w-4" />
-            Send Sentry test error
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={triggerSentryTest}>
+              <Bug className="mr-2 h-4 w-4" />
+              Send Sentry test error
+            </Button>
+            <Button variant="outline" size="sm" onClick={triggerEdgeSentryTest}>
+              <Bug className="mr-2 h-4 w-4" />
+              Test Edge Sentry
+            </Button>
+          </div>
         )}
       </div>
 

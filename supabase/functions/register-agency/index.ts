@@ -6,6 +6,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { requireUser, jsonResponse } from "../_shared/auth.ts";
+import { withSentry } from "../_shared/sentry.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,7 +14,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-Deno.serve(async (req) => {
+Deno.serve(withSentry("register-agency", async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (req.method !== "POST") {
     return jsonResponse({ error: "Method not allowed" }, 405, corsHeaders);
@@ -79,4 +80,4 @@ Deno.serve(async (req) => {
   }
 
   return jsonResponse({ agency_id: agency.id }, 200, corsHeaders);
-});
+}));
