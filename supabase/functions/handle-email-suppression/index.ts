@@ -134,7 +134,7 @@ Deno.serve(withSentry("handle-email-suppression", async (req) => {
   })
 
   return jsonResponse({ success: true })
-})
+}))
 
 function mapReasonToStatus(
   reason: string,
@@ -160,4 +160,4 @@ function mapReasonToMessage(reason: string): string {
     default:
       return 'Email suppressed'
   }
-})
+}
