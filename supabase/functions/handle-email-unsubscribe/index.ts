@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { withSentry } from "../_shared/sentry.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,7 +22,7 @@ async function sha256Hex(input: string): Promise<string> {
     .join('')
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withSentry("handle-email-unsubscribe", async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -120,4 +121,4 @@ Deno.serve(async (req) => {
   console.log('Email unsubscribed')
 
   return jsonResponse({ success: true })
-})
+}))

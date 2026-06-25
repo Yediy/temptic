@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { unauthorizedResponse } from "../_shared/auth.ts";
+import { withSentry } from "../_shared/sentry.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -148,7 +149,7 @@ async function logRateLimitEvent(
   }
 }
 
-serve(async (req) => {
+serve(withSentry("sign-ticket", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -341,4 +342,4 @@ serve(async (req) => {
       status: 500,
     });
   }
-});
+}));

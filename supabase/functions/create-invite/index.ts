@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { withSentry } from "../_shared/sentry.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -14,7 +15,7 @@ function jsonResponse(body: Record<string, unknown>, status = 200) {
   });
 }
 
-serve(async (req) => {
+serve(withSentry("create-invite", async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -193,4 +194,4 @@ serve(async (req) => {
     console.error("create-invite error:", err);
     return jsonResponse({ error: err.message }, 500);
   }
-});
+}));
