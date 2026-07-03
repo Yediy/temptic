@@ -62,6 +62,7 @@ import Privacy from "@/pages/legal/Privacy";
 import Contact from "@/pages/legal/Contact";
 import NotFound from "./pages/NotFound";
 import Unsubscribe from "@/pages/Unsubscribe";
+import OAuthConsent from "@/pages/OAuthConsent";
 
 const queryClient = new QueryClient();
 
@@ -96,6 +97,7 @@ const App = () => (
             <Route path="/worker/forgot-password" element={<WorkerForgotPassword />} />
             <Route path="/worker/reset-password" element={<WorkerResetPassword />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
+            <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
 
             {/* Public legal / info routes */}
             <Route path="/terms" element={<Terms />} />
