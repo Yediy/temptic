@@ -163,16 +163,12 @@ serve(withSentry("generate-pdf", async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // Only allow internal/service-role callers
     const internalSecret = req.headers.get("x-internal-secret");
     const authHeader = req.headers.get("Authorization");
-    if (internalSecret !== serviceKey && authHeader !== `Bearer ${serviceKey}`) {
-      return new Response(
-        JSON.stringify({ error: "You do not have permission to perform this action.", code: "forbidden" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 },
-      );
-    }
+    const isInternal =
+      internalSecret === serviceKey || authHeader === `Bearer ${serviceKey}`;
 
     const supabase = createClient(supabaseUrl, serviceKey);
 
@@ -192,7 +188,46 @@ serve(withSentry("generate-pdf", async (req) => {
       });
     }
 
-    // Fetch ticket using service role (called internally after auth verification)
+    // Authorization: allow either
+    //   1. Internal caller (service role) — used by sign-ticket, etc.
+    //   2. Authenticated user who can read the ticket via RLS.
+    if (!isInternal) {
+      if (!authHeader?.startsWith("Bearer ")) {
+        return new Response(
+          JSON.stringify({ error: "You do not have permission to perform this action.", code: "forbidden" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 },
+        );
+      }
+
+      const userClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+
+      const token = authHeader.replace("Bearer ", "");
+      const { data: claims, error: claimsErr } = await userClient.auth.getClaims(token);
+      if (claimsErr || !claims?.claims?.sub) {
+        return new Response(
+          JSON.stringify({ error: "You do not have permission to perform this action.", code: "forbidden" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 },
+        );
+      }
+
+      // RLS-gated read: if the user can select the ticket, they may generate its PDF.
+      const { data: allowed, error: allowedErr } = await userClient
+        .from("tickets")
+        .select("id")
+        .eq("id", ticket_id)
+        .maybeSingle();
+
+      if (allowedErr || !allowed) {
+        return new Response(
+          JSON.stringify({ error: "You do not have permission to perform this action.", code: "forbidden" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 },
+        );
+      }
+    }
+
+    // Fetch full ticket using service role for snapshot fields not exposed via RLS
     const { data: ticket, error: ticketErr } = await supabase
       .from("tickets")
       .select("*")
