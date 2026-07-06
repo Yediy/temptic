@@ -240,9 +240,9 @@ serve(withSentry("send-notification-email", async (req) => {
       .select("id")
       .single();
 
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    const { sendEmail, resendConfigured } = await import("../_shared/resend.ts");
 
-    if (!resendApiKey) {
+    if (!resendConfigured()) {
       console.log(`[notification-email] No RESEND_API_KEY configured. Would send "${subject}" to ${to}`);
       if (notifRow?.id) {
         await supabase.from("notifications").update({ status: "skipped" }).eq("id", notifRow.id);
@@ -253,27 +253,14 @@ serve(withSentry("send-notification-email", async (req) => {
       });
     }
 
-    const emailRes = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${resendApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: Deno.env.get("EMAIL_FROM") || "Temp Tic <no-reply@temptic.com>",
-        to: [to],
-        subject,
-        html,
-      }),
-    });
+    const emailRes = await sendEmail({ to, subject, html });
 
     if (!emailRes.ok) {
-      const text = await emailRes.text();
-      console.error(`[notification-email] Send failed: ${text}`);
+      console.error(`[notification-email] Send failed (${emailRes.transport}): ${emailRes.body}`);
       if (notifRow?.id) {
-        await supabase.from("notifications").update({ status: "failed", error_message: text }).eq("id", notifRow.id);
+        await supabase.from("notifications").update({ status: "failed", error_message: emailRes.body }).eq("id", notifRow.id);
       }
-      throw new Error(text);
+      throw new Error(emailRes.body);
     }
 
     if (notifRow?.id) {
