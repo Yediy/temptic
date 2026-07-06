@@ -40,7 +40,7 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
   }
 
   const payload = {
-    from: input.from || Deno.env.get("EMAIL_FROM") || DEFAULT_FROM,
+    from: input.from || DEFAULT_FROM,
     to: Array.isArray(input.to) ? input.to : [input.to],
     subject: input.subject,
     ...(input.html ? { html: input.html } : {}),
