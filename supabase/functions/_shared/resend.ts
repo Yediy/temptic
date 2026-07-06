@@ -25,7 +25,7 @@ export interface SendEmailResult {
 
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/resend/emails";
 const DIRECT_URL = "https://api.resend.com/emails";
-const DEFAULT_FROM = "Temp Tic <no-reply@temptic.com>";
+const DEFAULT_FROM = "Temp Tic <no-reply@temptic.net>";
 
 export function resendConfigured(): boolean {
   return Boolean(Deno.env.get("RESEND_API_KEY"));
@@ -40,7 +40,7 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
   }
 
   const payload = {
-    from: input.from || Deno.env.get("EMAIL_FROM") || DEFAULT_FROM,
+    from: input.from || DEFAULT_FROM,
     to: Array.isArray(input.to) ? input.to : [input.to],
     subject: input.subject,
     ...(input.html ? { html: input.html } : {}),
