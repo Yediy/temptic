@@ -12,6 +12,9 @@ import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
+import { ComboSelect } from "@/components/ComboSelect";
+import { MultiComboSelect } from "@/components/MultiComboSelect";
+import { JOB_TITLE_OPTIONS, EQUIPMENT_OPTIONS } from "@/lib/ticket-options";
 
 const steps = [
   { label: "Client & Site", description: "Select client and work site" },
@@ -238,11 +241,27 @@ export default function CreateTicket() {
             </div>
             <div>
               <Label htmlFor="job_title">Job Title</Label>
-              <Input id="job_title" placeholder="e.g. Electrical Rough-In" value={form.job_title} onChange={e => setForm({ ...form, job_title: e.target.value })} className="mt-1" />
+              <div className="mt-1">
+                <ComboSelect
+                  id="job_title"
+                  options={JOB_TITLE_OPTIONS}
+                  value={form.job_title}
+                  onChange={(v) => setForm({ ...form, job_title: v })}
+                  placeholder="Select a job title…"
+                />
+              </div>
             </div>
             <div>
               <Label htmlFor="equipment">Equipment Required</Label>
-              <Input id="equipment" placeholder="e.g. Wire strippers, multimeter" value={form.equipment_required} onChange={e => setForm({ ...form, equipment_required: e.target.value })} className="mt-1" />
+              <div className="mt-1">
+                <MultiComboSelect
+                  id="equipment"
+                  options={EQUIPMENT_OPTIONS}
+                  value={form.equipment_required}
+                  onChange={(v) => setForm({ ...form, equipment_required: v })}
+                  placeholder="Select equipment…"
+                />
+              </div>
             </div>
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={form.equipment_provided} onChange={e => setForm({ ...form, equipment_provided: e.target.checked })} className="rounded" />
