@@ -102,28 +102,20 @@ serve(withSentry("send-reminder", async (req) => {
         status: "queued",
       });
 
-      // Attempt to send via send-notification-email pattern
-      const resendApiKey = Deno.env.get("RESEND_API_KEY");
-      if (resendApiKey) {
+      // Attempt to send via shared Resend helper (connector gateway when available)
+      const { sendEmail, resendConfigured } = await import("../_shared/resend.ts");
+      if (resendConfigured()) {
         try {
-          const emailRes = await fetch("https://api.resend.com/emails", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${resendApiKey}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              from: Deno.env.get("EMAIL_FROM") || "Temp Tic <no-reply@temptic.com>",
-              to: [signer.email],
-              subject: `Reminder: Ticket ${ticket.ticket_number} awaiting signature`,
-              html: `<p>Hi${signer.first_name ? ` ${escapeHtml(signer.first_name)}` : ""},</p>
+          const emailRes = await sendEmail({
+            to: signer.email,
+            subject: `Reminder: Ticket ${ticket.ticket_number} awaiting signature`,
+            html: `<p>Hi${signer.first_name ? ` ${escapeHtml(signer.first_name)}` : ""},</p>
                 <p>This is a reminder that ticket <strong>${escapeHtml(ticket.ticket_number)}</strong> is still awaiting your signature.</p>
                 <p>Please log in to sign or reject the ticket at your earliest convenience.</p>`,
-            }),
           });
 
           const status = emailRes.ok ? "sent" : "failed";
-          const errorMsg = emailRes.ok ? null : await emailRes.text();
+          const errorMsg = emailRes.ok ? null : emailRes.body;
 
           await supabase
             .from("notifications")
