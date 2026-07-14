@@ -1,101 +1,91 @@
-# Temp Tic → Modular Workforce Operating System
+# Workforce OS — Phases 2–4 (autonomous execution)
 
-This is a very large scope (16 modules, ~45 new tables, screening integrations, training LMS, blind review, automation engine). I will not attempt it in one turn — that would produce shallow mock pages, which you explicitly forbade. Instead, ship it in additive phases, each fully wired to Supabase with RLS and real CRUD before moving on. Everything is **additive**: no existing table, route, edge function, or workflow (agencies, clients, workers, tickets, timecards, payroll, PDFs, auth) is renamed, dropped, or replaced.
+You've authorized me to run each phase in sequence without pausing for approval. I will still surface the migration for each phase (Supabase requires user approval on migrations) and the security scan results, but I will not stop for a "should I continue" checkpoint between phases.
 
-## Guiding rules (apply to every phase)
+## Rules that apply to every phase (unchanged from Phase 1)
 
-- Non-destructive migrations only. New tables/columns; never `DROP` or rename an existing one. Existing `tickets`, `client_signers`, `workers`, `agencies`, etc. stay intact.
-- Existing `agencies` table = `organizations` conceptually. Add `organization_locations`, `organization_memberships` as new tables that reference `agencies.id`; do **not** rename `agencies`.
-- Existing `workers` table stays. New `worker_profiles` extends it 1:1 for Passport fields; existing `user_roles` enum is extended additively.
-- RLS on every new tenant table, with `service_role` grants for edge functions. EEO + screening + identity docs get stricter policies and private storage.
-- Every new module page has: loading, empty, permission-denied, and error states — no static mocks shipped as "done".
-- No AI-driven adjudication. AI produces suggestions with Accept/Edit/Reject; final decisions require a user + reason code + audit row.
-- Screening/I-9/E-Verify/tax/banking = provider-neutral scaffolding + mock adapter clearly labeled `mock`. No claims of "live" until real credentials + production API are wired.
+- Additive only. No existing table, route, edge function, or workflow renamed or removed. Existing `agencies`, `clients`, `client_signers`, `client_sites`, `workers`, `tickets`, `ticket_days`, `ticket_signatures`, `pdf_documents`, `audit_logs`, `notifications`, `agency_members`, `user_roles`, billing/PDF/payroll flows all stay intact.
+- RLS on every new table with correct `GRANT`s, `service_role` included where edge functions touch it.
+- Every new page ships with loading / empty / permission-denied / error states — no static mocks pretending to be finished.
+- AI is suggestion-only. Adjudication requires a user + reason code + audit row.
+- Screening / I-9 / E-Verify / tax / banking = provider-neutral scaffolding + a clearly-labeled `mock` adapter until real credentials are wired.
+- Each phase ends with: typecheck clean, Supabase linter clean (or documented exception in `@security-memory`), and a short verification pass on the new routes.
 
-## Phase plan
+## Phase 2 — Onboarding, Documents, Training
 
-### Phase 1 — Foundation (this deliverable)
+New tables (additive):
+- `onboarding_templates`, `onboarding_requirements`, `onboarding_checklists`, `onboarding_items` — universal / agency / client / job / location / state / industry scoping.
+- `document_templates`, `document_versions`, `document_signatures` (name, sig image, ts, IP, UA, org, assignment, PDF ref, sha256 hash).
+- `training_courses`, `training_lessons` (video / reading / quiz), `training_enrollments`, `training_progress` (real watch-time deltas, not "opened"), `training_quiz_attempts`, `training_certificates`.
+- New private storage bucket `signed-documents` with per-agency / per-worker path prefix RLS.
 
-Ship the shell and the core new domain tables so every later phase plugs in cleanly.
+Edge functions:
+- `sign-document` — hashes payload, uploads signed PDF via existing DocRaptor path, writes `document_signatures`, emits `automation_events`.
+- `record-training-progress` — append-only watch-time deltas; anti-scrub guard (max delta ≤ wall-clock delta).
+- `issue-training-certificate` — on completion, generates a certificate PDF and files it in the Passport.
 
-1. **Role & permission expansion**
-   - Extend `app_role` enum with: `agency_owner`, `recruiter`, `account_manager`, `onboarding_specialist`, `compliance_specialist`, `scheduler`, `payroll_specialist`, `billing_specialist`, `client_hiring_manager`, `client_supervisor`, `candidate`. Keep existing values.
-   - New `role_permissions` table (role → module key → allowed actions).
-   - `private.has_module_access(user, module)` helper for RLS + UI gating.
+UI:
+- `/onboarding` — Kanban over the 12 canonical stages + list view. Agencies can rename labels (persisted) while system status stays canonical.
+- `/onboarding/:workerId` — checklist view; drives "Cleared for Assignment".
+- `/documents` — templates library + assignments; document viewer with typed-name + drawn-signature capture (reuses the existing signature pad).
+- `/training` — course catalog, enrollment, lesson player with progress bar, quiz UI, certificate view.
+- Passport gets `TrainingSummary`, `DocumentsSection`, `OnboardingReadiness` sections wired to real data.
 
-2. **Modular navigation shell**
-   - New `src/lib/modules.ts` registry: 16 modules with icon, path, required permission, portal (agency/client/worker).
-   - Refactor `AppSidebar` to render from the registry, grouped and role-filtered. Existing Dashboard/Tickets/Clients/Workers/Billing/etc. routes are preserved and mapped into the new modules (Command Center = existing Dashboard, Tickets = existing, Billing = existing, Clients = existing).
-   - Add mobile bottom nav (top 4 modules) + "More" sheet for the rest. Client + Worker portals get their own registries per spec.
-   - Global search + command palette (`cmdk`) scoped to accessible modules.
+Gating logic:
+- `worker_profiles.cleared_for_assignment` becomes a computed boolean surfaced via a view — true only when required onboarding items complete AND required trainings completed AND required documents signed. Existing ticket creation is **not** blocked by this in Phase 2; instead the Create Ticket worker picker shows a "Not cleared" badge (non-blocking).
 
-3. **Workforce Passport core tables** (additive, referencing `workers.id`)
-   - `worker_profiles` (preferred_name, general_location, travel_radius, transportation, availability_json, shift_prefs, desired_pay, rehire_eligible, completion_score cached).
-   - `employment_history`, `skills` (catalog) + `worker_skills`, `credentials` (catalog) + `worker_credentials` (with issued/expires/status/document_id), `references`, `resumes`, `worker_documents`, `emergency_contacts`, `worker_preferences`.
-   - `eeo_demographics` in its own table with a compliance-only RLS policy (no recruiter/hiring-manager read).
-   - Storage: private bucket `worker-documents` with per-worker path + audit trigger on read via edge function.
+## Phase 3 — Jobs, Blind Review, Candidate decisions, Screening scaffold
 
-4. **Passport UI (Talent module)**
-   - `/talent` list (table + filters + saved filters shell).
-   - `/talent/:id` passport view with completion score, sections (Identity, Work history, Skills, Credentials, Availability, Documents, Training, Payroll readiness, Screening readiness), and missing-item alerts.
-   - Résumé upload → `parse-resume` edge function (mock adapter now, AI Gateway wiring next phase) → review screen with Accept/Edit/Reject per field. No silent overwrites.
+New tables:
+- `job_orders`, `job_requirements`, `applications`, `candidate_submissions`, `interviews`, `offers`, `placements`, `assignments`, `shifts`. `assignments` and `shifts` are the bridge into existing `tickets` (a shift can spawn a ticket; existing ticket flow untouched).
+- `candidate_decisions` (reason codes, `ai_viewed`, `ai_followed`, `decided_by`, `decided_at`, notes).
+- Screening: `screening_providers`, `screening_packages`, `screening_orders`, `screening_consents`, `screening_reports`, `screening_webhook_events`, `adverse_actions`.
 
-5. **Audit + events foundation**
-   - Extend existing `audit_logs` with `event_type`, `entity_type`, `entity_id`, `metadata` if missing.
-   - New `automation_events` table: append-only event bus (`worker.registered`, `profile.completed`, …). Trigger functions fire on the relevant tables. Workers (edge functions) consume in later phases.
+Blind Review:
+- SECURITY INVOKER SQL view `public.blind_candidate_view` — omits name, photo, DOB, gender, address, EEO, and any free-text field containing identifying content. All AI matching queries hit this view only; enforced at the DB layer, not the UI.
 
-**Deliverable at end of Phase 1:** working modular shell, role-aware nav across all three portals, Workforce Passport CRUD + completion scoring + résumé review, event bus emitting events, all guarded by RLS.
+Edge functions (all with `verify_jwt` handled in code, Sentry-wrapped, JSON error contract):
+- `create-screening-candidate`, `send-screening-invitation`, `retrieve-screening-report`, `receive-screening-webhook` (signature-verified), `start-pre-adverse-action`, `complete-adverse-action`.
+- `match-candidates` — Lovable AI Gateway call over `blind_candidate_view`; returns ranked suggestions + rationale. No auto-decisions.
 
-### Phase 2 — Onboarding + Documents + Training
+UI:
+- `/jobs`, `/jobs/:id` (requirements, pipeline, submissions).
+- `/candidates` list with Blind Review toggle (default ON for hiring managers).
+- `/screening` orders + reports viewer with adverse-action wizard.
 
-- `onboarding_templates`, `onboarding_requirements`, `onboarding_checklists`, `onboarding_items` with universal / agency / client / job / location / state / industry scoping.
-- Kanban + list views over the 12 stages; agencies can customize labels (stored) while system status stays canonical.
-- `document_templates` + `document_versions` + `document_signatures` (name, sig, ts, IP, UA, org, assignment, PDF, hash). Reuse existing `generate-pdf` + `ticket-assets` pattern; new bucket `signed-documents`.
-- Form packages by classification (employee / IC / temp / direct-hire) — agency must confirm classification; W-2 is **not** an onboarding form.
-- Training Passport: `training_courses`, `training_lessons` (video/reading/quiz), `training_enrollments`, `training_progress` (real watch-time tracking, not "page opened"), `training_quiz_attempts`, `training_certificates`.
-- Gate `Cleared for Assignment` on required training + required checklist items complete.
+Mock adapter for screening is labeled `provider: "mock"` on every row and rendered with a visible "Mock data — not a real background check" banner. No claims of "live" until real credentials land.
 
-### Phase 3 — Jobs, Blind Review, Candidate decisions, Screening scaffold
+## Phase 4 — Scheduling, Timecards extension, Reports, AI Center, Network, Automation workers
 
-- `job_orders`, `job_requirements`, `applications`, `candidate_submissions`, `interviews`, `offers`, `placements`, `assignments`, `shifts` (assignments/shifts feed existing tickets).
-- Blind Review mode: candidate cards render anonymized fields; a view-layer allowlist strictly enforced server-side via a `blind_candidate_view` (SECURITY INVOKER view) that omits name/photo/DOB/gender/address/EEO. AI matching queries this view only.
-- `candidate_decisions` table with reason codes, AI-viewed / AI-followed flags.
-- Screening: `screening_providers`, `screening_packages`, `screening_orders`, `screening_consents`, `screening_reports`, `screening_webhook_events`, `adverse_actions`. Edge functions: `create-screening-candidate`, `send-screening-invitation`, `retrieve-screening-report`, `receive-screening-webhook`, `start-pre-adverse-action`, `complete-adverse-action`. Mock adapter labeled `mock`, no results treated as real.
+- `/scheduling` — calendar over `shifts`; drag to assign workers; conflict detection against existing tickets.
+- Timecards extension — new `pay_profiles`, `bill_profiles`, `pay_rules` tables. Existing `ticket_days` / `tickets` weekly OT logic is preserved; new tables layer on top for multi-rate / differential / burden calculations. Existing exports keep working.
+- `/reports` — saved queries per module, CSV export, respects RLS.
+- `/ai-center` — one place to view AI runs (résumé parses, credential OCR, match rationales). All rows point back to a `resume_parse_runs`-style audit table.
+- `/network` — opt-in cross-agency talent sharing scaffold (tables + consent flow only; no live sharing until agencies opt in).
+- Automation worker edge functions (`process-automation-events`, invoked on `automation_events` via pg cron every minute): fan-out for the "Cleared → Placed" pipeline (notify recruiter, generate offer packet, kick off screening, enroll required training, create onboarding checklist, notify client hiring manager). Each side effect is idempotent (keyed by `event_id`).
 
-### Phase 4 — Scheduling, Timecards (extend), Payroll/Billing polish, Reports, AI Center, Network, Automation workers
+## Order of operations per phase
 
-- Scheduling module over `shifts`.
-- Extend timecard flow off existing tickets; wire pay_profile / bill_profile.
-- Reports module with saved queries per module.
-- AI Center: résumé parsing, credential OCR, match explanations — all via Lovable AI Gateway, all suggestion-only.
-- Network module: cross-agency talent sharing scaffold (opt-in).
-- Automation worker edge functions that consume `automation_events` and execute the "Cleared → Placed" fan-out described in the spec.
+For every phase I will:
+1. Draft the migration (single call) — you approve, it runs, types regenerate.
+2. Write shared helpers, edge functions, hooks, pages, and route wiring in parallel batches.
+3. Run typecheck, Supabase linter, and a targeted Playwright smoke over the new routes.
+4. If the linter flags anything not already covered by `@security-memory`, fix it before moving on.
+5. Move to the next phase.
 
-## Technical section
+## What I will NOT do without asking
 
-**Migrations (Phase 1):**
+- Rename, drop, or repurpose any existing table, column, route, or edge function.
+- Ship a page as "done" that isn't wired to real Supabase data.
+- Claim a screening / I-9 / E-Verify / tax / banking integration is live before real credentials are configured.
+- Block the existing ticket creation flow on new Phase 2/3 gates.
 
-1. `alter type app_role add value ...` for each new role (idempotent guard via `do $$ ... $$`).
-2. `create table public.role_permissions(role app_role, module text, actions text[], primary key(role, module))` + GRANTs (`select` to authenticated, `all` to service_role) + RLS (read: authenticated; write: super_admin only via `has_role`).
-3. `create table public.organization_locations(...)`, `public.organization_memberships(...)` — reference `agencies(id)`, RLS scoped via `private.get_user_agency_id`.
-4. `create table public.worker_profiles(worker_id uuid pk references workers on delete cascade, ...)` + companion tables listed above. All get GRANTs + RLS.
-5. `create table public.eeo_demographics(worker_id uuid pk ..., ...)` + RLS: only `compliance_specialist` or `super_admin` can select; no update by worker after submit (append-only via history table).
-6. `create table public.automation_events(...)` append-only; RLS denies writes to authenticated; triggers on `workers`, `worker_profiles`, `worker_credentials`, `worker_documents`, `training_enrollments` insert into it via `security definer` functions in `private`.
-7. `private.has_module_access(_user uuid, _module text) returns boolean` — joins `user_roles` + `role_permissions`.
+## Technical notes
 
-**Storage:** new private bucket `worker-documents`; RLS on `storage.objects` limits path prefix to `{agency_id}/{worker_id}/`. Signed URLs only via edge function `get-worker-document` which logs to `audit_logs`.
+- Enum extensions (`app_role`, any new status enums) go in their own migration when they need to be referenced later in the same transaction, per the Postgres constraint we hit in Phase 1.
+- All new `SECURITY DEFINER` helpers land in the `private` schema (matches Phase 1 hardening finding fixes).
+- New storage buckets: `signed-documents` (Phase 2), `training-assets` (Phase 2, public read of course thumbnails only), `screening-artifacts` (Phase 3, private, service-role only).
+- New edge functions get wrapped in the existing `withSentry` + `_shared/auth.ts` helpers so the 400/401/403 JSON contract from `docs/edge-function-status-codes.md` is preserved.
+- Frontend: modules already registered in `src/lib/modules.ts` — Phase 2/3/4 work flips each one from `status: "phase2"|"phase3"|"phase4"` to `status: "live"` and swaps the `ModulePlaceholder` route for the real page.
 
-**Frontend structure (Phase 1):**
-- `src/lib/modules.ts` — registry.
-- `src/lib/permissions.ts` — `useModuleAccess(moduleKey)` hook.
-- `src/components/CommandPalette.tsx`, updated `AppSidebar.tsx`, new `MobileBottomNav.tsx`.
-- `src/pages/talent/TalentList.tsx`, `src/pages/talent/TalentPassport.tsx`, `src/components/passport/*` (Identity, WorkHistory, Skills, Credentials, Availability, Documents, TrainingSummary, ScreeningReadiness, PayrollReadiness sections + `CompletionRing`).
-- `src/hooks/use-passport.ts` — CRUD + completion score.
-- `supabase/functions/parse-resume/index.ts` — auth-gated, calls mock adapter now; contract stable for AI Gateway swap in Phase 2.
-
-**What Phase 1 does NOT ship (called out so nothing is misrepresented):**
-- Full Kanban onboarding UI, document e-sign, LMS video player, screening provider adapters, scheduling, invoicing UI redesign, AI matching. Those are Phase 2–4 above.
-
-## Confirm before I start
-
-Phase 1 is still ~2–3 hours of implementation across ~30 files and one large migration. Reply **"go phase 1"** to proceed exactly as scoped, or tell me to reorder / trim (e.g. "skip Talent UI, do onboarding tables first"). If you want me to draft the migration first for review before any code, say **"migration first"**.
+Approve this and I'll start Phase 2 with the migration.
