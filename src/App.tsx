@@ -136,7 +136,10 @@ const App = () => (
                 <Route path="/talent" element={<TalentList />} />
                 <Route path="/talent/:id" element={<TalentPassport />} />
                 {/* Workforce OS: disclosed placeholders */}
-                <Route path="/jobs" element={<ModulePlaceholder moduleKey="jobs" />} />
+                <Route path="/jobs" element={<JobBoard />} />
+                <Route path="/jobs/:id" element={<JobDetail />} />
+                <Route path="/candidates" element={<BlindReview />} />
+                <Route path="/screening" element={<ScreeningList />} />
                 <Route path="/onboarding" element={<OnboardingKanban />} />
                 <Route path="/compliance" element={<ModulePlaceholder moduleKey="compliance" />} />
                 <Route path="/training" element={<TrainingCatalog />} />
