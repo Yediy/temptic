@@ -68,6 +68,10 @@ import TalentPassport from "@/pages/talent/TalentPassport";
 import OnboardingKanban from "@/pages/onboarding/OnboardingKanban";
 import TrainingCatalog from "@/pages/training/TrainingCatalog";
 import CoursePlayer from "@/pages/training/CoursePlayer";
+import JobBoard from "@/pages/jobs/JobBoard";
+import JobDetail from "@/pages/jobs/JobDetail";
+import BlindReview from "@/pages/talent/BlindReview";
+import ScreeningList from "@/pages/screening/ScreeningList";
 import { ModulePlaceholder } from "@/components/ModulePlaceholder";
 
 const queryClient = new QueryClient();
@@ -132,7 +136,10 @@ const App = () => (
                 <Route path="/talent" element={<TalentList />} />
                 <Route path="/talent/:id" element={<TalentPassport />} />
                 {/* Workforce OS: disclosed placeholders */}
-                <Route path="/jobs" element={<ModulePlaceholder moduleKey="jobs" />} />
+                <Route path="/jobs" element={<JobBoard />} />
+                <Route path="/jobs/:id" element={<JobDetail />} />
+                <Route path="/candidates" element={<BlindReview />} />
+                <Route path="/screening" element={<ScreeningList />} />
                 <Route path="/onboarding" element={<OnboardingKanban />} />
                 <Route path="/compliance" element={<ModulePlaceholder moduleKey="compliance" />} />
                 <Route path="/training" element={<TrainingCatalog />} />
