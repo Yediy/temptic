@@ -25,10 +25,11 @@ export function useAccessibleModules() {
       const { data, error } = await supabase
         .from("role_permissions")
         .select("role, module, actions")
-        .in("role", roles as string[]);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .in("role", roles as any);
       if (error) throw error;
       const set = new Set<string>();
-      (data as RolePermRow[]).forEach((r) => set.add(r.module));
+      ((data ?? []) as RolePermRow[]).forEach((r) => set.add(r.module));
       return set;
     },
   });
