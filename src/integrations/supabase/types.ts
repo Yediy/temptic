@@ -247,6 +247,62 @@ export type Database = {
           },
         ]
       }
+      ai_runs: {
+        Row: {
+          actor_id: string | null
+          agency_id: string
+          created_at: string
+          error: string | null
+          id: string
+          input_ref: string | null
+          input_summary: string | null
+          kind: string
+          model: string | null
+          output_summary: string | null
+          status: string
+          tokens_input: number | null
+          tokens_output: number | null
+        }
+        Insert: {
+          actor_id?: string | null
+          agency_id: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          input_ref?: string | null
+          input_summary?: string | null
+          kind: string
+          model?: string | null
+          output_summary?: string | null
+          status?: string
+          tokens_input?: number | null
+          tokens_output?: number | null
+        }
+        Update: {
+          actor_id?: string | null
+          agency_id?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          input_ref?: string | null
+          input_summary?: string | null
+          kind?: string
+          model?: string | null
+          output_summary?: string | null
+          status?: string
+          tokens_input?: number | null
+          tokens_output?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_runs_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       applications: {
         Row: {
           agency_id: string
@@ -496,6 +552,63 @@ export type Database = {
             columns: ["agency_id"]
             isOneToOne: false
             referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bill_profiles: {
+        Row: {
+          active: boolean
+          agency_id: string
+          client_id: string | null
+          created_at: string
+          dt_bill_multiplier: number
+          flat_bill_rate: number | null
+          id: string
+          markup_percent: number
+          name: string
+          ot_bill_multiplier: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          agency_id: string
+          client_id?: string | null
+          created_at?: string
+          dt_bill_multiplier?: number
+          flat_bill_rate?: number | null
+          id?: string
+          markup_percent?: number
+          name: string
+          ot_bill_multiplier?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          agency_id?: string
+          client_id?: string | null
+          created_at?: string
+          dt_bill_multiplier?: number
+          flat_bill_rate?: number | null
+          id?: string
+          markup_percent?: number
+          name?: string
+          ot_bill_multiplier?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bill_profiles_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bill_profiles_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
         ]
@@ -1403,6 +1516,60 @@ export type Database = {
           },
         ]
       }
+      network_partnerships: {
+        Row: {
+          activated_at: string | null
+          id: string
+          notes: string | null
+          partner_agency_id: string
+          requested_at: string
+          requesting_agency_id: string
+          shared_job_orders: boolean
+          shared_talent: boolean
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          activated_at?: string | null
+          id?: string
+          notes?: string | null
+          partner_agency_id: string
+          requested_at?: string
+          requesting_agency_id: string
+          shared_job_orders?: boolean
+          shared_talent?: boolean
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          activated_at?: string | null
+          id?: string
+          notes?: string | null
+          partner_agency_id?: string
+          requested_at?: string
+          requesting_agency_id?: string
+          shared_job_orders?: boolean
+          shared_talent?: boolean
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "network_partnerships_partner_agency_id_fkey"
+            columns: ["partner_agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "network_partnerships_requesting_agency_id_fkey"
+            columns: ["requesting_agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           agency_id: string
@@ -1780,6 +1947,62 @@ export type Database = {
           },
         ]
       }
+      pay_profiles: {
+        Row: {
+          active: boolean
+          agency_id: string
+          base_rate: number | null
+          burden_percent: number
+          created_at: string
+          daily_ot_threshold: number | null
+          differential_rules: Json
+          dt_multiplier: number
+          id: string
+          name: string
+          ot_multiplier: number
+          updated_at: string
+          weekly_ot_threshold: number
+        }
+        Insert: {
+          active?: boolean
+          agency_id: string
+          base_rate?: number | null
+          burden_percent?: number
+          created_at?: string
+          daily_ot_threshold?: number | null
+          differential_rules?: Json
+          dt_multiplier?: number
+          id?: string
+          name: string
+          ot_multiplier?: number
+          updated_at?: string
+          weekly_ot_threshold?: number
+        }
+        Update: {
+          active?: boolean
+          agency_id?: string
+          base_rate?: number | null
+          burden_percent?: number
+          created_at?: string
+          daily_ot_threshold?: number | null
+          differential_rules?: Json
+          dt_multiplier?: number
+          id?: string
+          name?: string
+          ot_multiplier?: number
+          updated_at?: string
+          weekly_ot_threshold?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pay_profiles_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pdf_documents: {
         Row: {
           file_name: string
@@ -2081,6 +2304,53 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
         }
         Relationships: []
+      }
+      saved_reports: {
+        Row: {
+          agency_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_shared: boolean
+          last_run_at: string | null
+          module: string
+          name: string
+          query_spec: Json
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_shared?: boolean
+          last_run_at?: string | null
+          module: string
+          name: string
+          query_spec?: Json
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_shared?: boolean
+          last_run_at?: string | null
+          module?: string
+          name?: string
+          query_spec?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_reports_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       screening_consents: {
         Row: {
