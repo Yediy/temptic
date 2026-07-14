@@ -63,6 +63,9 @@ import Contact from "@/pages/legal/Contact";
 import NotFound from "./pages/NotFound";
 import Unsubscribe from "@/pages/Unsubscribe";
 import OAuthConsent from "@/pages/OAuthConsent";
+import TalentList from "@/pages/talent/TalentList";
+import TalentPassport from "@/pages/talent/TalentPassport";
+import { ModulePlaceholder } from "@/components/ModulePlaceholder";
 
 const queryClient = new QueryClient();
 
@@ -122,6 +125,21 @@ const App = () => (
                 <Route path="/billing" element={<Billing />} />
                 <Route path="/qa" element={<QAChecklist />} />
                 <Route path="/security" element={<Security />} />
+                {/* Workforce OS: live modules */}
+                <Route path="/talent" element={<TalentList />} />
+                <Route path="/talent/:id" element={<TalentPassport />} />
+                {/* Workforce OS: disclosed placeholders */}
+                <Route path="/jobs" element={<ModulePlaceholder moduleKey="jobs" />} />
+                <Route path="/onboarding" element={<ModulePlaceholder moduleKey="onboarding" />} />
+                <Route path="/compliance" element={<ModulePlaceholder moduleKey="compliance" />} />
+                <Route path="/training" element={<ModulePlaceholder moduleKey="training" />} />
+                <Route path="/scheduling" element={<ModulePlaceholder moduleKey="scheduling" />} />
+                <Route path="/timecards" element={<ModulePlaceholder moduleKey="timecards" />} />
+                <Route path="/payroll" element={<ModulePlaceholder moduleKey="payroll" />} />
+                <Route path="/ai-center" element={<ModulePlaceholder moduleKey="ai_center" />} />
+                <Route path="/reports" element={<ModulePlaceholder moduleKey="reports" />} />
+                <Route path="/network" element={<ModulePlaceholder moduleKey="network" />} />
+                <Route path="/settings" element={<ModulePlaceholder moduleKey="settings" />} />
               </Route>
             </Route>
 

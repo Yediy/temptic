@@ -213,6 +213,50 @@ export type Database = {
           },
         ]
       }
+      automation_events: {
+        Row: {
+          actor_id: string | null
+          agency_id: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          event_type: string
+          id: string
+          payload: Json
+          processed_at: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          agency_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          event_type: string
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          agency_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_events_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_invites: {
         Row: {
           accepted_at: string | null
@@ -437,6 +481,44 @@ export type Database = {
           },
         ]
       }
+      credentials: {
+        Row: {
+          agency_id: string | null
+          category: string | null
+          created_at: string
+          id: string
+          is_global: boolean
+          name: string
+          requires_expiration: boolean
+        }
+        Insert: {
+          agency_id?: string | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_global?: boolean
+          name: string
+          requires_expiration?: boolean
+        }
+        Update: {
+          agency_id?: string | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_global?: boolean
+          name?: string
+          requires_expiration?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credentials_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       download_logs: {
         Row: {
           downloaded_at: string
@@ -481,6 +563,138 @@ export type Database = {
             columns: ["ticket_id"]
             isOneToOne: false
             referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      eeo_demographics: {
+        Row: {
+          created_at: string
+          date_of_birth: string | null
+          disability_status: string | null
+          ethnicity: string | null
+          gender: string | null
+          race: string | null
+          submitted_at: string | null
+          updated_at: string
+          veteran_status: string | null
+          worker_id: string
+        }
+        Insert: {
+          created_at?: string
+          date_of_birth?: string | null
+          disability_status?: string | null
+          ethnicity?: string | null
+          gender?: string | null
+          race?: string | null
+          submitted_at?: string | null
+          updated_at?: string
+          veteran_status?: string | null
+          worker_id: string
+        }
+        Update: {
+          created_at?: string
+          date_of_birth?: string | null
+          disability_status?: string | null
+          ethnicity?: string | null
+          gender?: string | null
+          race?: string | null
+          submitted_at?: string | null
+          updated_at?: string
+          veteran_status?: string | null
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eeo_demographics_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: true
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      emergency_contacts: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string
+          relationship: string | null
+          worker_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone: string
+          relationship?: string | null
+          worker_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string
+          relationship?: string | null
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emergency_contacts_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employment_history: {
+        Row: {
+          created_at: string
+          description: string | null
+          employer: string
+          ended_on: string | null
+          id: string
+          is_current: boolean
+          location: string | null
+          role: string | null
+          started_on: string | null
+          worker_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          employer: string
+          ended_on?: string | null
+          id?: string
+          is_current?: boolean
+          location?: string | null
+          role?: string | null
+          started_on?: string | null
+          worker_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          employer?: string
+          ended_on?: string | null
+          id?: string
+          is_current?: boolean
+          location?: string | null
+          role?: string | null
+          started_on?: string | null
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employment_history_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
             referencedColumns: ["id"]
           },
         ]
@@ -541,6 +755,56 @@ export type Database = {
             columns: ["ticket_id"]
             isOneToOne: false
             referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_locations: {
+        Row: {
+          address_line1: string | null
+          address_line2: string | null
+          agency_id: string
+          city: string | null
+          country: string | null
+          created_at: string
+          id: string
+          is_primary: boolean
+          name: string
+          postal_code: string | null
+          state: string | null
+        }
+        Insert: {
+          address_line1?: string | null
+          address_line2?: string | null
+          agency_id: string
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          name: string
+          postal_code?: string | null
+          state?: string | null
+        }
+        Update: {
+          address_line1?: string | null
+          address_line2?: string | null
+          agency_id?: string
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          name?: string
+          postal_code?: string | null
+          state?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_locations_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
             referencedColumns: ["id"]
           },
         ]
@@ -672,6 +936,116 @@ export type Database = {
           reset_at?: string
         }
         Relationships: []
+      }
+      resume_parse_runs: {
+        Row: {
+          applied_fields: Json
+          created_at: string
+          created_by: string | null
+          document_id: string | null
+          error: string | null
+          id: string
+          provider: string
+          status: string
+          suggestions: Json
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          applied_fields?: Json
+          created_at?: string
+          created_by?: string | null
+          document_id?: string | null
+          error?: string | null
+          id?: string
+          provider?: string
+          status?: string
+          suggestions?: Json
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          applied_fields?: Json
+          created_at?: string
+          created_by?: string | null
+          document_id?: string | null
+          error?: string | null
+          id?: string
+          provider?: string
+          status?: string
+          suggestions?: Json
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resume_parse_runs_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "worker_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resume_parse_runs_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      role_permissions: {
+        Row: {
+          actions: string[]
+          module: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Insert: {
+          actions?: string[]
+          module: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Update: {
+          actions?: string[]
+          module?: string
+          role?: Database["public"]["Enums"]["app_role"]
+        }
+        Relationships: []
+      }
+      skills: {
+        Row: {
+          agency_id: string | null
+          category: string | null
+          created_at: string
+          id: string
+          is_global: boolean
+          name: string
+        }
+        Insert: {
+          agency_id?: string | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_global?: boolean
+          name: string
+        }
+        Update: {
+          agency_id?: string | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_global?: boolean
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skills_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       stripe_events: {
         Row: {
@@ -1144,6 +1518,276 @@ export type Database = {
         }
         Relationships: []
       }
+      worker_credentials: {
+        Row: {
+          created_at: string
+          credential_id: string | null
+          document_path: string | null
+          expires_on: string | null
+          id: string
+          issued_on: string | null
+          issuer: string | null
+          name: string
+          notes: string | null
+          status: string
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          created_at?: string
+          credential_id?: string | null
+          document_path?: string | null
+          expires_on?: string | null
+          id?: string
+          issued_on?: string | null
+          issuer?: string | null
+          name: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          created_at?: string
+          credential_id?: string | null
+          document_path?: string | null
+          expires_on?: string | null
+          id?: string
+          issued_on?: string | null
+          issuer?: string | null
+          name?: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "worker_credentials_credential_id_fkey"
+            columns: ["credential_id"]
+            isOneToOne: false
+            referencedRelation: "credentials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "worker_credentials_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      worker_documents: {
+        Row: {
+          created_at: string
+          doc_type: string
+          file_name: string
+          id: string
+          is_sensitive: boolean
+          mime_type: string | null
+          size_bytes: number | null
+          storage_path: string
+          uploaded_by: string | null
+          worker_id: string
+        }
+        Insert: {
+          created_at?: string
+          doc_type: string
+          file_name: string
+          id?: string
+          is_sensitive?: boolean
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path: string
+          uploaded_by?: string | null
+          worker_id: string
+        }
+        Update: {
+          created_at?: string
+          doc_type?: string
+          file_name?: string
+          id?: string
+          is_sensitive?: boolean
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path?: string
+          uploaded_by?: string | null
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "worker_documents_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      worker_profiles: {
+        Row: {
+          availability_json: Json
+          bio: string | null
+          completion_score: number
+          completion_updated_at: string | null
+          created_at: string
+          desired_pay_max: number | null
+          desired_pay_min: number | null
+          general_location: string | null
+          languages: string[] | null
+          preferred_industries: string[] | null
+          preferred_job_types: string[] | null
+          preferred_name: string | null
+          rehire_eligible: boolean | null
+          shift_preferences: string[] | null
+          trade_specialties: string[] | null
+          transportation_status: string | null
+          travel_radius_miles: number | null
+          updated_at: string
+          worker_id: string
+          years_experience: number | null
+        }
+        Insert: {
+          availability_json?: Json
+          bio?: string | null
+          completion_score?: number
+          completion_updated_at?: string | null
+          created_at?: string
+          desired_pay_max?: number | null
+          desired_pay_min?: number | null
+          general_location?: string | null
+          languages?: string[] | null
+          preferred_industries?: string[] | null
+          preferred_job_types?: string[] | null
+          preferred_name?: string | null
+          rehire_eligible?: boolean | null
+          shift_preferences?: string[] | null
+          trade_specialties?: string[] | null
+          transportation_status?: string | null
+          travel_radius_miles?: number | null
+          updated_at?: string
+          worker_id: string
+          years_experience?: number | null
+        }
+        Update: {
+          availability_json?: Json
+          bio?: string | null
+          completion_score?: number
+          completion_updated_at?: string | null
+          created_at?: string
+          desired_pay_max?: number | null
+          desired_pay_min?: number | null
+          general_location?: string | null
+          languages?: string[] | null
+          preferred_industries?: string[] | null
+          preferred_job_types?: string[] | null
+          preferred_name?: string | null
+          rehire_eligible?: boolean | null
+          shift_preferences?: string[] | null
+          trade_specialties?: string[] | null
+          transportation_status?: string | null
+          travel_radius_miles?: number | null
+          updated_at?: string
+          worker_id?: string
+          years_experience?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "worker_profiles_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: true
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      worker_references: {
+        Row: {
+          created_at: string
+          email: string | null
+          employer: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          relationship: string | null
+          worker_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          employer?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          relationship?: string | null
+          worker_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          employer?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          relationship?: string | null
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "worker_references_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      worker_skills: {
+        Row: {
+          created_at: string
+          id: string
+          proficiency: string | null
+          skill_id: string
+          worker_id: string
+          years_experience: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          proficiency?: string | null
+          skill_id: string
+          worker_id: string
+          years_experience?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          proficiency?: string | null
+          skill_id?: string
+          worker_id?: string
+          years_experience?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "worker_skills_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "worker_skills_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workers: {
         Row: {
           agency_id: string
@@ -1215,6 +1859,10 @@ export type Database = {
         Args: { _key: string; _max_requests: number; _window_seconds: number }
         Returns: boolean
       }
+      has_module_access: {
+        Args: { _module: string; _user_id: string }
+        Returns: boolean
+      }
       next_ticket_number: { Args: { _agency_id: string }; Returns: string }
     }
     Enums: {
@@ -1226,6 +1874,17 @@ export type Database = {
         | "viewer"
         | "client_user"
         | "worker_user"
+        | "agency_owner"
+        | "recruiter"
+        | "account_manager"
+        | "onboarding_specialist"
+        | "compliance_specialist"
+        | "scheduler"
+        | "payroll_specialist"
+        | "billing_specialist"
+        | "client_hiring_manager"
+        | "client_supervisor"
+        | "candidate"
       pdf_type:
         | "draft"
         | "agency_copy"
@@ -1378,6 +2037,17 @@ export const Constants = {
         "viewer",
         "client_user",
         "worker_user",
+        "agency_owner",
+        "recruiter",
+        "account_manager",
+        "onboarding_specialist",
+        "compliance_specialist",
+        "scheduler",
+        "payroll_specialist",
+        "billing_specialist",
+        "client_hiring_manager",
+        "client_supervisor",
+        "candidate",
       ],
       pdf_type: [
         "draft",
