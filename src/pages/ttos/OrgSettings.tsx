@@ -42,7 +42,8 @@ export default function OrgSettings() {
     let parsed: unknown;
     try { parsed = JSON.parse(drafts[section]); }
     catch (e) { toast({ title: "Invalid JSON", description: (e as Error).message, variant: "destructive" }); return; }
-    const { error } = await supabase.from("ttos_org_settings").upsert({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase as any).from("ttos_org_settings").upsert({
       agency_id: agencyId,
       [section]: parsed,
     });

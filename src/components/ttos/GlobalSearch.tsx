@@ -46,13 +46,11 @@ export function GlobalSearch() {
     if (!q || q.length < 2) { setHits([]); return; }
     let cancelled = false;
     const t = setTimeout(async () => {
+      const term = q.trim();
       const { data } = await supabase
         .from("ttos_search_index")
         .select("entity_type, entity_id, title, subtitle")
-        .textSearch("tsv", q.split(/\s+/).filter(Boolean).map((w) => w + ":*").join(" & "), {
-          config: "simple",
-          type: "tsquery",
-        })
+        .or(`title.ilike.%${term}%,subtitle.ilike.%${term}%`)
         .limit(20);
       if (!cancelled) setHits((data ?? []) as Hit[]);
     }, 150);

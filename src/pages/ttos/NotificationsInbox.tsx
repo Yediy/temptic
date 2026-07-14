@@ -6,11 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Any = any;
+
 type N = {
   id: string;
   title: string;
   body: string | null;
-  level: string | null;
+  level: string;
   read_at: string | null;
   created_at: string;
 };
@@ -25,27 +28,26 @@ export default function NotificationsInbox() {
   async function load() {
     if (!agencyId || !user) return;
     let q = supabase
-      .from("notifications")
+      .from("ttos_notifications" as Any)
       .select("id,title,body,level,read_at,created_at")
-      .eq("agency_id", agencyId)
       .eq("recipient_id", user.id)
       .order("created_at", { ascending: false })
       .limit(100);
     if (level !== "all") q = q.eq("level", level);
     const { data } = await q;
-    setRows((data ?? []) as N[]);
+    setRows(((data ?? []) as unknown) as N[]);
   }
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [agencyId, user, level]);
 
   async function markRead(id: string) {
-    await supabase.from("notifications").update({ read_at: new Date().toISOString() }).eq("id", id);
+    await supabase.from("ttos_notifications" as Any).update({ read_at: new Date().toISOString() } as Any).eq("id", id);
     load();
   }
 
   return (
     <div className="max-w-3xl space-y-4">
       <h1 className="text-2xl font-semibold">Notifications</h1>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         {LEVELS.map((l) => (
           <Button key={l} size="sm" variant={level === l ? "default" : "outline"} onClick={() => setLevel(l)}>
             {l}
@@ -59,16 +61,14 @@ export default function NotificationsInbox() {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{n.title}</span>
-                  {n.level && <Badge variant="outline">{n.level}</Badge>}
+                  <Badge variant="outline">{n.level}</Badge>
                 </div>
                 {n.body && <p className="mt-1 text-sm text-muted-foreground">{n.body}</p>}
                 <p className="mt-1 text-xs text-muted-foreground">
                   {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
                 </p>
               </div>
-              {!n.read_at && (
-                <Button size="sm" variant="ghost" onClick={() => markRead(n.id)}>Mark read</Button>
-              )}
+              {!n.read_at && <Button size="sm" variant="ghost" onClick={() => markRead(n.id)}>Mark read</Button>}
             </CardContent>
           </Card>
         ))}

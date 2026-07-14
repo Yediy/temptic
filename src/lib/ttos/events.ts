@@ -1,8 +1,8 @@
 // TTOS event bus — client-side emitter.
-// Every meaningful action in Temp Tic should call `emit()`. Rows land in
-// `ttos_events`; the `ttos-dispatch` edge function fans them out to
-// subscribers (automations, search reindex, audit).
 import { supabase } from "@/integrations/supabase/client";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Any = any;
 
 export type TtosEventInput = {
   agencyId: string;
@@ -19,7 +19,7 @@ export async function emit(evt: TtosEventInput): Promise<{ id: string } | null> 
   const { data: userRes } = await supabase.auth.getUser();
   const actorId = userRes?.user?.id ?? null;
   const { data, error } = await supabase
-    .from("ttos_events")
+    .from("ttos_events" as Any)
     .insert({
       agency_id: evt.agencyId,
       module: evt.module,
@@ -30,19 +30,17 @@ export async function emit(evt: TtosEventInput): Promise<{ id: string } | null> 
       metadata: evt.metadata ?? {},
       related_objects: evt.relatedObjects ?? [],
       correlation_id: evt.correlationId ?? null,
-    })
+    } as Any)
     .select("id")
     .single();
   if (error) {
     console.warn("[ttos] emit failed:", error.message);
     return null;
   }
-  // Fire-and-forget dispatch (don't block UI)
-  supabase.functions.invoke("ttos-dispatch", { body: { event_id: data.id } }).catch(() => {});
-  return data;
+  supabase.functions.invoke("ttos-dispatch", { body: { event_id: (data as { id: string }).id } }).catch(() => {});
+  return data as { id: string };
 }
 
-// Canonical event names — extend as modules grow.
 export const TtosEvent = {
   WorkerCreated: "worker.created",
   WorkerUpdated: "worker.updated",

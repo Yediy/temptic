@@ -40,7 +40,9 @@ export default function Automations() {
     let actions: unknown;
     try { actions = JSON.parse(actionsJson); }
     catch (e) { toast({ title: "Invalid JSON", description: (e as Error).message, variant: "destructive" }); return; }
-    const { error } = await supabase.from("ttos_automations").insert({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const client = supabase as any;
+    const { error } = await client.from("ttos_automations").insert({
       agency_id: agencyId,
       name: name.trim(),
       trigger_event: trigger.trim(),
@@ -51,7 +53,8 @@ export default function Automations() {
   }
 
   async function toggle(id: string, enabled: boolean) {
-    await supabase.from("ttos_automations").update({ enabled }).eq("id", id);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).from("ttos_automations").update({ enabled }).eq("id", id);
     load();
   }
 
