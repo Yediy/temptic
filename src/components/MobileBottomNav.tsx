@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { AGENCY_MODULES, CLIENT_MODULES, WORKER_MODULES, type ModuleDef, type Portal } from "@/lib/modules";
+import { CLIENT_MODULES, WORKER_MODULES, type ModuleDef, type Portal } from "@/lib/modules";
 import { useAccessibleModules } from "@/lib/permissions";
 
 interface Props { portal: Portal }
