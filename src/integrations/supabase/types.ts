@@ -519,6 +519,169 @@ export type Database = {
           },
         ]
       }
+      document_signatures: {
+        Row: {
+          agency_id: string
+          content_sha256: string
+          id: string
+          ip_address: string | null
+          pdf_storage_path: string | null
+          signature_image_url: string | null
+          signed_at: string
+          template_id: string
+          typed_name: string
+          user_agent: string | null
+          version_id: string | null
+          worker_id: string
+        }
+        Insert: {
+          agency_id: string
+          content_sha256: string
+          id?: string
+          ip_address?: string | null
+          pdf_storage_path?: string | null
+          signature_image_url?: string | null
+          signed_at?: string
+          template_id: string
+          typed_name: string
+          user_agent?: string | null
+          version_id?: string | null
+          worker_id: string
+        }
+        Update: {
+          agency_id?: string
+          content_sha256?: string
+          id?: string
+          ip_address?: string | null
+          pdf_storage_path?: string | null
+          signature_image_url?: string | null
+          signed_at?: string
+          template_id?: string
+          typed_name?: string
+          user_agent?: string | null
+          version_id?: string | null
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_signatures_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_signatures_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "document_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_signatures_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "document_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_signatures_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "worker_readiness"
+            referencedColumns: ["worker_id"]
+          },
+          {
+            foreignKeyName: "document_signatures_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_templates: {
+        Row: {
+          agency_id: string
+          body_markdown: string
+          classification: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          requires_signature: boolean
+          status: Database["public"]["Enums"]["document_status"]
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          body_markdown?: string
+          classification?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          requires_signature?: boolean
+          status?: Database["public"]["Enums"]["document_status"]
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          body_markdown?: string
+          classification?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          requires_signature?: boolean
+          status?: Database["public"]["Enums"]["document_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_templates_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_versions: {
+        Row: {
+          body_markdown: string
+          created_at: string
+          effective_from: string
+          id: string
+          template_id: string
+          version_number: number
+        }
+        Insert: {
+          body_markdown?: string
+          created_at?: string
+          effective_from?: string
+          id?: string
+          template_id: string
+          version_number?: number
+        }
+        Update: {
+          body_markdown?: string
+          created_at?: string
+          effective_from?: string
+          id?: string
+          template_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_versions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "document_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       download_logs: {
         Row: {
           downloaded_at: string
@@ -609,6 +772,13 @@ export type Database = {
             foreignKeyName: "eeo_demographics_worker_id_fkey"
             columns: ["worker_id"]
             isOneToOne: true
+            referencedRelation: "worker_readiness"
+            referencedColumns: ["worker_id"]
+          },
+          {
+            foreignKeyName: "eeo_demographics_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: true
             referencedRelation: "workers"
             referencedColumns: ["id"]
           },
@@ -643,6 +813,13 @@ export type Database = {
           worker_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "emergency_contacts_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "worker_readiness"
+            referencedColumns: ["worker_id"]
+          },
           {
             foreignKeyName: "emergency_contacts_worker_id_fkey"
             columns: ["worker_id"]
@@ -690,6 +867,13 @@ export type Database = {
           worker_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "employment_history_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "worker_readiness"
+            referencedColumns: ["worker_id"]
+          },
           {
             foreignKeyName: "employment_history_worker_id_fkey"
             columns: ["worker_id"]
@@ -755,6 +939,222 @@ export type Database = {
             columns: ["ticket_id"]
             isOneToOne: false
             referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      onboarding_checklists: {
+        Row: {
+          agency_id: string
+          cleared_at: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          stage: Database["public"]["Enums"]["onboarding_stage"]
+          template_id: string | null
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          agency_id: string
+          cleared_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          stage?: Database["public"]["Enums"]["onboarding_stage"]
+          template_id?: string | null
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          agency_id?: string
+          cleared_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          stage?: Database["public"]["Enums"]["onboarding_stage"]
+          template_id?: string | null
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_checklists_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "onboarding_checklists_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "onboarding_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "onboarding_checklists_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: true
+            referencedRelation: "worker_readiness"
+            referencedColumns: ["worker_id"]
+          },
+          {
+            foreignKeyName: "onboarding_checklists_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: true
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      onboarding_items: {
+        Row: {
+          category: string
+          checklist_id: string
+          completed: boolean
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          id: string
+          label: string
+          required: boolean
+          requirement_id: string | null
+          sort_order: number
+        }
+        Insert: {
+          category?: string
+          checklist_id: string
+          completed?: boolean
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          label: string
+          required?: boolean
+          requirement_id?: string | null
+          sort_order?: number
+        }
+        Update: {
+          category?: string
+          checklist_id?: string
+          completed?: boolean
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          label?: string
+          required?: boolean
+          requirement_id?: string | null
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_items_checklist_id_fkey"
+            columns: ["checklist_id"]
+            isOneToOne: false
+            referencedRelation: "onboarding_checklists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "onboarding_items_requirement_id_fkey"
+            columns: ["requirement_id"]
+            isOneToOne: false
+            referencedRelation: "onboarding_requirements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      onboarding_requirements: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          document_template_id: string | null
+          id: string
+          label: string
+          required: boolean
+          sort_order: number
+          template_id: string
+          training_course_id: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          document_template_id?: string | null
+          id?: string
+          label: string
+          required?: boolean
+          sort_order?: number
+          template_id: string
+          training_course_id?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          document_template_id?: string | null
+          id?: string
+          label?: string
+          required?: boolean
+          sort_order?: number
+          template_id?: string
+          training_course_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_requirements_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "onboarding_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      onboarding_templates: {
+        Row: {
+          agency_id: string
+          created_at: string
+          description: string | null
+          id: string
+          is_default: boolean
+          name: string
+          scope: Database["public"]["Enums"]["onboarding_scope"]
+          scope_ref_id: string | null
+          stage_labels: Json
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          scope?: Database["public"]["Enums"]["onboarding_scope"]
+          scope_ref_id?: string | null
+          stage_labels?: Json
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          scope?: Database["public"]["Enums"]["onboarding_scope"]
+          scope_ref_id?: string | null
+          stage_labels?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_templates_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
             referencedColumns: ["id"]
           },
         ]
@@ -984,6 +1384,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "worker_documents"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resume_parse_runs_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "worker_readiness"
+            referencedColumns: ["worker_id"]
           },
           {
             foreignKeyName: "resume_parse_runs_worker_id_fkey"
@@ -1495,7 +1902,344 @@ export type Database = {
             foreignKeyName: "tickets_worker_id_fkey"
             columns: ["worker_id"]
             isOneToOne: false
+            referencedRelation: "worker_readiness"
+            referencedColumns: ["worker_id"]
+          },
+          {
+            foreignKeyName: "tickets_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
             referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_certificates: {
+        Row: {
+          agency_id: string
+          certificate_number: string
+          course_id: string
+          enrollment_id: string
+          expires_at: string | null
+          id: string
+          issued_at: string
+          pdf_storage_path: string | null
+          worker_id: string
+        }
+        Insert: {
+          agency_id: string
+          certificate_number: string
+          course_id: string
+          enrollment_id: string
+          expires_at?: string | null
+          id?: string
+          issued_at?: string
+          pdf_storage_path?: string | null
+          worker_id: string
+        }
+        Update: {
+          agency_id?: string
+          certificate_number?: string
+          course_id?: string
+          enrollment_id?: string
+          expires_at?: string | null
+          id?: string
+          issued_at?: string
+          pdf_storage_path?: string | null
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_certificates_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_certificates_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "training_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_certificates_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "training_enrollments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_certificates_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "worker_readiness"
+            referencedColumns: ["worker_id"]
+          },
+          {
+            foreignKeyName: "training_certificates_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_courses: {
+        Row: {
+          agency_id: string
+          category: string | null
+          created_at: string
+          description: string | null
+          duration_minutes: number
+          id: string
+          required: boolean
+          status: Database["public"]["Enums"]["document_status"]
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          required?: boolean
+          status?: Database["public"]["Enums"]["document_status"]
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          required?: boolean
+          status?: Database["public"]["Enums"]["document_status"]
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_courses_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_enrollments: {
+        Row: {
+          agency_id: string
+          completed_at: string | null
+          course_id: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          progress_pct: number
+          started_at: string | null
+          status: Database["public"]["Enums"]["training_enrollment_status"]
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          agency_id: string
+          completed_at?: string | null
+          course_id: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          progress_pct?: number
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["training_enrollment_status"]
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          agency_id?: string
+          completed_at?: string | null
+          course_id?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          progress_pct?: number
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["training_enrollment_status"]
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_enrollments_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_enrollments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "training_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_enrollments_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "worker_readiness"
+            referencedColumns: ["worker_id"]
+          },
+          {
+            foreignKeyName: "training_enrollments_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_lessons: {
+        Row: {
+          body: string | null
+          course_id: string
+          created_at: string
+          duration_seconds: number
+          id: string
+          lesson_type: Database["public"]["Enums"]["training_lesson_type"]
+          media_url: string | null
+          quiz_json: Json | null
+          sort_order: number
+          title: string
+        }
+        Insert: {
+          body?: string | null
+          course_id: string
+          created_at?: string
+          duration_seconds?: number
+          id?: string
+          lesson_type?: Database["public"]["Enums"]["training_lesson_type"]
+          media_url?: string | null
+          quiz_json?: Json | null
+          sort_order?: number
+          title: string
+        }
+        Update: {
+          body?: string | null
+          course_id?: string
+          created_at?: string
+          duration_seconds?: number
+          id?: string
+          lesson_type?: Database["public"]["Enums"]["training_lesson_type"]
+          media_url?: string | null
+          quiz_json?: Json | null
+          sort_order?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_lessons_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "training_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_progress: {
+        Row: {
+          completed: boolean
+          enrollment_id: string
+          id: string
+          last_position_seconds: number
+          lesson_id: string
+          updated_at: string
+          watched_seconds: number
+        }
+        Insert: {
+          completed?: boolean
+          enrollment_id: string
+          id?: string
+          last_position_seconds?: number
+          lesson_id: string
+          updated_at?: string
+          watched_seconds?: number
+        }
+        Update: {
+          completed?: boolean
+          enrollment_id?: string
+          id?: string
+          last_position_seconds?: number
+          lesson_id?: string
+          updated_at?: string
+          watched_seconds?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_progress_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "training_enrollments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_progress_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "training_lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_quiz_attempts: {
+        Row: {
+          answers_json: Json
+          created_at: string
+          enrollment_id: string
+          id: string
+          lesson_id: string
+          passed: boolean
+          score_pct: number
+        }
+        Insert: {
+          answers_json?: Json
+          created_at?: string
+          enrollment_id: string
+          id?: string
+          lesson_id: string
+          passed?: boolean
+          score_pct?: number
+        }
+        Update: {
+          answers_json?: Json
+          created_at?: string
+          enrollment_id?: string
+          id?: string
+          lesson_id?: string
+          passed?: boolean
+          score_pct?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_quiz_attempts_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "training_enrollments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_quiz_attempts_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "training_lessons"
             referencedColumns: ["id"]
           },
         ]
@@ -1573,6 +2317,13 @@ export type Database = {
             foreignKeyName: "worker_credentials_worker_id_fkey"
             columns: ["worker_id"]
             isOneToOne: false
+            referencedRelation: "worker_readiness"
+            referencedColumns: ["worker_id"]
+          },
+          {
+            foreignKeyName: "worker_credentials_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
             referencedRelation: "workers"
             referencedColumns: ["id"]
           },
@@ -1616,6 +2367,13 @@ export type Database = {
           worker_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "worker_documents_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "worker_readiness"
+            referencedColumns: ["worker_id"]
+          },
           {
             foreignKeyName: "worker_documents_worker_id_fkey"
             columns: ["worker_id"]
@@ -1697,6 +2455,13 @@ export type Database = {
             foreignKeyName: "worker_profiles_worker_id_fkey"
             columns: ["worker_id"]
             isOneToOne: true
+            referencedRelation: "worker_readiness"
+            referencedColumns: ["worker_id"]
+          },
+          {
+            foreignKeyName: "worker_profiles_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: true
             referencedRelation: "workers"
             referencedColumns: ["id"]
           },
@@ -1741,6 +2506,13 @@ export type Database = {
             foreignKeyName: "worker_references_worker_id_fkey"
             columns: ["worker_id"]
             isOneToOne: false
+            referencedRelation: "worker_readiness"
+            referencedColumns: ["worker_id"]
+          },
+          {
+            foreignKeyName: "worker_references_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
             referencedRelation: "workers"
             referencedColumns: ["id"]
           },
@@ -1778,6 +2550,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "skills"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "worker_skills_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "worker_readiness"
+            referencedColumns: ["worker_id"]
           },
           {
             foreignKeyName: "worker_skills_worker_id_fkey"
@@ -1852,7 +2631,25 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      worker_readiness: {
+        Row: {
+          agency_id: string | null
+          cleared_for_assignment: boolean | null
+          onboarding_stage:
+            | Database["public"]["Enums"]["onboarding_stage"]
+            | null
+          worker_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workers_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       check_rate_limit: {
@@ -1885,6 +2682,28 @@ export type Database = {
         | "client_hiring_manager"
         | "client_supervisor"
         | "candidate"
+      document_status: "draft" | "active" | "archived"
+      onboarding_scope:
+        | "universal"
+        | "agency"
+        | "client"
+        | "job"
+        | "location"
+        | "state"
+        | "industry"
+      onboarding_stage:
+        | "sourced"
+        | "applied"
+        | "screening"
+        | "interviewing"
+        | "offered"
+        | "documents"
+        | "training"
+        | "compliance"
+        | "ready"
+        | "placed"
+        | "on_hold"
+        | "rejected"
       pdf_type:
         | "draft"
         | "agency_copy"
@@ -1902,6 +2721,13 @@ export type Database = {
         | "corrected"
         | "closed"
       ticket_type: "daily" | "weekly"
+      training_enrollment_status:
+        | "enrolled"
+        | "in_progress"
+        | "completed"
+        | "expired"
+        | "revoked"
+      training_lesson_type: "video" | "reading" | "quiz"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2049,6 +2875,30 @@ export const Constants = {
         "client_supervisor",
         "candidate",
       ],
+      document_status: ["draft", "active", "archived"],
+      onboarding_scope: [
+        "universal",
+        "agency",
+        "client",
+        "job",
+        "location",
+        "state",
+        "industry",
+      ],
+      onboarding_stage: [
+        "sourced",
+        "applied",
+        "screening",
+        "interviewing",
+        "offered",
+        "documents",
+        "training",
+        "compliance",
+        "ready",
+        "placed",
+        "on_hold",
+        "rejected",
+      ],
       pdf_type: [
         "draft",
         "agency_copy",
@@ -2068,6 +2918,14 @@ export const Constants = {
         "closed",
       ],
       ticket_type: ["daily", "weekly"],
+      training_enrollment_status: [
+        "enrolled",
+        "in_progress",
+        "completed",
+        "expired",
+        "revoked",
+      ],
+      training_lesson_type: ["video", "reading", "quiz"],
     },
   },
 } as const
