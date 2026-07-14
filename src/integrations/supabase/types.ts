@@ -3607,6 +3607,586 @@ export type Database = {
           },
         ]
       }
+      ttos_ai_decisions: {
+        Row: {
+          agency_id: string
+          confidence: number | null
+          created_at: string
+          id: string
+          kind: string
+          reason: string | null
+          recommendation: Json
+          reviewed_at: string | null
+          reviewer_id: string | null
+          run_id: string | null
+          status: string
+        }
+        Insert: {
+          agency_id: string
+          confidence?: number | null
+          created_at?: string
+          id?: string
+          kind: string
+          reason?: string | null
+          recommendation: Json
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          run_id?: string | null
+          status?: string
+        }
+        Update: {
+          agency_id?: string
+          confidence?: number | null
+          created_at?: string
+          id?: string
+          kind?: string
+          reason?: string | null
+          recommendation?: Json
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          run_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ttos_ai_decisions_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "ai_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ttos_automation_runs: {
+        Row: {
+          agency_id: string
+          attempts: number
+          automation_id: string
+          error: string | null
+          event_id: string | null
+          id: string
+          output: Json | null
+          ran_at: string
+          status: string
+        }
+        Insert: {
+          agency_id: string
+          attempts?: number
+          automation_id: string
+          error?: string | null
+          event_id?: string | null
+          id?: string
+          output?: Json | null
+          ran_at?: string
+          status: string
+        }
+        Update: {
+          agency_id?: string
+          attempts?: number
+          automation_id?: string
+          error?: string | null
+          event_id?: string | null
+          id?: string
+          output?: Json | null
+          ran_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ttos_automation_runs_automation_id_fkey"
+            columns: ["automation_id"]
+            isOneToOne: false
+            referencedRelation: "ttos_automations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ttos_automation_runs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "ttos_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ttos_automation_runs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "ttos_timeline"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ttos_automations: {
+        Row: {
+          actions: Json
+          agency_id: string
+          conditions: Json
+          created_at: string
+          created_by: string | null
+          description: string | null
+          enabled: boolean
+          id: string
+          name: string
+          priority: number
+          retries: number
+          trigger_event: string
+          updated_at: string
+        }
+        Insert: {
+          actions?: Json
+          agency_id: string
+          conditions?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          name: string
+          priority?: number
+          retries?: number
+          trigger_event: string
+          updated_at?: string
+        }
+        Update: {
+          actions?: Json
+          agency_id?: string
+          conditions?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          name?: string
+          priority?: number
+          retries?: number
+          trigger_event?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ttos_event_subscribers: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          event_pattern: string
+          handler_key: string
+          id: string
+          module: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          event_pattern: string
+          handler_key: string
+          id?: string
+          module: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          event_pattern?: string
+          handler_key?: string
+          id?: string
+          module?: string
+        }
+        Relationships: []
+      }
+      ttos_events: {
+        Row: {
+          actor_id: string | null
+          agency_id: string
+          correlation_id: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          metadata: Json
+          module: string
+          name: string
+          processed_at: string | null
+          related_objects: Json
+          status: string
+        }
+        Insert: {
+          actor_id?: string | null
+          agency_id: string
+          correlation_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          metadata?: Json
+          module: string
+          name: string
+          processed_at?: string | null
+          related_objects?: Json
+          status?: string
+        }
+        Update: {
+          actor_id?: string | null
+          agency_id?: string
+          correlation_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          metadata?: Json
+          module?: string
+          name?: string
+          processed_at?: string | null
+          related_objects?: Json
+          status?: string
+        }
+        Relationships: []
+      }
+      ttos_jobs: {
+        Row: {
+          agency_id: string | null
+          attempts: number
+          created_at: string
+          id: string
+          kind: string
+          last_error: string | null
+          locked_by: string | null
+          locked_until: string | null
+          max_attempts: number
+          payload: Json
+          result: Json | null
+          run_after: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agency_id?: string | null
+          attempts?: number
+          created_at?: string
+          id?: string
+          kind: string
+          last_error?: string | null
+          locked_by?: string | null
+          locked_until?: string | null
+          max_attempts?: number
+          payload?: Json
+          result?: Json | null
+          run_after?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string | null
+          attempts?: number
+          created_at?: string
+          id?: string
+          kind?: string
+          last_error?: string | null
+          locked_by?: string | null
+          locked_until?: string | null
+          max_attempts?: number
+          payload?: Json
+          result?: Json | null
+          run_after?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ttos_message_threads: {
+        Row: {
+          agency_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          last_message_at: string | null
+          participants: string[]
+          subject: string | null
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_message_at?: string | null
+          participants?: string[]
+          subject?: string | null
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_message_at?: string | null
+          participants?: string[]
+          subject?: string | null
+        }
+        Relationships: []
+      }
+      ttos_messages: {
+        Row: {
+          attachments: Json
+          body: string
+          created_at: string
+          id: string
+          read_by: string[]
+          sender_id: string
+          thread_id: string
+        }
+        Insert: {
+          attachments?: Json
+          body: string
+          created_at?: string
+          id?: string
+          read_by?: string[]
+          sender_id: string
+          thread_id: string
+        }
+        Update: {
+          attachments?: Json
+          body?: string
+          created_at?: string
+          id?: string
+          read_by?: string[]
+          sender_id?: string
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ttos_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "ttos_message_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ttos_notification_deliveries: {
+        Row: {
+          acknowledged_at: string | null
+          agency_id: string
+          attempts: number
+          channel: string
+          created_at: string
+          delivered_at: string | null
+          id: string
+          last_error: string | null
+          notification_id: string
+          opened_at: string | null
+          status: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          agency_id: string
+          attempts?: number
+          channel: string
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          last_error?: string | null
+          notification_id: string
+          opened_at?: string | null
+          status?: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          agency_id?: string
+          attempts?: number
+          channel?: string
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          last_error?: string | null
+          notification_id?: string
+          opened_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ttos_notification_deliveries_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ttos_notifications: {
+        Row: {
+          agency_id: string
+          body: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          level: string
+          metadata: Json
+          read_at: string | null
+          recipient_id: string
+          title: string
+        }
+        Insert: {
+          agency_id: string
+          body?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          level?: string
+          metadata?: Json
+          read_at?: string | null
+          recipient_id: string
+          title: string
+        }
+        Update: {
+          agency_id?: string
+          body?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          level?: string
+          metadata?: Json
+          read_at?: string | null
+          recipient_id?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      ttos_org_settings: {
+        Row: {
+          agency_id: string
+          ai_preferences: Json
+          approval_rules: Json
+          automation_defaults: Json
+          branding: Json
+          compliance_defaults: Json
+          document_retention: Json
+          notifications: Json
+          payroll_defaults: Json
+          security_policies: Json
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          ai_preferences?: Json
+          approval_rules?: Json
+          automation_defaults?: Json
+          branding?: Json
+          compliance_defaults?: Json
+          document_retention?: Json
+          notifications?: Json
+          payroll_defaults?: Json
+          security_policies?: Json
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          ai_preferences?: Json
+          approval_rules?: Json
+          automation_defaults?: Json
+          branding?: Json
+          compliance_defaults?: Json
+          document_retention?: Json
+          notifications?: Json
+          payroll_defaults?: Json
+          security_policies?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ttos_search_index: {
+        Row: {
+          agency_id: string
+          body: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          subtitle: string | null
+          tags: string[]
+          title: string
+          tsv: unknown
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          body?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          subtitle?: string | null
+          tags?: string[]
+          title: string
+          tsv?: unknown
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          body?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          subtitle?: string | null
+          tags?: string[]
+          title?: string
+          tsv?: unknown
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ttos_tasks: {
+        Row: {
+          agency_id: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          dependencies: string[]
+          description: string | null
+          due_at: string | null
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          metadata: Json
+          owner_id: string | null
+          priority: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          dependencies?: string[]
+          description?: string | null
+          due_at?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          metadata?: Json
+          owner_id?: string | null
+          priority?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          dependencies?: string[]
+          description?: string | null
+          due_at?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          metadata?: Json
+          owner_id?: string | null
+          priority?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -4056,6 +4636,55 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ttos_calendar: {
+        Row: {
+          agency_id: string | null
+          end_at: string | null
+          entity_id: string | null
+          entity_type: string | null
+          id: string | null
+          kind: string | null
+          start_at: string | null
+          title: string | null
+        }
+        Relationships: []
+      }
+      ttos_timeline: {
+        Row: {
+          actor_id: string | null
+          agency_id: string | null
+          created_at: string | null
+          entity_id: string | null
+          entity_type: string | null
+          id: string | null
+          metadata: Json | null
+          module: string | null
+          name: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          agency_id?: string | null
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string | null
+          metadata?: Json | null
+          module?: string | null
+          name?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          agency_id?: string | null
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string | null
+          metadata?: Json | null
+          module?: string | null
+          name?: string | null
+        }
+        Relationships: []
       }
       worker_readiness: {
         Row: {
