@@ -33,7 +33,7 @@ export default function BlindReview() {
         .order("completion_score", { ascending: false, nullsFirst: false })
         .limit(100);
       if (error) throw error;
-      return (data ?? []) as BlindRow[];
+      return ((data ?? []) as unknown) as BlindRow[];
     },
   });
 
