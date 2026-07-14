@@ -63,6 +63,9 @@ import Contact from "@/pages/legal/Contact";
 import NotFound from "./pages/NotFound";
 import Unsubscribe from "@/pages/Unsubscribe";
 import OAuthConsent from "@/pages/OAuthConsent";
+import TalentList from "@/pages/talent/TalentList";
+import TalentPassport from "@/pages/talent/TalentPassport";
+import { ModulePlaceholder } from "@/components/ModulePlaceholder";
 
 const queryClient = new QueryClient();
 
