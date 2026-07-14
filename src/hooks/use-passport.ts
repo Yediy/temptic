@@ -64,7 +64,7 @@ export function computePassportSections(b: PassportBundle): PassportSectionStatu
   ];
   const documentsMissing = missing(b.documents.length > 0, "Résumé or ID document");
   const trainingMissing = ["Training records (Phase 2)"];
-  const payrollMissing = missing(!!b.worker.pay_type, "Pay type on file");
+  const payrollMissing = missing(!!b.worker.classification, "Worker classification on file");
   const screeningMissing = ["Screening consent (Phase 3)"];
 
   return [
