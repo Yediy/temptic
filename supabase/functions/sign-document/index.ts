@@ -30,15 +30,12 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get("Authorization") ?? "";
     if (!/^Bearer\s+\S/i.test(authHeader)) return unauthorizedResponse(corsHeaders);
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const auth = await requireUser(req, corsHeaders);
+    if (auth instanceof Response) return auth;
+    const { user } = auth;
 
-    const userClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const user = await requireUser(userClient, corsHeaders);
-    if (user instanceof Response) return user;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     const body = await req.json().catch(() => ({}));
     const { template_id, typed_name } = body as { template_id?: string; typed_name?: string };
