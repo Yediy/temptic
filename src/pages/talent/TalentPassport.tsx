@@ -56,7 +56,7 @@ export default function TalentPassport() {
   };
 
   const latestRun = parseRuns[0];
-  const suggestions = (latestRun?.status === "completed" && latestRun.parsed_fields) ? latestRun.parsed_fields as Record<string, unknown> : null;
+  const suggestions = (latestRun?.status === "completed" && latestRun.suggestions) ? latestRun.suggestions as Record<string, unknown> : null;
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
