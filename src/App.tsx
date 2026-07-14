@@ -72,6 +72,11 @@ import JobBoard from "@/pages/jobs/JobBoard";
 import JobDetail from "@/pages/jobs/JobDetail";
 import BlindReview from "@/pages/talent/BlindReview";
 import ScreeningList from "@/pages/screening/ScreeningList";
+import Scheduling from "@/pages/scheduling/Scheduling";
+import Timecards from "@/pages/timecards/Timecards";
+import Reports from "@/pages/reports/Reports";
+import AICenter from "@/pages/ai-center/AICenter";
+import NetworkPage from "@/pages/network/Network";
 import { ModulePlaceholder } from "@/components/ModulePlaceholder";
 
 const queryClient = new QueryClient();
@@ -144,12 +149,12 @@ const App = () => (
                 <Route path="/compliance" element={<ModulePlaceholder moduleKey="compliance" />} />
                 <Route path="/training" element={<TrainingCatalog />} />
                 <Route path="/training/:id" element={<CoursePlayer />} />
-                <Route path="/scheduling" element={<ModulePlaceholder moduleKey="scheduling" />} />
-                <Route path="/timecards" element={<ModulePlaceholder moduleKey="timecards" />} />
+                <Route path="/scheduling" element={<Scheduling />} />
+                <Route path="/timecards" element={<Timecards />} />
                 <Route path="/payroll" element={<ModulePlaceholder moduleKey="payroll" />} />
-                <Route path="/ai-center" element={<ModulePlaceholder moduleKey="ai_center" />} />
-                <Route path="/reports" element={<ModulePlaceholder moduleKey="reports" />} />
-                <Route path="/network" element={<ModulePlaceholder moduleKey="network" />} />
+                <Route path="/ai-center" element={<AICenter />} />
+                <Route path="/reports" element={<Reports />} />
+                <Route path="/network" element={<NetworkPage />} />
                 <Route path="/settings" element={<ModulePlaceholder moduleKey="settings" />} />
               </Route>
             </Route>
