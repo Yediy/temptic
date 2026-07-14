@@ -81,7 +81,7 @@ async function runAutomations(admin: ReturnType<typeof createClient>, evt: TtosE
       for (const act of actions) {
         const type = String(act.type ?? "");
         if (type === "notify") {
-          const { error: nErr } = await admin.from("notifications").insert({
+          const { error: nErr } = await admin.from("ttos_notifications").insert({
             agency_id: evt.agency_id,
             recipient_id: (act.recipient_id as string) ?? evt.actor_id,
             title: String(act.title ?? evt.name),
@@ -89,7 +89,7 @@ async function runAutomations(admin: ReturnType<typeof createClient>, evt: TtosE
             level: String(act.level ?? "medium"),
             entity_type: evt.entity_type,
             entity_id: evt.entity_id,
-          }).select().maybeSingle();
+          });
           if (nErr) throw nErr;
           output.push({ type, ok: true });
         } else if (type === "create_task") {
