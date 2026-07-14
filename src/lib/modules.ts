@@ -2,7 +2,7 @@ import {
   LayoutDashboard, Users, Briefcase, ClipboardCheck, ShieldCheck, GraduationCap,
   CalendarRange, FileText, Clock, DollarSign, CreditCard, Building2, Sparkles,
   BarChart3, Network, Settings, Home, Search, User, Award, FileBadge, CalendarDays,
-  MessageSquare, Wallet
+  MessageSquare, Wallet, EyeOff
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
