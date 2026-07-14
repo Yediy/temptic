@@ -231,7 +231,7 @@ export function useApplyResumeSuggestions(workerId: string) {
       }
       await supabase
         .from("resume_parse_runs")
-        .update({ status: "applied", applied_fields: args.accepted })
+        .update({ status: "applied", applied_fields: args.accepted as never })
         .eq("id", args.runId);
     },
     onSuccess: () => {
