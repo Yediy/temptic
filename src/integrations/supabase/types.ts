@@ -4007,6 +4007,48 @@ export type Database = {
           },
         ]
       }
+      ttos_notifications: {
+        Row: {
+          agency_id: string
+          body: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          level: string
+          metadata: Json
+          read_at: string | null
+          recipient_id: string
+          title: string
+        }
+        Insert: {
+          agency_id: string
+          body?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          level?: string
+          metadata?: Json
+          read_at?: string | null
+          recipient_id: string
+          title: string
+        }
+        Update: {
+          agency_id?: string
+          body?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          level?: string
+          metadata?: Json
+          read_at?: string | null
+          recipient_id?: string
+          title?: string
+        }
+        Relationships: []
+      }
       ttos_org_settings: {
         Row: {
           agency_id: string
