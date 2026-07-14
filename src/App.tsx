@@ -72,6 +72,11 @@ import JobBoard from "@/pages/jobs/JobBoard";
 import JobDetail from "@/pages/jobs/JobDetail";
 import BlindReview from "@/pages/talent/BlindReview";
 import ScreeningList from "@/pages/screening/ScreeningList";
+import Scheduling from "@/pages/scheduling/Scheduling";
+import Timecards from "@/pages/timecards/Timecards";
+import Reports from "@/pages/reports/Reports";
+import AICenter from "@/pages/ai-center/AICenter";
+import NetworkPage from "@/pages/network/Network";
 import { ModulePlaceholder } from "@/components/ModulePlaceholder";
 
 const queryClient = new QueryClient();
