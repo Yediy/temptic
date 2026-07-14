@@ -37,8 +37,8 @@ export async function emit(evt: TtosEventInput): Promise<{ id: string } | null> 
     console.warn("[ttos] emit failed:", error.message);
     return null;
   }
-  supabase.functions.invoke("ttos-dispatch", { body: { event_id: (data as { id: string }).id } }).catch(() => {});
-  return data as { id: string };
+  supabase.functions.invoke("ttos-dispatch", { body: { event_id: (data as unknown as { id: string }).id } }).catch(() => {});
+  return data as unknown as { id: string };
 }
 
 export const TtosEvent = {
