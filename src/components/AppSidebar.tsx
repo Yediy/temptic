@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { useAllClientInvites } from "@/hooks/use-client-invites";
 import { isPast } from "date-fns";
 import {
-  FileText, Plus, LogOut, Search, AlertTriangle, Shield, Mail, Gauge, Briefcase, Sparkles,
+  FileText, Plus, LogOut, Search, AlertTriangle, Shield, Mail, Gauge, Briefcase, Sparkles, Brain,
 } from "lucide-react";
 import { AGENCY_MODULES, GROUP_LABELS, type ModuleDef } from "@/lib/modules";
 import { useAccessibleModules } from "@/lib/permissions";
