@@ -145,3 +145,44 @@ export function useWoicDecisions(agencyId: string | undefined, limit = 25) {
     queryFn: () => callWoicApi<any[]>("decision", "list", agencyId!, { limit }),
   });
 }
+
+// ---------- Learning ----------
+export function useWoicLearningHistory(agencyId: string | undefined, limit = 100) {
+  return useQuery({
+    queryKey: ["woic", "learning", agencyId, limit],
+    enabled: !!agencyId,
+    queryFn: () => callWoicApi<any[]>("learning", "list", agencyId!, { limit }),
+  });
+}
+
+// ---------- Predictions ----------
+export function useWoicPredictionModels(agencyId: string | undefined, limit = 50) {
+  return useQuery({
+    queryKey: ["woic", "prediction_models", agencyId, limit],
+    enabled: !!agencyId,
+    queryFn: () => callWoicApi<any[]>("prediction", "list_models", agencyId!, { limit }),
+  });
+}
+export function useWoicPredictionResults(agencyId: string | undefined, limit = 50) {
+  return useQuery({
+    queryKey: ["woic", "prediction_results", agencyId, limit],
+    enabled: !!agencyId,
+    queryFn: () => callWoicApi<any[]>("prediction", "list_results", agencyId!, { limit }),
+  });
+}
+
+// ---------- Registry ----------
+export function useWoicRegistryServices(agencyId: string | undefined, limit = 100) {
+  return useQuery({
+    queryKey: ["woic", "registry_services", agencyId, limit],
+    enabled: !!agencyId,
+    queryFn: () => callWoicApi<any[]>("registry", "services", agencyId!, { limit }),
+  });
+}
+export function useWoicRegistryApis(agencyId: string | undefined, limit = 100) {
+  return useQuery({
+    queryKey: ["woic", "registry_apis", agencyId, limit],
+    enabled: !!agencyId,
+    queryFn: () => callWoicApi<any[]>("registry", "apis", agencyId!, { limit }),
+  });
+}
