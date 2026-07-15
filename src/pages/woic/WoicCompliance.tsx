@@ -2,6 +2,7 @@ import { useAuth } from "@/lib/auth";
 import { useWoicComplianceAlerts } from "@/hooks/use-woic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { LoadingState, ErrorState, EmptyState } from "@/components/woic/AsyncState";
 
 const severityVariant = (s: string): "default" | "destructive" | "secondary" | "outline" => {
   if (s === "critical" || s === "high") return "destructive";
@@ -11,14 +12,15 @@ const severityVariant = (s: string): "default" | "destructive" | "secondary" | "
 
 export default function WoicCompliance() {
   const { agencyId } = useAuth();
-  const { data, isLoading } = useWoicComplianceAlerts(agencyId ?? undefined, 100);
+  const { data, isLoading, error } = useWoicComplianceAlerts(agencyId ?? undefined, 100);
 
   return (
     <Card>
       <CardHeader><CardTitle>Compliance Alerts</CardTitle></CardHeader>
       <CardContent className="space-y-2">
-        {isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
-        {data?.length === 0 && <p className="text-sm text-muted-foreground">No open compliance events.</p>}
+        {isLoading && <LoadingState />}
+        {error && <ErrorState error={error} />}
+        {!isLoading && !error && data?.length === 0 && <EmptyState label="No open compliance events." />}
         {data?.map((e: any) => (
           <div key={e.id} className="rounded-md border p-3 space-y-1">
             <div className="flex items-center justify-between">

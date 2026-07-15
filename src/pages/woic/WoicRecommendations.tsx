@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
+import { LoadingState, ErrorState, EmptyState } from "@/components/woic/AsyncState";
 
 export default function WoicRecommendations() {
   const { agencyId } = useAuth();
@@ -43,14 +44,18 @@ export default function WoicRecommendations() {
           <Button onClick={trigger} disabled={!id || run.isPending}>
             {run.isPending ? "Running…" : "Run"}
           </Button>
+          {run.error && <ErrorState error={run.error} />}
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader><CardTitle>Recent Recommendations</CardTitle></CardHeader>
         <CardContent className="space-y-2">
-          {list.isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
-          {list.data?.length === 0 && <p className="text-sm text-muted-foreground">No recommendations yet.</p>}
+          {list.isLoading && <LoadingState />}
+          {list.error && <ErrorState error={list.error} />}
+          {!list.isLoading && !list.error && list.data?.length === 0 && (
+            <EmptyState label="No recommendations yet." />
+          )}
           {list.data?.map((r: any) => (
             <div key={r.id} className="flex items-center justify-between rounded-md border p-3">
               <div className="text-sm">
