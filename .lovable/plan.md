@@ -1,103 +1,111 @@
-## TTOS (Temp Tic Operating System) — Phase 2
+## Phase 3 — WOIC (Workforce Operational Intelligence Core)
 
-Extending Phase 1 additively. Nothing existing (auth, RLS, portals, tickets, jobs, workers, training) is rewritten. All new subsystems are namespaced under a `ttos_` prefix so they can coexist with the current `automation_events`, `audit_logs`, `notifications`, and `ai_runs` tables already in production.
+Additive to Phase 1 (Foundation) and Phase 2 (TTOS). Nothing existing is rewritten. All new subsystems are namespaced `woic_*` and coexist with `ttos_*`, `agencies`, `workers`, `clients`, `job_orders`, `ai_runs`, etc. Every module reads/writes WOIC via a thin service layer so future operating profiles (Education, Healthcare, Manufacturing…) plug in without redesign.
 
 ### Scope framing (important)
 
-Your prompt asks for what is effectively 12–18 months of platform work (Windows-before-Word). I will not fake it with mocks. I will ship a **real, minimal, extensible core** now, and stub the rest behind clean interfaces so future modules plug in without redesign. Every "system" below has: a table, RLS, a hook/service, and one working UI surface. Advanced flourishes (drag-and-drop workflow canvas, Slack/Teams channels, OCR, 10M-worker sharding) are explicitly deferred and noted.
+The prompt describes a multi-year intelligence platform. I will ship a **real, minimal, extensible core** now and stub advanced flourishes behind clean interfaces. Every service below gets: a table (or view over existing tables), RLS + GRANTs, an API surface (edge function or hook), and one working UI in the WOIC Admin Center. Deep AI/ML (custom-trained models, vector reranking, distributed agents) is deferred; the tables and endpoints exist so those upgrades drop in without schema change.
 
 ### What ships this phase
 
-**1. Event Engine + Event Bus (real)**
-- `ttos_events` table: id, agency_id, module, name, actor_id, entity_type, entity_id, status, metadata jsonb, correlation_id, created_at. Append-only (no update/delete policies).
-- `ttos_event_subscribers` table: module, event_name pattern, handler_key, enabled.
-- `src/lib/ttos/events.ts` — `emit(event)` client helper (writes row + optional realtime broadcast).
-- `supabase/functions/ttos-dispatch` — service-role worker that fans out unprocessed events to registered handlers (reuses existing `process-automation-events` idempotency pattern).
-- Wire emitters into existing hooks: ticket sign/send/reject, job create, worker create, training complete, document sign, invite accept.
+**1. Identity Intelligence — `woic_identities` + views**
+- `woic_identities` table: global identity per person (worker/recruiter/client/etc.), one row per human across all orgs.
+- `woic_identity_memberships` table: identity_id → agency_id + kind (worker/client_user/recruiter/admin/instructor/student/contractor/vendor/robot) + status.
+- `woic_identity_profile` jsonb columns: skills, certifications, licenses, education, communication_prefs, ai_profile, behavior_profile, reputation_score, activity_score, availability.
+- Backfill: identities inferred from existing `workers`, `client_signers`, `agency_members`, `profiles`. Idempotent SQL.
+- Read-only view `woic_identity_directory` scoped by RLS to caller's agency memberships.
 
-**2. Automation + Rule Engine (real, minimal)**
-- `ttos_automations` table: trigger_event, conditions jsonb, actions jsonb, priority, enabled, retries.
-- `ttos_automation_runs` table: automation_id, event_id, status, error, attempts, ran_at.
-- Executor lives inside `ttos-dispatch`. Actions supported at launch: `notify`, `create_task`, `emit_event`, `update_status`. Everything else is a typed no-op placeholder that logs a run so future action types drop in.
+**2. Knowledge Intelligence — `woic_knowledge_*`**
+- `woic_knowledge_articles` (id, agency_id, category_id, title, body, tags, permissions, version, tsv), `woic_knowledge_categories`, `woic_knowledge_vectors` (halfvec 1536, pgvector index).
+- Backend embed via Lovable AI Gateway (`openai/text-embedding-3-small`, 1536 dims) called from edge function `woic-knowledge-index`.
+- Search endpoint `woic-knowledge-search`: hybrid keyword (tsv) + vector cosine.
+- Version history via `woic_knowledge_versions`.
 
-**3. Notification Center (real, extending existing `notifications`)**
-- Reuse current `notifications` table. Add `ttos_notification_deliveries` for per-channel state (in_app, email; SMS/Slack/Teams stubbed).
-- `/notifications` page: unified inbox with critical/high/medium/low filter, mark-read, and channel indicators.
+**3. Decision Intelligence — `woic_decisions` + `woic_decision_evidence`**
+- Every match/approval/eligibility/compliance decision logged here with: type, subject_entity, confidence, reasoning, alternative_options jsonb, risk, impact, evidence array, approver_id, outcome, timestamp.
+- Wraps existing `ai_runs` and `candidate_decisions` — those keep working; WOIC mirrors an enterprise-shape row.
 
-**4. Background Job Queue (real)**
-- `ttos_jobs` table: kind, payload, status (queued/running/succeeded/failed), attempts, run_after, locked_by, locked_until.
-- `supabase/functions/ttos-worker` — pulls N jobs with `FOR UPDATE SKIP LOCKED` semantics via RPC, executes, records status.
-- Admin page `/admin/ttos/jobs`.
+**4. Recommendation Engine — `woic_recommendations`**
+- Rows: kind (best_candidate/best_recruiter/best_training/…), subject entity, score, reasoning, why array, expires_at, status.
+- Edge function `woic-recommend` fans requests to specialized generators (candidate = reuses `match-candidates`; training = simple SQL rule for now; scheduling = placeholder).
 
-**5. Universal Timeline (real)**
-- View `ttos_timeline` over `ttos_events` scoped by `entity_type/entity_id`.
-- `<Timeline entityType entityId />` React component. Drop into ticket, worker, job, client detail pages (one line each — non-invasive).
+**5. Prediction Intelligence — `woic_prediction_models` + `woic_prediction_results`**
+- Registry rows for models (name, version, feature_set, endpoint, active). Results table stores subject, model_id, prediction, confidence, features_snapshot, produced_at.
+- Ship one working baseline predictor (`assignment_acceptance_likelihood`) using rule-based heuristics; leaves room for real ML.
 
-**6. Universal Search (real, minimal)**
-- `ttos_search_index` materialized rows: entity_type, entity_id, agency_id, title, subtitle, tags, tsv (tsvector generated column).
-- Populated by triggers on tickets, workers, clients, jobs, documents.
-- `<GlobalSearch />` in top nav with ⌘K, hits `search_index` via RLS.
+**6. Compliance Intelligence — `woic_compliance_rules` + `woic_compliance_events`**
+- Rules table: kind (I-9/W-4/W-9/OSHA/HIPAA/CDL/TWIC/license/cert/policy/training), agency-scoped or global, cadence (once/annual/biennial/custom), grace_days.
+- Events table: identity_id, rule_id, status (compliant/expiring/expired/waived), evidence_url, next_action_at.
+- Cron edge function `woic-compliance-scan` (hourly): produces upcoming expirations, emits TTOS events `credential.expiring` → existing automations fire notifications.
 
-**7. Global Task System (real)**
-- `ttos_tasks` table: title, description, owner_id, agency_id, entity_type, entity_id, due_at, priority, status, dependencies uuid[].
-- `/tasks` page with filters + create/complete.
+**7. Communication Intelligence — `woic_conversations`**
+- Threads that unify email/in-app/SMS/push (transports: in_app + email now, SMS/push stubbed).
+- Ties to existing `notifications`, `ttos_messages`, and Resend deliveries via `conversation_id` foreign key (nullable, backfilled lazily).
+- `woic-conversation-summarize` edge function: summary + unanswered-detection using Lovable AI Gateway.
 
-**8. Audit Center (extend existing `audit_logs`)**
-- Add `/admin/ttos/audit` viewer with entity/actor/date filters. No schema change — existing immutability policies already enforce this.
+**8. Learning Engine — `woic_learning_history`**
+- Append-only rows recording outcome vs prediction (placement made / rejected / interview outcome / payroll correction / compliance issue / schedule change). Feeds future model retraining.
 
-**9. AI Decision Queue (real, minimal — extends `ai_runs`)**
-- `ttos_ai_decisions` table: run_id, recommendation, confidence, reason, status (pending/approved/rejected/modified), reviewer_id.
-- `/ai-center` gets a "Decisions" tab. Nothing auto-executes.
+**9. Context Engine — `woic_context_sessions`**
+- Per-user rolling context: current_agency, current_worker, current_client, current_job, current_workflow, recent_activity[], updated_at.
+- Hook `useWoicContext()` writes on route change; every AI call attaches the context.
 
-**10. Global Settings (real)**
-- `ttos_org_settings` table keyed by agency_id: branding jsonb, notifications jsonb, automation_defaults jsonb, ai_preferences jsonb, retention jsonb, security jsonb.
-- `/settings/organization` page.
+**10. Organizational Memory — `woic_org_memory`**
+- Agency-scoped facts (jsonb) grouped by kind (policy/pattern/preference/history). Editable via WOIC Admin.
+- AI calls read this by default (RAG augment).
 
-**11. Global Calendar (minimal)**
-- `ttos_calendar_events` view unioning existing `shifts`, `interviews`, `worker_credentials.expires_at`, `training_enrollments.due_at`, ticket work dates.
-- `/calendar` month view with filter chips.
+**11. Service Registry + API Registry — `woic_service_registry` + `woic_api_registry`**
+- Seeded rows for every WOIC service (identity, knowledge, decision, recommendation, compliance, prediction, learning, communication, workflow-intelligence, context) with endpoint + version + status.
+- Client helper `src/lib/woic/services.ts` reads registry to discover endpoints — future modules never hardcode URLs.
 
-**12. Internal Messaging (minimal)**
-- `ttos_message_threads` + `ttos_messages` tables with RLS scoped to participant list.
-- `/messages` page: threads + composer + read receipts. Attachments = storage links (bucket reused).
+**12. Workflow Intelligence**
+- Reuses existing `ttos_automations`. Adds `woic_workflow_intelligence` view enriching runs with decision + recommendation joins so admins see *why* a workflow ran.
+- Ships 2 built-in workflow templates: `hiring_pipeline`, `credential_renewal`.
 
-**13. Document Center (extend)**
-- No new bucket. Add `ttos_document_index` view unioning `worker_documents`, `document_signatures`, `pdf_documents`, `signed-documents` storage.
-- `/documents` page with category filter, expiration badges, preview.
+**13. Universal API Layer**
+- Single edge function `woic-api` with a dispatch table routing `{service, action, payload}` to internal handlers. Sub-routes exist for each of the 10 services above. Uniform JSON contract using existing `_shared/auth.ts`.
+
+### UI — WOIC Administration Center (route `/woic`)
+
+- `Overview` — AI Health, active services, event volume, decision latency.
+- `Identities`, `Knowledge`, `Decisions`, `Recommendations`, `Predictions`, `Learning`, `Compliance`, `Context Monitor`, `Organizational Memory`, `Service Registry`, `API Monitor`.
+- All pages are additive under `src/pages/woic/*`, wired in `App.tsx`, one sidebar entry gated to `agency_admin` + `super_admin`.
 
 ### Explicitly deferred (documented, not built)
 
-- Visual drag-and-drop **workflow canvas** — schema for `ttos_workflow_templates/instances/steps/logs` created but UI is a JSON editor for now. Building React Flow canvas is a whole phase on its own.
-- **SMS / Slack / Teams / Push** channels — delivery rows accept the channel but transports throw `not_implemented`.
-- **OCR** on documents — deferred until a real document ingest need exists.
-- **10M workers / horizontal sharding** — Postgres + indexes suffice at current scale; sharding is premature.
-- **Saved searches, keyboard shortcut palette everywhere** — ⌘K only; per-page shortcuts later.
+- **Trained ML models / custom embeddings** — using rule-based heuristics + Lovable AI Gateway only.
+- **Voice / Video transports** — schema accepts channels, transports throw `not_implemented`.
+- **Distributed agents / horizontal AI sharding** — single-process edge functions for now.
+- **Cross-agency identity linking** — a global identity exists per person, but merging duplicates across orgs stays admin-only.
+- **Compliance form autofill (I-9/W-4/W-9 PDF generation)** — rules + events + reminders ship; PDF generation added when a real form ingest need exists.
 
 ### RLS pattern (every new table)
 
 ```
-agency_id filter using private.current_agency_ids()  -- reuses existing helper
+agency_id filter using private.current_agency_ids()  -- existing helper
 service_role: full access
-authenticated: SELECT within agency; INSERT gated by role_permissions
-UPDATE/DELETE denied on events, audit, deliveries (append-only)
+authenticated: SELECT within agency; INSERT/UPDATE gated by role_permissions
+UPDATE/DELETE denied on decisions, learning, evidence (append-only)
 GRANTs to authenticated + service_role in same migration
 ```
 
+Identity table has a special two-scope rule: readable by any agency that has a membership row for that identity.
+
 ### Sequencing (4 sub-phases inside this build)
 
-1. **Core spine**: migrations for events, event_subscribers, jobs, automations, automation_runs, tasks, org_settings, ai_decisions, message threads/messages, calendar view, search index, workflow tables. All GRANTs + RLS. Deploy `ttos-dispatch` and `ttos-worker` edge functions. Wire emitters into 6 existing hooks.
-2. **UI surfaces**: `/notifications`, `/tasks`, `/calendar`, `/messages`, `/documents`, `/settings/organization`, `/admin/ttos/{jobs,audit,events,automations}`. Add `<Timeline>` + `<GlobalSearch>` components. Route wiring in `App.tsx`, module registry entries in `modules.ts`.
-3. **Automation execution**: implement `notify`, `create_task`, `emit_event`, `update_status` action handlers. Seed 3 built-in rules (credential expiring, background check fail, ticket approved → payroll placeholder).
-4. **Verify**: typecheck, run the existing auth integration test suite, and add one new integration test that emits an event and asserts a task+notification result via the dispatcher.
+1. **DB spine** — one additive migration for all `woic_*` tables, views, RLS, GRANTs. Seed service_registry + api_registry + baseline compliance_rules. Enable pgvector for knowledge_vectors.
+2. **Edge services** — deploy `woic-api`, `woic-knowledge-index`, `woic-knowledge-search`, `woic-recommend`, `woic-compliance-scan`, `woic-conversation-summarize`. All reuse `_shared/auth.ts` + `_shared/sentry.ts`.
+3. **UI surfaces** — WOIC Admin Center pages + `useWoicContext` hook + `src/lib/woic/services.ts` client.
+4. **Wire + verify** — emit TTOS events from decisions/recommendations/compliance so timeline picks them up; typecheck; run existing integration tests; add one WOIC smoke test that creates a decision and asserts it surfaces in the Decisions dashboard.
 
 ### Non-goals for this phase
 
-- No changes to ticket lifecycle, RLS on tickets, PDF pipeline, Stripe, Resend transport, DocRaptor, or Sentry setup.
-- No renaming existing tables. TTOS coexists.
-- No new external API integrations.
+- No changes to ticket lifecycle, PDF pipeline, Stripe, Resend transport, DocRaptor, Sentry setup, existing RLS on tickets/workers/clients/jobs.
+- No renaming existing tables. WOIC coexists with Phase 1 + TTOS.
+- No new external API integrations. Uses Lovable AI Gateway only (already configured).
 
 ### Deliverable at the end
 
-A functioning TTOS spine: events flowing, one worker draining the queue, tasks/notifications/timeline/search/calendar/messages/settings/audit/AI-decisions pages live, three automations executing end to end, and clean interfaces for every future module to plug into via `emit()` + subscribers.
+A functioning WOIC intelligence core: 20 additive tables, one universal API edge function, five specialized service edge functions, a WOIC Admin Center with 12 pages, service + API registries seeded, one working baseline predictor, hybrid knowledge search live, compliance scanner running on cron, decisions + recommendations flowing into TTOS events + Timeline, and clean typed clients so every future operating profile consumes WOIC without duplicate logic.
 
-If you want a bigger or smaller cut (e.g. drop messaging + calendar to ship faster, or add the workflow canvas now), say which levers to pull before I start.
+If you want a smaller first cut (e.g. skip Predictions + Learning until real data exists) or a larger one (e.g. add I-9/W-4 PDF generation now), say which levers to pull before I start.
