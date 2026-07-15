@@ -2,17 +2,19 @@ import { useAuth } from "@/lib/auth";
 import { useWoicDecisions } from "@/hooks/use-woic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { LoadingState, ErrorState, EmptyState } from "@/components/woic/AsyncState";
 
 export default function WoicDecisions() {
   const { agencyId } = useAuth();
-  const { data, isLoading } = useWoicDecisions(agencyId ?? undefined, 50);
+  const { data, isLoading, error } = useWoicDecisions(agencyId ?? undefined, 50);
 
   return (
     <Card>
       <CardHeader><CardTitle>Recent Decisions</CardTitle></CardHeader>
       <CardContent className="space-y-2">
-        {isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
-        {data?.length === 0 && <p className="text-sm text-muted-foreground">No decisions logged.</p>}
+        {isLoading && <LoadingState />}
+        {error && <ErrorState error={error} />}
+        {!isLoading && !error && data?.length === 0 && <EmptyState label="No decisions logged." />}
         {data?.map((d: any) => (
           <div key={d.id} className="rounded-md border p-3 space-y-1">
             <div className="flex items-center justify-between">

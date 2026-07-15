@@ -4,6 +4,7 @@ import { useWoicKnowledgeSearch } from "@/hooks/use-woic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { LoadingState, ErrorState, EmptyState } from "@/components/woic/AsyncState";
 
 export default function WoicKnowledge() {
   const { agencyId } = useAuth();
@@ -15,8 +16,11 @@ export default function WoicKnowledge() {
       <CardHeader><CardTitle>Knowledge Search</CardTitle></CardHeader>
       <CardContent className="space-y-3">
         <Input placeholder="Search knowledge articles…" value={q} onChange={(e) => setQ(e.target.value)} />
-        {search.isLoading && <p className="text-sm text-muted-foreground">Searching…</p>}
-        {search.data?.length === 0 && q && <p className="text-sm text-muted-foreground">No matches.</p>}
+        {search.isLoading && <LoadingState label="Searching…" />}
+        {search.error && <ErrorState error={search.error} />}
+        {!search.isLoading && !search.error && q && search.data?.length === 0 && (
+          <EmptyState label="No matches." />
+        )}
         <div className="space-y-2">
           {search.data?.map((a: any) => (
             <div key={a.id} className="flex items-center justify-between rounded-md border p-3">

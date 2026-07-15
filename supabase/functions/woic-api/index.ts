@@ -147,6 +147,52 @@ Deno.serve(withSentry("woic-api", async (req) => {
         if (error) throw error;
         return jsonResponse({ data }, 200, corsHeaders);
       }
+      case "learning.list": {
+        const { data, error } = await userClient
+          .from("woic_learning_history")
+          .select("*")
+          .eq("agency_id", body.agency_id)
+          .order("created_at", { ascending: false })
+          .limit(limit);
+        if (error) throw error;
+        return jsonResponse({ data }, 200, corsHeaders);
+      }
+      case "prediction.list_models": {
+        const { data, error } = await userClient
+          .from("woic_prediction_models")
+          .select("*")
+          .limit(limit);
+        if (error) throw error;
+        return jsonResponse({ data }, 200, corsHeaders);
+      }
+      case "prediction.list_results": {
+        const { data, error } = await userClient
+          .from("woic_prediction_results")
+          .select("*")
+          .eq("agency_id", body.agency_id)
+          .order("created_at", { ascending: false })
+          .limit(limit);
+        if (error) throw error;
+        return jsonResponse({ data }, 200, corsHeaders);
+      }
+      case "registry.services": {
+        const { data, error } = await userClient
+          .from("woic_service_registry")
+          .select("*")
+          .order("name")
+          .limit(limit);
+        if (error) throw error;
+        return jsonResponse({ data }, 200, corsHeaders);
+      }
+      case "registry.apis": {
+        const { data, error } = await userClient
+          .from("woic_api_registry")
+          .select("*")
+          .order("path")
+          .limit(limit);
+        if (error) throw error;
+        return jsonResponse({ data }, 200, corsHeaders);
+      }
       default:
         return jsonResponse({ error: `unknown action: ${key}`, code: "not_found" }, 404, corsHeaders);
     }

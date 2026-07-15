@@ -1,33 +1,24 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+import { useWoicRegistryServices, useWoicRegistryApis } from "@/hooks/use-woic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { LoadingState, ErrorState, EmptyState } from "@/components/woic/AsyncState";
 
 export default function WoicRegistry() {
-  const services = useQuery({
-    queryKey: ["woic", "service_registry"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("woic_service_registry").select("*").order("name");
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const apis = useQuery({
-    queryKey: ["woic", "api_registry"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("woic_api_registry").select("*").order("path");
-      if (error) throw error;
-      return data;
-    },
-  });
+  const { agencyId } = useAuth();
+  const services = useWoicRegistryServices(agencyId ?? undefined);
+  const apis = useWoicRegistryApis(agencyId ?? undefined);
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <Card>
         <CardHeader><CardTitle>Services</CardTitle></CardHeader>
         <CardContent className="space-y-2">
-          {services.isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
+          {services.isLoading && <LoadingState />}
+          {services.error && <ErrorState error={services.error} />}
+          {!services.isLoading && !services.error && services.data?.length === 0 && (
+            <EmptyState label="No services registered." />
+          )}
           {services.data?.map((s: any) => (
             <div key={s.id} className="rounded-md border p-3">
               <div className="flex items-center justify-between">
@@ -43,7 +34,11 @@ export default function WoicRegistry() {
       <Card>
         <CardHeader><CardTitle>API Endpoints</CardTitle></CardHeader>
         <CardContent className="space-y-2">
-          {apis.isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
+          {apis.isLoading && <LoadingState />}
+          {apis.error && <ErrorState error={apis.error} />}
+          {!apis.isLoading && !apis.error && apis.data?.length === 0 && (
+            <EmptyState label="No APIs registered." />
+          )}
           {apis.data?.map((a: any) => (
             <div key={a.id} className="rounded-md border p-3">
               <div className="flex items-center justify-between">
