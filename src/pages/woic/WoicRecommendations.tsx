@@ -7,13 +7,43 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
-import { LoadingState, ErrorState, EmptyState } from "@/components/woic/AsyncState";
+import {
+  DataPanel,
+  DataPanelColumn,
+  DetailField,
+  DetailJson,
+  fmtDate,
+  fmtPct,
+  short,
+} from "@/components/woic/DataPanel";
+import { ErrorState } from "@/components/woic/AsyncState";
+import type { WoicRecommendation } from "@/lib/woic/types";
+
+const columns: DataPanelColumn<WoicRecommendation>[] = [
+  { key: "kind", header: "Kind", cell: (r) => r.kind },
+  {
+    key: "pair",
+    header: "Subject → Target",
+    cell: (r) => (
+      <span className="font-mono text-xs">
+        {r.subject_entity}/{short(r.subject_id)} → {r.target_entity}/{short(r.target_id)}
+      </span>
+    ),
+  },
+  { key: "score", header: "Score", cell: (r) => <Badge>{fmtPct(r.score)}</Badge> },
+  {
+    key: "status",
+    header: "Status",
+    cell: (r) => <Badge variant={r.status === "active" ? "default" : "secondary"}>{r.status}</Badge>,
+  },
+  { key: "created_at", header: "Created", cell: (r) => fmtDate(r.created_at) },
+];
 
 export default function WoicRecommendations() {
   const { agencyId } = useAuth();
   const [entity, setEntity] = useState<"job" | "worker">("job");
   const [id, setId] = useState("");
-  const list = useWoicRecommendations(agencyId ?? undefined, { limit: 50 });
+  const list = useWoicRecommendations(agencyId ?? undefined, { limit: 100 });
   const run = useRunWoicRecommend();
 
   const trigger = async () => {
@@ -32,7 +62,7 @@ export default function WoicRecommendations() {
         <CardHeader><CardTitle>Generate Recommendations</CardTitle></CardHeader>
         <CardContent className="flex flex-wrap gap-2 items-end">
           <div className="w-40">
-            <Select value={entity} onValueChange={(v) => setEntity(v as any)}>
+            <Select value={entity} onValueChange={(v) => setEntity(v as "job" | "worker")}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="job">Job → Workers</SelectItem>
@@ -44,31 +74,32 @@ export default function WoicRecommendations() {
           <Button onClick={trigger} disabled={!id || run.isPending}>
             {run.isPending ? "Running…" : "Run"}
           </Button>
-          {run.error && <ErrorState error={run.error} />}
+          {run.error && <div className="w-full"><ErrorState error={run.error} /></div>}
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader><CardTitle>Recent Recommendations</CardTitle></CardHeader>
-        <CardContent className="space-y-2">
-          {list.isLoading && <LoadingState />}
-          {list.error && <ErrorState error={list.error} />}
-          {!list.isLoading && !list.error && list.data?.length === 0 && (
-            <EmptyState label="No recommendations yet." />
-          )}
-          {list.data?.map((r: any) => (
-            <div key={r.id} className="flex items-center justify-between rounded-md border p-3">
-              <div className="text-sm">
-                <p className="font-medium">{r.subject_entity} → {r.target_entity}</p>
-                <p className="text-xs text-muted-foreground font-mono">
-                  {String(r.subject_id).slice(0, 8)} → {String(r.target_id).slice(0, 8)}
-                </p>
-              </div>
-              <Badge>{(Number(r.score) * 100).toFixed(0)}%</Badge>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      <DataPanel<WoicRecommendation>
+        title="Recent Recommendations"
+        columns={columns}
+        rows={list.data as WoicRecommendation[] | undefined}
+        isLoading={list.isLoading}
+        error={list.error}
+        emptyLabel="No recommendations yet."
+        detailTitle={(r) => `${r.kind} · ${fmtPct(r.score)}`}
+        renderDetail={(r) => (
+          <div className="space-y-1">
+            <DetailField label="Kind" value={r.kind} />
+            <DetailField label="Subject" value={<span className="font-mono text-xs">{r.subject_entity}/{r.subject_id}</span>} />
+            <DetailField label="Target" value={<span className="font-mono text-xs">{r.target_entity}/{r.target_id}</span>} />
+            <DetailField label="Score" value={fmtPct(r.score)} />
+            <DetailField label="Status" value={r.status} />
+            <DetailField label="Expires" value={fmtDate(r.expires_at)} />
+            <DetailField label="Created" value={fmtDate(r.created_at)} />
+            <DetailField label="Reasoning" value={r.reasoning} />
+            <DetailJson label="Why" value={r.why} />
+          </div>
+        )}
+      />
     </div>
   );
 }

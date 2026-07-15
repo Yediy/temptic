@@ -1,43 +1,79 @@
 import { useAuth } from "@/lib/auth";
 import { useWoicComplianceAlerts } from "@/hooks/use-woic";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { LoadingState, ErrorState, EmptyState } from "@/components/woic/AsyncState";
+import {
+  DataPanel,
+  DataPanelColumn,
+  DetailField,
+  DetailJson,
+  fmtDate,
+  short,
+} from "@/components/woic/DataPanel";
+import type { WoicComplianceEvent } from "@/lib/woic/types";
 
-const severityVariant = (s: string): "default" | "destructive" | "secondary" | "outline" => {
-  if (s === "critical" || s === "high") return "destructive";
-  if (s === "medium") return "default";
+const statusVariant = (s: string): "default" | "destructive" | "secondary" | "outline" => {
+  if (s === "open") return "destructive";
+  if (s === "resolved") return "default";
   return "secondary";
 };
 
+const columns: DataPanelColumn<WoicComplianceEvent>[] = [
+  {
+    key: "identity",
+    header: "Identity",
+    cell: (r) => <span className="font-mono text-xs">{short(r.identity_id)}</span>,
+  },
+  {
+    key: "rule",
+    header: "Rule",
+    cell: (r) => <span className="font-mono text-xs">{short(r.rule_id)}</span>,
+  },
+  {
+    key: "status",
+    header: "Status",
+    cell: (r) => <Badge variant={statusVariant(r.status)}>{r.status}</Badge>,
+  },
+  { key: "next_action_at", header: "Next Action", cell: (r) => fmtDate(r.next_action_at) },
+  { key: "expires_at", header: "Expires", cell: (r) => fmtDate(r.expires_at) },
+];
+
 export default function WoicCompliance() {
   const { agencyId } = useAuth();
-  const { data, isLoading, error } = useWoicComplianceAlerts(agencyId ?? undefined, 100);
+  const { data, isLoading, error } = useWoicComplianceAlerts(agencyId ?? undefined, 200);
 
   return (
-    <Card>
-      <CardHeader><CardTitle>Compliance Alerts</CardTitle></CardHeader>
-      <CardContent className="space-y-2">
-        {isLoading && <LoadingState />}
-        {error && <ErrorState error={error} />}
-        {!isLoading && !error && data?.length === 0 && <EmptyState label="No open compliance events." />}
-        {data?.map((e: any) => (
-          <div key={e.id} className="rounded-md border p-3 space-y-1">
-            <div className="flex items-center justify-between">
-              <p className="font-medium text-sm">{e.event_type}</p>
-              <div className="flex gap-2">
-                <Badge variant={severityVariant(e.severity)}>{e.severity}</Badge>
-                <Badge variant="outline">{e.status}</Badge>
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Subject: <span className="font-mono">{e.subject_entity}/{String(e.subject_id).slice(0, 8)}</span>
-              {e.next_action_at && <> · Next action {new Date(e.next_action_at).toLocaleDateString()}</>}
-            </p>
-            {e.notes && <p className="text-xs">{e.notes}</p>}
-          </div>
-        ))}
-      </CardContent>
-    </Card>
+    <DataPanel<WoicComplianceEvent>
+      title="Compliance Events"
+      description="Rule matches requiring review, action, or expiration tracking."
+      columns={columns}
+      rows={data as WoicComplianceEvent[] | undefined}
+      isLoading={isLoading}
+      error={error}
+      emptyLabel="No open compliance events."
+      detailTitle={(e) => `Event ${short(e.id)}`}
+      renderDetail={(e) => (
+        <div className="space-y-1">
+          <DetailField label="Identity" value={<span className="font-mono text-xs">{e.identity_id}</span>} />
+          <DetailField label="Rule" value={<span className="font-mono text-xs">{e.rule_id}</span>} />
+          <DetailField label="Status" value={<Badge variant={statusVariant(e.status)}>{e.status}</Badge>} />
+          <DetailField label="Effective" value={fmtDate(e.effective_at)} />
+          <DetailField label="Expires" value={fmtDate(e.expires_at)} />
+          <DetailField label="Next Action" value={fmtDate(e.next_action_at)} />
+          <DetailField
+            label="Evidence"
+            value={
+              e.evidence_url ? (
+                <a href={e.evidence_url} target="_blank" rel="noreferrer" className="text-primary hover:underline break-all">
+                  {e.evidence_url}
+                </a>
+              ) : null
+            }
+          />
+          <DetailField label="Created" value={fmtDate(e.created_at)} />
+          <DetailField label="Updated" value={fmtDate(e.updated_at)} />
+          <DetailJson label="Metadata" value={e.metadata} />
+        </div>
+      )}
+    />
   );
 }
