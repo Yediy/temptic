@@ -166,6 +166,19 @@ const App = () => (
                 <Route path="/reports" element={<Reports />} />
                 <Route path="/network" element={<NetworkPage />} />
                 <Route path="/settings" element={<ModulePlaceholder moduleKey="settings" />} />
+                {/* WOIC Administration Center */}
+                <Route path="/woic" element={<WoicLayout />}>
+                  <Route index element={<WoicIdentity />} />
+                  <Route path="identity" element={<WoicIdentity />} />
+                  <Route path="knowledge" element={<WoicKnowledge />} />
+                  <Route path="decisions" element={<WoicDecisions />} />
+                  <Route path="recommendations" element={<WoicRecommendations />} />
+                  <Route path="predictions" element={<WoicPredictions />} />
+                  <Route path="learning" element={<WoicLearning />} />
+                  <Route path="compliance" element={<WoicCompliance />} />
+                  <Route path="context" element={<WoicContext />} />
+                  <Route path="registry" element={<WoicRegistry />} />
+                </Route>
               </Route>
             </Route>
 
