@@ -49,7 +49,7 @@ export function useWoicRecommendations(agencyId: string | undefined, filter: Woi
   return useQuery({
     queryKey: ["woic", "recommendations", agencyId, filter],
     enabled: !!agencyId,
-    queryFn: () => callWoicApi<any[]>("recommendation", "list", agencyId!, filter),
+    queryFn: () => callWoicApi<any[]>("recommendation", "list", agencyId!, { ...filter }),
   });
 }
 
