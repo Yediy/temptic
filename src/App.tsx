@@ -166,7 +166,12 @@ const App = () => (
                 <Route path="/reports" element={<Reports />} />
                 <Route path="/network" element={<NetworkPage />} />
                 <Route path="/settings" element={<ModulePlaceholder moduleKey="settings" />} />
-                {/* WOIC Administration Center */}
+              </Route>
+            </Route>
+
+            {/* WOIC Administration Center — super_admin only */}
+            <Route element={<ProtectedRoute allowedRoles={["super_admin"]} redirectTo="/unauthorized" />}>
+              <Route element={<AppLayout />}>
                 <Route path="/woic" element={<WoicLayout />}>
                   <Route index element={<WoicIdentity />} />
                   <Route path="identity" element={<WoicIdentity />} />
