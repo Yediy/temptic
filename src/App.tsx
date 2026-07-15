@@ -78,6 +78,16 @@ import Reports from "@/pages/reports/Reports";
 import AICenter from "@/pages/ai-center/AICenter";
 import NetworkPage from "@/pages/network/Network";
 import { ModulePlaceholder } from "@/components/ModulePlaceholder";
+import WoicLayout from "@/pages/woic/WoicLayout";
+import WoicIdentity from "@/pages/woic/WoicIdentity";
+import WoicKnowledge from "@/pages/woic/WoicKnowledge";
+import WoicDecisions from "@/pages/woic/WoicDecisions";
+import WoicRecommendations from "@/pages/woic/WoicRecommendations";
+import WoicPredictions from "@/pages/woic/WoicPredictions";
+import WoicLearning from "@/pages/woic/WoicLearning";
+import WoicCompliance from "@/pages/woic/WoicCompliance";
+import WoicContext from "@/pages/woic/WoicContext";
+import WoicRegistry from "@/pages/woic/WoicRegistry";
 
 const queryClient = new QueryClient();
 
