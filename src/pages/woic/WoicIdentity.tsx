@@ -1,42 +1,64 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useWoicIdentity, useWoicIdentityMemberships } from "@/hooks/use-woic";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { LoadingState, ErrorState, EmptyState } from "@/components/woic/AsyncState";
+import {
+  DataPanel,
+  DataPanelColumn,
+  DetailField,
+  DetailJson,
+  fmtDate,
+  short,
+} from "@/components/woic/DataPanel";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LoadingState, ErrorState } from "@/components/woic/AsyncState";
+import type { WoicIdentity, WoicIdentityMembership } from "@/lib/woic/types";
 
-export default function WoicIdentity() {
+const membershipColumns: DataPanelColumn<WoicIdentityMembership>[] = [
+  { key: "id", header: "Identity", cell: (r) => <span className="font-mono text-xs">{short(r.identity_id)}</span> },
+  { key: "kind", header: "Kind", cell: (r) => r.kind },
+  {
+    key: "status",
+    header: "Status",
+    cell: (r) => <Badge variant={r.status === "active" ? "default" : "secondary"}>{r.status}</Badge>,
+  },
+  { key: "created_at", header: "Joined", cell: (r) => fmtDate(r.created_at) },
+];
+
+export default function WoicIdentityPage() {
   const { agencyId } = useAuth();
   const [identityId, setIdentityId] = useState("");
   const memberships = useWoicIdentityMemberships(agencyId ?? undefined);
   const identity = useWoicIdentity(agencyId ?? undefined, identityId || undefined);
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
-      <Card>
-        <CardHeader><CardTitle>Identity Memberships</CardTitle></CardHeader>
-        <CardContent className="space-y-2">
-          {memberships.isLoading && <LoadingState />}
-          {memberships.error && <ErrorState error={memberships.error} />}
-          {!memberships.isLoading && !memberships.error && memberships.data?.length === 0 && (
-            <EmptyState label="No memberships found." />
-          )}
-          {memberships.data?.map((m: any) => (
+    <div className="space-y-4">
+      <DataPanel<WoicIdentityMembership>
+        title="Identity Memberships"
+        description="Workforce identities linked to this agency."
+        columns={membershipColumns}
+        rows={memberships.data as WoicIdentityMembership[] | undefined}
+        isLoading={memberships.isLoading}
+        error={memberships.error}
+        emptyLabel="No memberships found."
+        detailTitle={(r) => `Membership ${short(r.identity_id)}`}
+        renderDetail={(m) => (
+          <div className="space-y-1">
+            <DetailField label="Identity ID" value={<span className="font-mono text-xs">{m.identity_id}</span>} />
+            <DetailField label="Kind" value={m.kind} />
+            <DetailField label="Status" value={<Badge variant={m.status === "active" ? "default" : "secondary"}>{m.status}</Badge>} />
+            <DetailField label="Joined" value={fmtDate(m.created_at)} />
+            <DetailJson label="Metadata" value={m.metadata} />
             <button
-              key={m.id}
+              className="text-xs text-primary hover:underline mt-2"
               onClick={() => setIdentityId(m.identity_id)}
-              className="w-full text-left flex items-center justify-between rounded-md border p-2 hover:bg-muted"
             >
-              <div>
-                <p className="text-xs font-mono">{m.identity_id.slice(0, 8)}…</p>
-                <p className="text-xs text-muted-foreground">{m.kind}</p>
-              </div>
-              <Badge variant={m.status === "active" ? "default" : "secondary"}>{m.status}</Badge>
+              Load full identity →
             </button>
-          ))}
-        </CardContent>
-      </Card>
+          </div>
+        )}
+      />
 
       <Card>
         <CardHeader><CardTitle>Identity Lookup</CardTitle></CardHeader>
@@ -48,13 +70,23 @@ export default function WoicIdentity() {
           />
           {identity.isLoading && <LoadingState />}
           {identity.error && <ErrorState error={identity.error} />}
-          {identity.data && (
-            <pre className="text-xs bg-muted rounded-md p-3 overflow-auto max-h-96">
-              {JSON.stringify(identity.data, null, 2)}
-            </pre>
-          )}
+          {identity.data && (() => {
+            const d = identity.data as WoicIdentity;
+            return (
+              <div>
+                <DetailField label="Display Name" value={d.display_name} />
+                <DetailField label="Email" value={d.primary_email} />
+                <DetailField label="Phone" value={d.primary_phone} />
+                <DetailField label="Reputation" value={d.reputation_score ?? "—"} />
+                <DetailField label="Activity" value={d.activity_score ?? "—"} />
+                <DetailJson label="Skills" value={d.skills} />
+                <DetailJson label="Certifications" value={d.certifications} />
+                <DetailJson label="Availability" value={d.availability} />
+              </div>
+            );
+          })()}
           {identityId && !identity.isLoading && !identity.error && !identity.data && (
-            <EmptyState label="No identity found." />
+            <p className="text-sm text-muted-foreground">No identity found.</p>
           )}
         </CardContent>
       </Card>
