@@ -78,6 +78,16 @@ import Reports from "@/pages/reports/Reports";
 import AICenter from "@/pages/ai-center/AICenter";
 import NetworkPage from "@/pages/network/Network";
 import { ModulePlaceholder } from "@/components/ModulePlaceholder";
+import WoicLayout from "@/pages/woic/WoicLayout";
+import WoicIdentity from "@/pages/woic/WoicIdentity";
+import WoicKnowledge from "@/pages/woic/WoicKnowledge";
+import WoicDecisions from "@/pages/woic/WoicDecisions";
+import WoicRecommendations from "@/pages/woic/WoicRecommendations";
+import WoicPredictions from "@/pages/woic/WoicPredictions";
+import WoicLearning from "@/pages/woic/WoicLearning";
+import WoicCompliance from "@/pages/woic/WoicCompliance";
+import WoicContext from "@/pages/woic/WoicContext";
+import WoicRegistry from "@/pages/woic/WoicRegistry";
 
 const queryClient = new QueryClient();
 
@@ -156,6 +166,19 @@ const App = () => (
                 <Route path="/reports" element={<Reports />} />
                 <Route path="/network" element={<NetworkPage />} />
                 <Route path="/settings" element={<ModulePlaceholder moduleKey="settings" />} />
+                {/* WOIC Administration Center */}
+                <Route path="/woic" element={<WoicLayout />}>
+                  <Route index element={<WoicIdentity />} />
+                  <Route path="identity" element={<WoicIdentity />} />
+                  <Route path="knowledge" element={<WoicKnowledge />} />
+                  <Route path="decisions" element={<WoicDecisions />} />
+                  <Route path="recommendations" element={<WoicRecommendations />} />
+                  <Route path="predictions" element={<WoicPredictions />} />
+                  <Route path="learning" element={<WoicLearning />} />
+                  <Route path="compliance" element={<WoicCompliance />} />
+                  <Route path="context" element={<WoicContext />} />
+                  <Route path="registry" element={<WoicRegistry />} />
+                </Route>
               </Route>
             </Route>
 
