@@ -4205,6 +4205,865 @@ export type Database = {
         }
         Relationships: []
       }
+      woic_api_registry: {
+        Row: {
+          action: string
+          description: string
+          id: string
+          request_schema: Json
+          response_schema: Json
+          service: string
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          action: string
+          description?: string
+          id?: string
+          request_schema?: Json
+          response_schema?: Json
+          service: string
+          updated_at?: string
+          version?: string
+        }
+        Update: {
+          action?: string
+          description?: string
+          id?: string
+          request_schema?: Json
+          response_schema?: Json
+          service?: string
+          updated_at?: string
+          version?: string
+        }
+        Relationships: []
+      }
+      woic_compliance_events: {
+        Row: {
+          agency_id: string
+          created_at: string
+          effective_at: string | null
+          evidence_url: string | null
+          expires_at: string | null
+          id: string
+          identity_id: string | null
+          metadata: Json
+          next_action_at: string | null
+          rule_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          effective_at?: string | null
+          evidence_url?: string | null
+          expires_at?: string | null
+          id?: string
+          identity_id?: string | null
+          metadata?: Json
+          next_action_at?: string | null
+          rule_id: string
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          effective_at?: string | null
+          evidence_url?: string | null
+          expires_at?: string | null
+          id?: string
+          identity_id?: string | null
+          metadata?: Json
+          next_action_at?: string | null
+          rule_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "woic_compliance_events_identity_id_fkey"
+            columns: ["identity_id"]
+            isOneToOne: false
+            referencedRelation: "woic_identities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "woic_compliance_events_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "woic_compliance_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      woic_compliance_rules: {
+        Row: {
+          active: boolean
+          agency_id: string | null
+          applies_to: Json
+          cadence: string
+          code: string
+          created_at: string
+          custom_days: number | null
+          description: string | null
+          grace_days: number
+          id: string
+          kind: string
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          agency_id?: string | null
+          applies_to?: Json
+          cadence?: string
+          code: string
+          created_at?: string
+          custom_days?: number | null
+          description?: string | null
+          grace_days?: number
+          id?: string
+          kind: string
+          name: string
+        }
+        Update: {
+          active?: boolean
+          agency_id?: string | null
+          applies_to?: Json
+          cadence?: string
+          code?: string
+          created_at?: string
+          custom_days?: number | null
+          description?: string | null
+          grace_days?: number
+          id?: string
+          kind?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      woic_context_sessions: {
+        Row: {
+          active_role: string | null
+          agency_id: string
+          compliance_state: Json
+          current_client_id: string | null
+          current_job_id: string | null
+          current_worker_id: string | null
+          current_workflow: string | null
+          id: string
+          recent_activity: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active_role?: string | null
+          agency_id: string
+          compliance_state?: Json
+          current_client_id?: string | null
+          current_job_id?: string | null
+          current_worker_id?: string | null
+          current_workflow?: string | null
+          id?: string
+          recent_activity?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active_role?: string | null
+          agency_id?: string
+          compliance_state?: Json
+          current_client_id?: string | null
+          current_job_id?: string | null
+          current_worker_id?: string | null
+          current_workflow?: string | null
+          id?: string
+          recent_activity?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      woic_conversation_messages: {
+        Row: {
+          body: string
+          channel: string
+          conversation_id: string
+          created_at: string
+          direction: string
+          id: string
+          metadata: Json
+          sender: string | null
+        }
+        Insert: {
+          body?: string
+          channel: string
+          conversation_id: string
+          created_at?: string
+          direction: string
+          id?: string
+          metadata?: Json
+          sender?: string | null
+        }
+        Update: {
+          body?: string
+          channel?: string
+          conversation_id?: string
+          created_at?: string
+          direction?: string
+          id?: string
+          metadata?: Json
+          sender?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "woic_conversation_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "woic_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      woic_conversations: {
+        Row: {
+          agency_id: string
+          channels: string[]
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          last_activity_at: string
+          participants: Json
+          subject: string
+          summary: string | null
+          unanswered: boolean
+        }
+        Insert: {
+          agency_id: string
+          channels?: string[]
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          last_activity_at?: string
+          participants?: Json
+          subject?: string
+          summary?: string | null
+          unanswered?: boolean
+        }
+        Update: {
+          agency_id?: string
+          channels?: string[]
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          last_activity_at?: string
+          participants?: Json
+          subject?: string
+          summary?: string | null
+          unanswered?: boolean
+        }
+        Relationships: []
+      }
+      woic_decision_evidence: {
+        Row: {
+          created_at: string
+          data: Json
+          decision_id: string
+          id: string
+          kind: string
+          ref_entity: string | null
+          ref_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          decision_id: string
+          id?: string
+          kind: string
+          ref_entity?: string | null
+          ref_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          decision_id?: string
+          id?: string
+          kind?: string
+          ref_entity?: string | null
+          ref_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "woic_decision_evidence_decision_id_fkey"
+            columns: ["decision_id"]
+            isOneToOne: false
+            referencedRelation: "woic_decisions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      woic_decisions: {
+        Row: {
+          agency_id: string
+          alternative_options: Json
+          approver_id: string | null
+          confidence: number
+          created_at: string
+          id: string
+          impact: string
+          kind: string
+          outcome: string | null
+          reasoning: string
+          risk: string
+          source: Json
+          subject_entity: string | null
+          subject_id: string | null
+        }
+        Insert: {
+          agency_id: string
+          alternative_options?: Json
+          approver_id?: string | null
+          confidence?: number
+          created_at?: string
+          id?: string
+          impact?: string
+          kind: string
+          outcome?: string | null
+          reasoning?: string
+          risk?: string
+          source?: Json
+          subject_entity?: string | null
+          subject_id?: string | null
+        }
+        Update: {
+          agency_id?: string
+          alternative_options?: Json
+          approver_id?: string | null
+          confidence?: number
+          created_at?: string
+          id?: string
+          impact?: string
+          kind?: string
+          outcome?: string | null
+          reasoning?: string
+          risk?: string
+          source?: Json
+          subject_entity?: string | null
+          subject_id?: string | null
+        }
+        Relationships: []
+      }
+      woic_identities: {
+        Row: {
+          activity_score: number
+          ai_profile: Json
+          auth_user_id: string | null
+          availability: Json
+          behavior_profile: Json
+          certifications: Json
+          communication_prefs: Json
+          created_at: string
+          display_name: string
+          documents: Json
+          education: Json
+          employment_history: Json
+          id: string
+          knowledge_profile: Json
+          licenses: Json
+          primary_email: string | null
+          primary_phone: string | null
+          reputation_score: number
+          security_settings: Json
+          skills: Json
+          training_history: Json
+          updated_at: string
+        }
+        Insert: {
+          activity_score?: number
+          ai_profile?: Json
+          auth_user_id?: string | null
+          availability?: Json
+          behavior_profile?: Json
+          certifications?: Json
+          communication_prefs?: Json
+          created_at?: string
+          display_name?: string
+          documents?: Json
+          education?: Json
+          employment_history?: Json
+          id?: string
+          knowledge_profile?: Json
+          licenses?: Json
+          primary_email?: string | null
+          primary_phone?: string | null
+          reputation_score?: number
+          security_settings?: Json
+          skills?: Json
+          training_history?: Json
+          updated_at?: string
+        }
+        Update: {
+          activity_score?: number
+          ai_profile?: Json
+          auth_user_id?: string | null
+          availability?: Json
+          behavior_profile?: Json
+          certifications?: Json
+          communication_prefs?: Json
+          created_at?: string
+          display_name?: string
+          documents?: Json
+          education?: Json
+          employment_history?: Json
+          id?: string
+          knowledge_profile?: Json
+          licenses?: Json
+          primary_email?: string | null
+          primary_phone?: string | null
+          reputation_score?: number
+          security_settings?: Json
+          skills?: Json
+          training_history?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      woic_identity_memberships: {
+        Row: {
+          agency_id: string
+          created_at: string
+          id: string
+          identity_id: string
+          kind: string
+          metadata: Json
+          status: string
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          id?: string
+          identity_id: string
+          kind: string
+          metadata?: Json
+          status?: string
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          id?: string
+          identity_id?: string
+          kind?: string
+          metadata?: Json
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "woic_identity_memberships_identity_id_fkey"
+            columns: ["identity_id"]
+            isOneToOne: false
+            referencedRelation: "woic_identities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      woic_knowledge_articles: {
+        Row: {
+          agency_id: string
+          body: string
+          category_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          permissions: Json
+          status: string
+          tags: string[]
+          title: string
+          tsv: unknown
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          agency_id: string
+          body?: string
+          category_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          permissions?: Json
+          status?: string
+          tags?: string[]
+          title: string
+          tsv?: unknown
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          agency_id?: string
+          body?: string
+          category_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          permissions?: Json
+          status?: string
+          tags?: string[]
+          title?: string
+          tsv?: unknown
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "woic_knowledge_articles_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "woic_knowledge_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      woic_knowledge_categories: {
+        Row: {
+          agency_id: string
+          created_at: string
+          id: string
+          name: string
+          parent_id: string | null
+          slug: string
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          id?: string
+          name: string
+          parent_id?: string | null
+          slug: string
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          parent_id?: string | null
+          slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "woic_knowledge_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "woic_knowledge_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      woic_knowledge_vectors: {
+        Row: {
+          agency_id: string
+          article_id: string
+          created_at: string
+          embedding: string
+          model: string
+        }
+        Insert: {
+          agency_id: string
+          article_id: string
+          created_at?: string
+          embedding: string
+          model?: string
+        }
+        Update: {
+          agency_id?: string
+          article_id?: string
+          created_at?: string
+          embedding?: string
+          model?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "woic_knowledge_vectors_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: true
+            referencedRelation: "woic_knowledge_articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      woic_knowledge_versions: {
+        Row: {
+          article_id: string
+          body: string
+          edited_at: string
+          edited_by: string | null
+          id: string
+          tags: string[]
+          title: string
+          version: number
+        }
+        Insert: {
+          article_id: string
+          body: string
+          edited_at?: string
+          edited_by?: string | null
+          id?: string
+          tags?: string[]
+          title: string
+          version: number
+        }
+        Update: {
+          article_id?: string
+          body?: string
+          edited_at?: string
+          edited_by?: string | null
+          id?: string
+          tags?: string[]
+          title?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "woic_knowledge_versions_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "woic_knowledge_articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      woic_learning_history: {
+        Row: {
+          agency_id: string
+          created_at: string
+          id: string
+          kind: string
+          outcome: Json
+          prediction_id: string | null
+          subject_entity: string | null
+          subject_id: string | null
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          id?: string
+          kind: string
+          outcome: Json
+          prediction_id?: string | null
+          subject_entity?: string | null
+          subject_id?: string | null
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          outcome?: Json
+          prediction_id?: string | null
+          subject_entity?: string | null
+          subject_id?: string | null
+        }
+        Relationships: []
+      }
+      woic_org_memory: {
+        Row: {
+          agency_id: string
+          created_at: string
+          id: string
+          key: string
+          kind: string
+          updated_at: string
+          value: Json
+          weight: number
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          id?: string
+          key: string
+          kind: string
+          updated_at?: string
+          value: Json
+          weight?: number
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          id?: string
+          key?: string
+          kind?: string
+          updated_at?: string
+          value?: Json
+          weight?: number
+        }
+        Relationships: []
+      }
+      woic_prediction_models: {
+        Row: {
+          agency_id: string | null
+          created_at: string
+          description: string | null
+          endpoint: string | null
+          feature_set: Json
+          id: string
+          name: string
+          status: string
+          version: string
+        }
+        Insert: {
+          agency_id?: string | null
+          created_at?: string
+          description?: string | null
+          endpoint?: string | null
+          feature_set?: Json
+          id?: string
+          name: string
+          status?: string
+          version?: string
+        }
+        Update: {
+          agency_id?: string | null
+          created_at?: string
+          description?: string | null
+          endpoint?: string | null
+          feature_set?: Json
+          id?: string
+          name?: string
+          status?: string
+          version?: string
+        }
+        Relationships: []
+      }
+      woic_prediction_results: {
+        Row: {
+          agency_id: string
+          confidence: number
+          features_snapshot: Json
+          id: string
+          model_id: string
+          prediction: Json
+          produced_at: string
+          subject_entity: string
+          subject_id: string
+        }
+        Insert: {
+          agency_id: string
+          confidence?: number
+          features_snapshot?: Json
+          id?: string
+          model_id: string
+          prediction: Json
+          produced_at?: string
+          subject_entity: string
+          subject_id: string
+        }
+        Update: {
+          agency_id?: string
+          confidence?: number
+          features_snapshot?: Json
+          id?: string
+          model_id?: string
+          prediction?: Json
+          produced_at?: string
+          subject_entity?: string
+          subject_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "woic_prediction_results_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "woic_prediction_models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      woic_recommendations: {
+        Row: {
+          agency_id: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          kind: string
+          reasoning: string
+          score: number
+          status: string
+          subject_entity: string | null
+          subject_id: string | null
+          target_entity: string | null
+          target_id: string | null
+          updated_at: string
+          why: Json
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          kind: string
+          reasoning?: string
+          score?: number
+          status?: string
+          subject_entity?: string | null
+          subject_id?: string | null
+          target_entity?: string | null
+          target_id?: string | null
+          updated_at?: string
+          why?: Json
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          kind?: string
+          reasoning?: string
+          score?: number
+          status?: string
+          subject_entity?: string | null
+          subject_id?: string | null
+          target_entity?: string | null
+          target_id?: string | null
+          updated_at?: string
+          why?: Json
+        }
+        Relationships: []
+      }
+      woic_service_registry: {
+        Row: {
+          description: string
+          endpoint: string | null
+          id: string
+          metadata: Json
+          service: string
+          status: string
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          description?: string
+          endpoint?: string | null
+          id?: string
+          metadata?: Json
+          service: string
+          status?: string
+          updated_at?: string
+          version?: string
+        }
+        Update: {
+          description?: string
+          endpoint?: string | null
+          id?: string
+          metadata?: Json
+          service?: string
+          status?: string
+          updated_at?: string
+          version?: string
+        }
+        Relationships: []
+      }
       worker_credentials: {
         Row: {
           created_at: string
