@@ -157,7 +157,7 @@ export function useRecruitClients(agencyId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("clients")
-        .select("id, name, company_name, email, phone, agency_id, created_at")
+        .select("id, company_name, billing_email, billing_phone, agency_id, created_at, is_active")
         .eq("agency_id", agencyId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
