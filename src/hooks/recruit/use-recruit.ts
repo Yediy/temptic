@@ -14,7 +14,7 @@ export function useRecruitCandidates(agencyId: string | undefined, limit = 50) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("workers")
-        .select("id, first_name, last_name, email, phone, status, agency_id, created_at")
+        .select("id, first_name, last_name, email, phone, is_active, trade, classification, agency_id, created_at")
         .eq("agency_id", agencyId!)
         .order("created_at", { ascending: false })
         .limit(limit);
