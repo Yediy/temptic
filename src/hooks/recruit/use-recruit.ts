@@ -207,7 +207,7 @@ export function usePlacements(agencyId: string | undefined) {
         .from("placements")
         .select("*")
         .eq("agency_id", agencyId!)
-        .order("start_date", { ascending: false })
+        .order("starts_on", { ascending: false })
         .limit(100);
       if (error) throw error;
       return data ?? [];
