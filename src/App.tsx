@@ -88,6 +88,17 @@ import WoicLearning from "@/pages/woic/WoicLearning";
 import WoicCompliance from "@/pages/woic/WoicCompliance";
 import WoicContext from "@/pages/woic/WoicContext";
 import WoicRegistry from "@/pages/woic/WoicRegistry";
+import RecruitLayout from "@/pages/recruit/RecruitLayout";
+import RecruitDashboard from "@/pages/recruit/RecruitDashboard";
+import RecruitCandidates from "@/pages/recruit/RecruitCandidates";
+import RecruitMarketplace from "@/pages/recruit/RecruitMarketplace";
+import RecruitJobs from "@/pages/recruit/RecruitJobs";
+import RecruitClientsPage from "@/pages/recruit/RecruitClients";
+import RecruitPipeline from "@/pages/recruit/RecruitPipeline";
+import RecruitInterviews from "@/pages/recruit/RecruitInterviews";
+import RecruitPlacements from "@/pages/recruit/RecruitPlacements";
+import RecruitAnalytics from "@/pages/recruit/RecruitAnalytics";
+import RecruitAssistant from "@/pages/recruit/RecruitAssistant";
 
 const queryClient = new QueryClient();
 
@@ -166,6 +177,19 @@ const App = () => (
                 <Route path="/reports" element={<Reports />} />
                 <Route path="/network" element={<NetworkPage />} />
                 <Route path="/settings" element={<ModulePlaceholder moduleKey="settings" />} />
+                {/* Recruit OS operating profile */}
+                <Route path="/recruit" element={<RecruitLayout />}>
+                  <Route index element={<RecruitDashboard />} />
+                  <Route path="candidates" element={<RecruitCandidates />} />
+                  <Route path="marketplace" element={<RecruitMarketplace />} />
+                  <Route path="jobs" element={<RecruitJobs />} />
+                  <Route path="clients" element={<RecruitClientsPage />} />
+                  <Route path="pipeline" element={<RecruitPipeline />} />
+                  <Route path="interviews" element={<RecruitInterviews />} />
+                  <Route path="placements" element={<RecruitPlacements />} />
+                  <Route path="analytics" element={<RecruitAnalytics />} />
+                  <Route path="assistant" element={<RecruitAssistant />} />
+                </Route>
               </Route>
             </Route>
 
