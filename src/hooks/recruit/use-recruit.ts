@@ -187,10 +187,10 @@ export function useInterviews(agencyId: string | undefined) {
     queryKey: ["recruit", "interviews", agencyId],
     enabled: !!agencyId,
     queryFn: async () => {
+      // interviews is scoped through applications; RLS enforces tenancy.
       const { data, error } = await supabase
         .from("interviews")
         .select("*")
-        .eq("agency_id", agencyId!)
         .order("scheduled_at", { ascending: false })
         .limit(100);
       if (error) throw error;
