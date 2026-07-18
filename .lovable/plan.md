@@ -1,111 +1,91 @@
-## Phase 3 — WOIC (Workforce Operational Intelligence Core)
 
-Additive to Phase 1 (Foundation) and Phase 2 (TTOS). Nothing existing is rewritten. All new subsystems are namespaced `woic_*` and coexist with `ttos_*`, `agencies`, `workers`, `clients`, `job_orders`, `ai_runs`, etc. Every module reads/writes WOIC via a thin service layer so future operating profiles (Education, Healthcare, Manufacturing…) plug in without redesign.
+# Temptic Recruit OS — Operating Profile Build (IWOS Build 4.0)
 
-### Scope framing (important)
+Recruit OS becomes a **profile layer** on top of existing IWOS (WOIC + TTOS). It **calls** shared services — it does not duplicate identity, workflow, document, comms, compliance, AI, or automation engines.
 
-The prompt describes a multi-year intelligence platform. I will ship a **real, minimal, extensible core** now and stub advanced flourishes behind clean interfaces. Every service below gets: a table (or view over existing tables), RLS + GRANTs, an API surface (edge function or hook), and one working UI in the WOIC Admin Center. Deep AI/ML (custom-trained models, vector reranking, distributed agents) is deferred; the tables and endpoints exist so those upgrades drop in without schema change.
+## Guardrails
+- Additive migrations only. No changes to existing `woic_*`, `ttos_*`, or core tables.
+- All AI/recommendation calls route through `woic-api` / `woic-recommend`.
+- All workflow stages, notifications, tasks, and events route through TTOS (`ttos_*`, `ttos-dispatch`).
+- Multi-tenant isolation via existing `agency_id` + RLS pattern (has_role, requireAgencyMember).
+- No stack change. React + Vite + Supabase.
 
-### What ships this phase
+## Reuse map (do not rebuild)
+| Concern | Existing service used |
+|---|---|
+| Identity | `woic_identities`, `woic_identity_memberships` |
+| Workers/base profile | `workers`, `worker_profiles`, `worker_skills`, `worker_credentials`, `worker_documents` |
+| Jobs (base) | `job_orders`, `job_requirements` |
+| Clients | `clients`, `client_sites`, `client_signers` |
+| Pipelines | `applications`, `candidate_submissions`, `interviews`, `offers`, `placements`, `assignments` |
+| Workflow stages | TTOS automations + `ttos_tasks` |
+| AI matching | `woic-recommend`, `woic_recommendations` |
+| Knowledge / resume intel | `woic_knowledge_*` + existing `parse-resume` edge function |
+| Notifications/comms | `ttos_notifications`, `ttos_messages` |
+| Compliance | `woic_compliance_*` |
+| Analytics/predictions | `woic_prediction_*` |
 
-**1. Identity Intelligence — `woic_identities` + views**
-- `woic_identities` table: global identity per person (worker/recruiter/client/etc.), one row per human across all orgs.
-- `woic_identity_memberships` table: identity_id → agency_id + kind (worker/client_user/recruiter/admin/instructor/student/contractor/vendor/robot) + status.
-- `woic_identity_profile` jsonb columns: skills, certifications, licenses, education, communication_prefs, ai_profile, behavior_profile, reputation_score, activity_score, availability.
-- Backfill: identities inferred from existing `workers`, `client_signers`, `agency_members`, `profiles`. Idempotent SQL.
-- Read-only view `woic_identity_directory` scoped by RLS to caller's agency memberships.
+## New schema (additive, Recruit-OS-specific only)
 
-**2. Knowledge Intelligence — `woic_knowledge_*`**
-- `woic_knowledge_articles` (id, agency_id, category_id, title, body, tags, permissions, version, tsv), `woic_knowledge_categories`, `woic_knowledge_vectors` (halfvec 1536, pgvector index).
-- Backend embed via Lovable AI Gateway (`openai/text-embedding-3-small`, 1536 dims) called from edge function `woic-knowledge-index`.
-- Search endpoint `woic-knowledge-search`: hybrid keyword (tsv) + vector cosine.
-- Version history via `woic_knowledge_versions`.
+Only fields the existing tables lack:
 
-**3. Decision Intelligence — `woic_decisions` + `woic_decision_evidence`**
-- Every match/approval/eligibility/compliance decision logged here with: type, subject_entity, confidence, reasoning, alternative_options jsonb, risk, impact, evidence array, approver_id, outcome, timestamp.
-- Wraps existing `ai_runs` and `candidate_decisions` — those keep working; WOIC mirrors an enterprise-shape row.
+- `recruit_candidate_scores` — `agency_id`, `worker_id`, `reliability_score`, `reputation_score`, `performance_score`, `last_computed_at`, `factors jsonb`.
+- `recruit_talent_preferences` — `agency_id`, `worker_id`, `preferred_roles text[]`, `preferred_locations text[]`, `min_pay_rate numeric`, `max_travel_miles int`, `availability jsonb`, `remote_ok bool`.
+- `recruit_marketplace_opportunities` — `agency_id`, `job_order_id`, `kind` (`job|training|certification|advancement`), `visibility` (`public|invited|network`), `published_at`, `expires_at`, `payload jsonb`.
+- `recruit_marketplace_interest` — `opportunity_id`, `worker_id`, `status` (`saved|interested|applied|dismissed`), timestamps.
+- `recruit_pipelines` — `agency_id`, `name`, `is_default bool`, `job_order_id?` (nullable = agency default).
+- `recruit_pipeline_stages` — `pipeline_id`, `key`, `label`, `position int`, `stage_type` (`sourcing|screening|interview|submission|offer|onboarding|active|closed`).
+- `recruit_pipeline_entries` — `pipeline_id`, `stage_id`, `worker_id`, `job_order_id`, `submission_id?`, `assignment_id?`, `entered_at`, `notes`.
+- `recruit_recruiter_activity` — `agency_id`, `recruiter_id`, `verb` (`call|email|note|submit|interview|placement`), `subject_entity`, `subject_id`, `metadata jsonb`.
+- `recruit_client_contacts` — `agency_id`, `client_id`, `name`, `title`, `email`, `phone`, `is_primary bool`, `preferences jsonb` (only if not covered by `client_signers`; otherwise skip).
 
-**4. Recommendation Engine — `woic_recommendations`**
-- Rows: kind (best_candidate/best_recruiter/best_training/…), subject entity, score, reasoning, why array, expires_at, status.
-- Edge function `woic-recommend` fans requests to specialized generators (candidate = reuses `match-candidates`; training = simple SQL rule for now; scheduling = placeholder).
+Every new public table gets GRANTs (auth + service_role) + RLS scoped by `agency_id` via `agency_members`, mirroring existing patterns.
 
-**5. Prediction Intelligence — `woic_prediction_models` + `woic_prediction_results`**
-- Registry rows for models (name, version, feature_set, endpoint, active). Results table stores subject, model_id, prediction, confidence, features_snapshot, produced_at.
-- Ship one working baseline predictor (`assignment_acceptance_likelihood`) using rule-based heuristics; leaves room for real ML.
+## Edge functions (thin — reuse WOIC/TTOS)
+- `recruit-score-candidate` → aggregates worker signals, writes `recruit_candidate_scores`, invokes `woic-recommend` for skill ranking.
+- `recruit-match-job` → wraps `woic-recommend` with `subject_entity='job'`, persists top-N results into `woic_recommendations`.
+- `recruit-recruiter-assistant` → routes to Lovable AI gateway (chat completions) with tools that fetch candidates via authenticated client; returns draft messages, summaries, next actions. All AI runs recorded in `ai_runs` + `woic_learning_history`.
+- `recruit-pipeline-advance` → moves a pipeline entry, emits TTOS event, creates TTOS task if stage requires action.
 
-**6. Compliance Intelligence — `woic_compliance_rules` + `woic_compliance_events`**
-- Rules table: kind (I-9/W-4/W-9/OSHA/HIPAA/CDL/TWIC/license/cert/policy/training), agency-scoped or global, cadence (once/annual/biennial/custom), grace_days.
-- Events table: identity_id, rule_id, status (compliant/expiring/expired/waived), evidence_url, next_action_at.
-- Cron edge function `woic-compliance-scan` (hourly): produces upcoming expirations, emits TTOS events `credential.expiring` → existing automations fire notifications.
+## Frontend (new module, `agency` group)
 
-**7. Communication Intelligence — `woic_conversations`**
-- Threads that unify email/in-app/SMS/push (transports: in_app + email now, SMS/push stubbed).
-- Ties to existing `notifications`, `ttos_messages`, and Resend deliveries via `conversation_id` foreign key (nullable, backfilled lazily).
-- `woic-conversation-summarize` edge function: summary + unanswered-detection using Lovable AI Gateway.
+New route group `/recruit/*` behind existing `ProtectedRoute` + agency_member check:
 
-**8. Learning Engine — `woic_learning_history`**
-- Append-only rows recording outcome vs prediction (placement made / rejected / interview outcome / payroll correction / compliance issue / schedule change). Feeds future model retraining.
+- `/recruit` — Recruit Dashboard (KPIs: time-to-fill, placement rate, pipeline health, revenue forecast — all from woic-api + supabase views).
+- `/recruit/candidates` — Candidate Database (list of `workers` + score + skills + AI summary).
+- `/recruit/candidates/:id` — Candidate 360 (existing passport + scores + submissions + activity + AI insights).
+- `/recruit/marketplace` — Talent Marketplace (opportunities feed, worker-facing subroute at `/worker/opportunities`).
+- `/recruit/jobs` — Job Orders (extends existing `job_orders`, adds pipeline + AI match tab).
+- `/recruit/jobs/:id` — Job order detail with AI-matched candidates panel (calls `recruit-match-job`).
+- `/recruit/clients` — Client CRM (extends `clients` with contacts, revenue, communication timeline via TTOS).
+- `/recruit/clients/:id` — Client detail.
+- `/recruit/pipeline` — Kanban of `recruit_pipeline_entries` grouped by stage.
+- `/recruit/interviews` — Interview list + scheduling (extends `interviews`).
+- `/recruit/placements` — Placement tracking (extends `placements`).
+- `/recruit/analytics` — Workforce analytics (WOIC predictions + saved reports).
+- `/recruit/assistant` — AI Recruiter Center (chat UI + tool calls).
 
-**9. Context Engine — `woic_context_sessions`**
-- Per-user rolling context: current_agency, current_worker, current_client, current_job, current_workflow, recent_activity[], updated_at.
-- Hook `useWoicContext()` writes on route change; every AI call attaches the context.
+Add "Recruit OS" section to `AppSidebar` (operations group) with these entries.
 
-**10. Organizational Memory — `woic_org_memory`**
-- Agency-scoped facts (jsonb) grouped by kind (policy/pattern/preference/history). Editable via WOIC Admin.
-- AI calls read this by default (RAG augment).
+## Hooks
+- `src/hooks/recruit/use-candidates.ts`, `use-job-orders.ts`, `use-pipeline.ts`, `use-marketplace.ts`, `use-recruit-assistant.ts` — all thin wrappers over supabase client + `supabase.functions.invoke`.
 
-**11. Service Registry + API Registry — `woic_service_registry` + `woic_api_registry`**
-- Seeded rows for every WOIC service (identity, knowledge, decision, recommendation, compliance, prediction, learning, communication, workflow-intelligence, context) with endpoint + version + status.
-- Client helper `src/lib/woic/services.ts` reads registry to discover endpoints — future modules never hardcode URLs.
+## Security
+- Sensitive demographics (`eeo_demographics`) explicitly excluded from any AI ranking payload — enforced in `recruit-match-job` by selecting an allowlisted column set.
+- All recommendations write `explanation` into `woic_recommendations.reasoning` so UI can render "why".
+- Marketplace visibility gated by worker consent (`recruit_talent_preferences.remote_ok` / opt-in flags).
 
-**12. Workflow Intelligence**
-- Reuses existing `ttos_automations`. Adds `woic_workflow_intelligence` view enriching runs with decision + recommendation joins so admins see *why* a workflow ran.
-- Ships 2 built-in workflow templates: `hiring_pipeline`, `credential_renewal`.
+## Build phases
 
-**13. Universal API Layer**
-- Single edge function `woic-api` with a dispatch table routing `{service, action, payload}` to internal handlers. Sub-routes exist for each of the 10 services above. Uniform JSON contract using existing `_shared/auth.ts`.
+1. **Schema migration** (one migration) — all `recruit_*` tables + GRANTs + RLS + `updated_at` triggers. Extend `agency` module registry.
+2. **Edge functions** — `recruit-score-candidate`, `recruit-match-job`, `recruit-pipeline-advance`, `recruit-recruiter-assistant`.
+3. **Client hooks + shared types** (`src/lib/recruit/types.ts`, `src/hooks/recruit/*`).
+4. **Route scaffolding** — layout, sidebar entries, `ProtectedRoute` wrappers, empty pages with `AsyncState`.
+5. **Page implementations** — Dashboard → Candidates → Jobs → Pipeline → Marketplace → Clients → Interviews → Placements → Analytics → Assistant.
+6. **Verification** — build + typecheck; Playwright smoke on `/recruit` dashboard; confirm no duplicate WOIC/TTOS logic introduced.
 
-### UI — WOIC Administration Center (route `/woic`)
+## Deliverable
+A new "Recruit OS" module accessible from the sidebar that agencies can use to run the full staffing workflow, with every intelligence surface delegating to WOIC and every workflow/notification surface delegating to TTOS.
 
-- `Overview` — AI Health, active services, event volume, decision latency.
-- `Identities`, `Knowledge`, `Decisions`, `Recommendations`, `Predictions`, `Learning`, `Compliance`, `Context Monitor`, `Organizational Memory`, `Service Registry`, `API Monitor`.
-- All pages are additive under `src/pages/woic/*`, wired in `App.tsx`, one sidebar entry gated to `agency_admin` + `super_admin`.
-
-### Explicitly deferred (documented, not built)
-
-- **Trained ML models / custom embeddings** — using rule-based heuristics + Lovable AI Gateway only.
-- **Voice / Video transports** — schema accepts channels, transports throw `not_implemented`.
-- **Distributed agents / horizontal AI sharding** — single-process edge functions for now.
-- **Cross-agency identity linking** — a global identity exists per person, but merging duplicates across orgs stays admin-only.
-- **Compliance form autofill (I-9/W-4/W-9 PDF generation)** — rules + events + reminders ship; PDF generation added when a real form ingest need exists.
-
-### RLS pattern (every new table)
-
-```
-agency_id filter using private.current_agency_ids()  -- existing helper
-service_role: full access
-authenticated: SELECT within agency; INSERT/UPDATE gated by role_permissions
-UPDATE/DELETE denied on decisions, learning, evidence (append-only)
-GRANTs to authenticated + service_role in same migration
-```
-
-Identity table has a special two-scope rule: readable by any agency that has a membership row for that identity.
-
-### Sequencing (4 sub-phases inside this build)
-
-1. **DB spine** — one additive migration for all `woic_*` tables, views, RLS, GRANTs. Seed service_registry + api_registry + baseline compliance_rules. Enable pgvector for knowledge_vectors.
-2. **Edge services** — deploy `woic-api`, `woic-knowledge-index`, `woic-knowledge-search`, `woic-recommend`, `woic-compliance-scan`, `woic-conversation-summarize`. All reuse `_shared/auth.ts` + `_shared/sentry.ts`.
-3. **UI surfaces** — WOIC Admin Center pages + `useWoicContext` hook + `src/lib/woic/services.ts` client.
-4. **Wire + verify** — emit TTOS events from decisions/recommendations/compliance so timeline picks them up; typecheck; run existing integration tests; add one WOIC smoke test that creates a decision and asserts it surfaces in the Decisions dashboard.
-
-### Non-goals for this phase
-
-- No changes to ticket lifecycle, PDF pipeline, Stripe, Resend transport, DocRaptor, Sentry setup, existing RLS on tickets/workers/clients/jobs.
-- No renaming existing tables. WOIC coexists with Phase 1 + TTOS.
-- No new external API integrations. Uses Lovable AI Gateway only (already configured).
-
-### Deliverable at the end
-
-A functioning WOIC intelligence core: 20 additive tables, one universal API edge function, five specialized service edge functions, a WOIC Admin Center with 12 pages, service + API registries seeded, one working baseline predictor, hybrid knowledge search live, compliance scanner running on cron, decisions + recommendations flowing into TTOS events + Timeline, and clean typed clients so every future operating profile consumes WOIC without duplicate logic.
-
-If you want a smaller first cut (e.g. skip Predictions + Learning until real data exists) or a larger one (e.g. add I-9/W-4 PDF generation now), say which levers to pull before I start.
+## Confirmation needed
+This is a large surface (1 migration, 4 edge functions, ~11 pages, ~5 hook files). Reply **"proceed"** to build it in order, or tell me to trim scope (e.g. ship phases 1–4 first, then pages incrementally).

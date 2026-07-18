@@ -2216,6 +2216,379 @@ export type Database = {
         }
         Relationships: []
       }
+      recruit_candidate_scores: {
+        Row: {
+          agency_id: string
+          created_at: string
+          factors: Json
+          id: string
+          last_computed_at: string
+          performance_score: number | null
+          reliability_score: number | null
+          reputation_score: number | null
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          factors?: Json
+          id?: string
+          last_computed_at?: string
+          performance_score?: number | null
+          reliability_score?: number | null
+          reputation_score?: number | null
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          factors?: Json
+          id?: string
+          last_computed_at?: string
+          performance_score?: number | null
+          reliability_score?: number | null
+          reputation_score?: number | null
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: []
+      }
+      recruit_client_contacts: {
+        Row: {
+          agency_id: string
+          client_id: string
+          created_at: string
+          email: string | null
+          id: string
+          is_primary: boolean
+          name: string
+          phone: string | null
+          preferences: Json
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          client_id: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_primary?: boolean
+          name: string
+          phone?: string | null
+          preferences?: Json
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          client_id?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_primary?: boolean
+          name?: string
+          phone?: string | null
+          preferences?: Json
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      recruit_marketplace_interest: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          opportunity_id: string
+          status: string
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          opportunity_id: string
+          status?: string
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          opportunity_id?: string
+          status?: string
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recruit_marketplace_interest_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "recruit_marketplace_opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recruit_marketplace_opportunities: {
+        Row: {
+          agency_id: string
+          created_at: string
+          description: string | null
+          expires_at: string | null
+          id: string
+          job_order_id: string | null
+          kind: string
+          payload: Json
+          published_at: string | null
+          title: string
+          updated_at: string
+          visibility: string
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          job_order_id?: string | null
+          kind: string
+          payload?: Json
+          published_at?: string | null
+          title: string
+          updated_at?: string
+          visibility?: string
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          job_order_id?: string | null
+          kind?: string
+          payload?: Json
+          published_at?: string | null
+          title?: string
+          updated_at?: string
+          visibility?: string
+        }
+        Relationships: []
+      }
+      recruit_pipeline_entries: {
+        Row: {
+          agency_id: string
+          assignment_id: string | null
+          created_at: string
+          entered_at: string
+          id: string
+          job_order_id: string | null
+          notes: string | null
+          pipeline_id: string
+          stage_id: string
+          submission_id: string | null
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          agency_id: string
+          assignment_id?: string | null
+          created_at?: string
+          entered_at?: string
+          id?: string
+          job_order_id?: string | null
+          notes?: string | null
+          pipeline_id: string
+          stage_id: string
+          submission_id?: string | null
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          agency_id?: string
+          assignment_id?: string | null
+          created_at?: string
+          entered_at?: string
+          id?: string
+          job_order_id?: string | null
+          notes?: string | null
+          pipeline_id?: string
+          stage_id?: string
+          submission_id?: string | null
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recruit_pipeline_entries_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "recruit_pipelines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recruit_pipeline_entries_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "recruit_pipeline_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recruit_pipeline_stages: {
+        Row: {
+          created_at: string
+          id: string
+          key: string
+          label: string
+          pipeline_id: string
+          position: number
+          stage_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key: string
+          label: string
+          pipeline_id: string
+          position?: number
+          stage_type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key?: string
+          label?: string
+          pipeline_id?: string
+          position?: number
+          stage_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recruit_pipeline_stages_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "recruit_pipelines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recruit_pipelines: {
+        Row: {
+          agency_id: string
+          created_at: string
+          id: string
+          is_default: boolean
+          job_order_id: string | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          job_order_id?: string | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          job_order_id?: string | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      recruit_recruiter_activity: {
+        Row: {
+          agency_id: string
+          created_at: string
+          id: string
+          metadata: Json
+          recruiter_id: string
+          subject_entity: string
+          subject_id: string
+          verb: string
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          recruiter_id: string
+          subject_entity: string
+          subject_id: string
+          verb: string
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          recruiter_id?: string
+          subject_entity?: string
+          subject_id?: string
+          verb?: string
+        }
+        Relationships: []
+      }
+      recruit_talent_preferences: {
+        Row: {
+          agency_id: string
+          availability: Json
+          created_at: string
+          id: string
+          marketplace_opt_in: boolean
+          max_travel_miles: number | null
+          min_pay_rate: number | null
+          preferred_locations: string[]
+          preferred_roles: string[]
+          remote_ok: boolean
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          agency_id: string
+          availability?: Json
+          created_at?: string
+          id?: string
+          marketplace_opt_in?: boolean
+          max_travel_miles?: number | null
+          min_pay_rate?: number | null
+          preferred_locations?: string[]
+          preferred_roles?: string[]
+          remote_ok?: boolean
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          agency_id?: string
+          availability?: Json
+          created_at?: string
+          id?: string
+          marketplace_opt_in?: boolean
+          max_travel_miles?: number | null
+          min_pay_rate?: number | null
+          preferred_locations?: string[]
+          preferred_roles?: string[]
+          remote_ok?: boolean
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: []
+      }
       resume_parse_runs: {
         Row: {
           applied_fields: Json
