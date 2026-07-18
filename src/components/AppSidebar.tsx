@@ -60,12 +60,10 @@ export function AppSidebar() {
           <Plus className="h-4 w-4" />
           Create Ticket
         </Link>
-      </div>
-
         <Link
           to="/recruit"
           className={cn(
-            "flex w-full items-center gap-2 rounded-lg px-3 py-2 mt-2 text-sm font-semibold transition-colors",
+            "mt-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors",
             isActivePath("/recruit")
               ? "bg-sidebar-accent text-sidebar-accent-foreground"
               : "text-sidebar-foreground hover:bg-sidebar-accent/50"
