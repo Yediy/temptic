@@ -1,13 +1,16 @@
 // AI Career Coach: generates career_recommendations + passport_opportunities via WOIC + Lovable AI.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { corsHeaders, jsonResponse, requireUser } from "../_shared/auth.ts";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { jsonResponse, requireUser } from "../_shared/auth.ts";
 import { withSentry } from "../_shared/sentry.ts";
 
 Deno.serve(withSentry("passport-career-coach", async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
-  const gate = await requireUser(req);
-  if (!gate.ok) return gate.response;
+  const auth = await requireUser(req, corsHeaders);
+  if (auth instanceof Response) return auth;
+  const gate = { ok: true as const, user: auth.user, userClient: auth.userClient, response: undefined as never };
+  
   const { userClient } = gate;
 
   let body: { passport_id?: string };

@@ -1,6 +1,7 @@
 // Recompute passport completion, compliance, skill, reputation scores.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { corsHeaders, jsonResponse, requireUser } from "../_shared/auth.ts";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { jsonResponse, requireUser } from "../_shared/auth.ts";
 import { withSentry } from "../_shared/sentry.ts";
 
 export default {};
@@ -8,8 +9,10 @@ export default {};
 Deno.serve(withSentry("passport-recompute", async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
-  const gate = await requireUser(req);
-  if (!gate.ok) return gate.response;
+  const auth = await requireUser(req, corsHeaders);
+  if (auth instanceof Response) return auth;
+  const gate = { ok: true as const, user: auth.user, userClient: auth.userClient, response: undefined as never };
+  
   const { user, userClient } = gate;
 
   let body: { passport_id?: string };
