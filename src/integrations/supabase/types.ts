@@ -698,6 +698,69 @@ export type Database = {
           },
         ]
       }
+      career_recommendations: {
+        Row: {
+          actioned_at: string | null
+          category: string
+          created_at: string
+          description: string | null
+          dismissed_at: string | null
+          id: string
+          metadata: Json
+          passport_id: string
+          priority: number
+          source: string
+          title: string
+          updated_at: string
+          woic_recommendation_id: string | null
+        }
+        Insert: {
+          actioned_at?: string | null
+          category: string
+          created_at?: string
+          description?: string | null
+          dismissed_at?: string | null
+          id?: string
+          metadata?: Json
+          passport_id: string
+          priority?: number
+          source?: string
+          title: string
+          updated_at?: string
+          woic_recommendation_id?: string | null
+        }
+        Update: {
+          actioned_at?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          dismissed_at?: string | null
+          id?: string
+          metadata?: Json
+          passport_id?: string
+          priority?: number
+          source?: string
+          title?: string
+          updated_at?: string
+          woic_recommendation_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "career_recommendations_passport_id_fkey"
+            columns: ["passport_id"]
+            isOneToOne: false
+            referencedRelation: "workforce_passports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "career_recommendations_woic_recommendation_id_fkey"
+            columns: ["woic_recommendation_id"]
+            isOneToOne: false
+            referencedRelation: "woic_recommendations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_invites: {
         Row: {
           accepted_at: string | null
@@ -1352,6 +1415,56 @@ export type Database = {
           },
         ]
       }
+      identity_verifications: {
+        Row: {
+          created_at: string
+          evidence_ref: string | null
+          expires_at: string | null
+          id: string
+          metadata: Json
+          method: string
+          passport_id: string
+          status: string
+          updated_at: string
+          verified_at: string | null
+          verifier: string | null
+        }
+        Insert: {
+          created_at?: string
+          evidence_ref?: string | null
+          expires_at?: string | null
+          id?: string
+          metadata?: Json
+          method: string
+          passport_id: string
+          status?: string
+          updated_at?: string
+          verified_at?: string | null
+          verifier?: string | null
+        }
+        Update: {
+          created_at?: string
+          evidence_ref?: string | null
+          expires_at?: string | null
+          id?: string
+          metadata?: Json
+          method?: string
+          passport_id?: string
+          status?: string
+          updated_at?: string
+          verified_at?: string | null
+          verifier?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "identity_verifications_passport_id_fkey"
+            columns: ["passport_id"]
+            isOneToOne: false
+            referencedRelation: "workforce_passports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interviews: {
         Row: {
           application_id: string
@@ -1943,6 +2056,397 @@ export type Database = {
             columns: ["agency_id"]
             isOneToOne: false
             referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      passport_access_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_type: string
+          created_at: string
+          id: string
+          ip_address: unknown
+          metadata: Json
+          passport_id: string
+          resource: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_type?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json
+          passport_id: string
+          resource?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_type?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json
+          passport_id?: string
+          resource?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "passport_access_log_passport_id_fkey"
+            columns: ["passport_id"]
+            isOneToOne: false
+            referencedRelation: "workforce_passports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      passport_compliance: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          document_id: string | null
+          expires_at: string | null
+          id: string
+          label: string
+          metadata: Json
+          notes: string | null
+          passport_id: string
+          requirement_type: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          document_id?: string | null
+          expires_at?: string | null
+          id?: string
+          label: string
+          metadata?: Json
+          notes?: string | null
+          passport_id: string
+          requirement_type: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          document_id?: string | null
+          expires_at?: string | null
+          id?: string
+          label?: string
+          metadata?: Json
+          notes?: string | null
+          passport_id?: string
+          requirement_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "passport_compliance_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "worker_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "passport_compliance_passport_id_fkey"
+            columns: ["passport_id"]
+            isOneToOne: false
+            referencedRelation: "workforce_passports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      passport_opportunities: {
+        Row: {
+          created_at: string
+          description: string | null
+          expires_at: string | null
+          id: string
+          kind: string
+          metadata: Json
+          passport_id: string
+          reasoning: string | null
+          ref_id: string | null
+          ref_table: string | null
+          score: number
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          kind: string
+          metadata?: Json
+          passport_id: string
+          reasoning?: string | null
+          ref_id?: string | null
+          ref_table?: string | null
+          score?: number
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          kind?: string
+          metadata?: Json
+          passport_id?: string
+          reasoning?: string | null
+          ref_id?: string | null
+          ref_table?: string | null
+          score?: number
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "passport_opportunities_passport_id_fkey"
+            columns: ["passport_id"]
+            isOneToOne: false
+            referencedRelation: "workforce_passports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      passport_permissions: {
+        Row: {
+          approved_by: string | null
+          created_at: string
+          expires_at: string | null
+          granted_at: string | null
+          grantee_id: string | null
+          grantee_type: string
+          id: string
+          note: string | null
+          passport_id: string
+          requested_by: string | null
+          revoked_at: string | null
+          scopes: string[]
+          share_token_hash: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          approved_by?: string | null
+          created_at?: string
+          expires_at?: string | null
+          granted_at?: string | null
+          grantee_id?: string | null
+          grantee_type: string
+          id?: string
+          note?: string | null
+          passport_id: string
+          requested_by?: string | null
+          revoked_at?: string | null
+          scopes?: string[]
+          share_token_hash?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          approved_by?: string | null
+          created_at?: string
+          expires_at?: string | null
+          granted_at?: string | null
+          grantee_id?: string | null
+          grantee_type?: string
+          id?: string
+          note?: string | null
+          passport_id?: string
+          requested_by?: string | null
+          revoked_at?: string | null
+          scopes?: string[]
+          share_token_hash?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "passport_permissions_passport_id_fkey"
+            columns: ["passport_id"]
+            isOneToOne: false
+            referencedRelation: "workforce_passports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      passport_portfolios: {
+        Row: {
+          created_at: string
+          description: string | null
+          external_url: string | null
+          id: string
+          is_public: boolean
+          kind: string
+          media_url: string | null
+          metadata: Json
+          order_index: number
+          passport_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          external_url?: string | null
+          id?: string
+          is_public?: boolean
+          kind: string
+          media_url?: string | null
+          metadata?: Json
+          order_index?: number
+          passport_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          external_url?: string | null
+          id?: string
+          is_public?: boolean
+          kind?: string
+          media_url?: string | null
+          metadata?: Json
+          order_index?: number
+          passport_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "passport_portfolios_passport_id_fkey"
+            columns: ["passport_id"]
+            isOneToOne: false
+            referencedRelation: "workforce_passports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      passport_reputation: {
+        Row: {
+          agency_id: string | null
+          category: string
+          created_at: string
+          dispute_reason: string | null
+          disputed: boolean
+          id: string
+          last_computed_at: string
+          metadata: Json
+          passport_id: string
+          sample_size: number
+          score: number
+          source: string | null
+          updated_at: string
+        }
+        Insert: {
+          agency_id?: string | null
+          category: string
+          created_at?: string
+          dispute_reason?: string | null
+          disputed?: boolean
+          id?: string
+          last_computed_at?: string
+          metadata?: Json
+          passport_id: string
+          sample_size?: number
+          score?: number
+          source?: string | null
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string | null
+          category?: string
+          created_at?: string
+          dispute_reason?: string | null
+          disputed?: boolean
+          id?: string
+          last_computed_at?: string
+          metadata?: Json
+          passport_id?: string
+          sample_size?: number
+          score?: number
+          source?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "passport_reputation_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "passport_reputation_passport_id_fkey"
+            columns: ["passport_id"]
+            isOneToOne: false
+            referencedRelation: "workforce_passports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      passport_timeline: {
+        Row: {
+          created_at: string
+          description: string | null
+          event_date: string
+          event_type: string
+          id: string
+          metadata: Json
+          passport_id: string
+          ref_id: string | null
+          ref_table: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          event_date?: string
+          event_type: string
+          id?: string
+          metadata?: Json
+          passport_id: string
+          ref_id?: string | null
+          ref_table?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          event_date?: string
+          event_type?: string
+          id?: string
+          metadata?: Json
+          passport_id?: string
+          ref_id?: string | null
+          ref_table?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "passport_timeline_passport_id_fkey"
+            columns: ["passport_id"]
+            isOneToOne: false
+            referencedRelation: "workforce_passports"
             referencedColumns: ["id"]
           },
         ]
@@ -5835,6 +6339,109 @@ export type Database = {
             columns: ["agency_id"]
             isOneToOne: false
             referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workforce_passports: {
+        Row: {
+          accessibility_accommodations: string | null
+          address_history: Json
+          availability_status: string
+          avatar_url: string | null
+          career_score: number
+          completion_score: number
+          compliance_score: number
+          created_at: string
+          date_of_birth: string | null
+          govid_status: string
+          id: string
+          identity_verification_status: string
+          languages: string[]
+          legal_name: string | null
+          military_status: string | null
+          preferences: Json
+          preferred_name: string | null
+          public_profile: boolean
+          reputation_score: number
+          right_to_work_status: string
+          skill_score: number
+          updated_at: string
+          veteran_status: boolean | null
+          worker_id: string
+        }
+        Insert: {
+          accessibility_accommodations?: string | null
+          address_history?: Json
+          availability_status?: string
+          avatar_url?: string | null
+          career_score?: number
+          completion_score?: number
+          compliance_score?: number
+          created_at?: string
+          date_of_birth?: string | null
+          govid_status?: string
+          id?: string
+          identity_verification_status?: string
+          languages?: string[]
+          legal_name?: string | null
+          military_status?: string | null
+          preferences?: Json
+          preferred_name?: string | null
+          public_profile?: boolean
+          reputation_score?: number
+          right_to_work_status?: string
+          skill_score?: number
+          updated_at?: string
+          veteran_status?: boolean | null
+          worker_id: string
+        }
+        Update: {
+          accessibility_accommodations?: string | null
+          address_history?: Json
+          availability_status?: string
+          avatar_url?: string | null
+          career_score?: number
+          completion_score?: number
+          compliance_score?: number
+          created_at?: string
+          date_of_birth?: string | null
+          govid_status?: string
+          id?: string
+          identity_verification_status?: string
+          languages?: string[]
+          legal_name?: string | null
+          military_status?: string | null
+          preferences?: Json
+          preferred_name?: string | null
+          public_profile?: boolean
+          reputation_score?: number
+          right_to_work_status?: string
+          skill_score?: number
+          updated_at?: string
+          veteran_status?: boolean | null
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workforce_passports_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: true
+            referencedRelation: "blind_candidate_view"
+            referencedColumns: ["worker_id"]
+          },
+          {
+            foreignKeyName: "workforce_passports_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: true
+            referencedRelation: "worker_readiness"
+            referencedColumns: ["worker_id"]
+          },
+          {
+            foreignKeyName: "workforce_passports_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: true
+            referencedRelation: "workers"
             referencedColumns: ["id"]
           },
         ]

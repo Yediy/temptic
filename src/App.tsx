@@ -99,6 +99,15 @@ import RecruitInterviews from "@/pages/recruit/RecruitInterviews";
 import RecruitPlacements from "@/pages/recruit/RecruitPlacements";
 import RecruitAnalytics from "@/pages/recruit/RecruitAnalytics";
 import RecruitAssistant from "@/pages/recruit/RecruitAssistant";
+import PassportLayout from "@/pages/passport/PassportLayout";
+import PassportHome from "@/pages/passport/PassportHome";
+import PassportRedirect from "@/pages/passport/PassportRedirect";
+import PassportSettings from "@/pages/passport/PassportSettings";
+import {
+  PassportIdentity, PassportSkills, PassportCertifications, PassportTraining,
+  PassportEmployment, PassportCompliancePage, PassportDocuments, PassportPortfolio,
+  PassportTimeline, PassportCareerCoach, PassportOpportunities,
+} from "@/pages/passport/PassportTabs";
 
 const queryClient = new QueryClient();
 
@@ -189,6 +198,23 @@ const App = () => (
                   <Route path="placements" element={<RecruitPlacements />} />
                   <Route path="analytics" element={<RecruitAnalytics />} />
                   <Route path="assistant" element={<RecruitAssistant />} />
+                </Route>
+                {/* Workforce Passport (IWOS Build 4.1) */}
+                <Route path="/passport" element={<PassportRedirect />} />
+                <Route path="/passport/:passportId" element={<PassportLayout />}>
+                  <Route index element={<PassportHome />} />
+                  <Route path="identity" element={<PassportIdentity />} />
+                  <Route path="skills" element={<PassportSkills />} />
+                  <Route path="certifications" element={<PassportCertifications />} />
+                  <Route path="training" element={<PassportTraining />} />
+                  <Route path="employment" element={<PassportEmployment />} />
+                  <Route path="compliance" element={<PassportCompliancePage />} />
+                  <Route path="documents" element={<PassportDocuments />} />
+                  <Route path="portfolio" element={<PassportPortfolio />} />
+                  <Route path="timeline" element={<PassportTimeline />} />
+                  <Route path="coach" element={<PassportCareerCoach />} />
+                  <Route path="opportunities" element={<PassportOpportunities />} />
+                  <Route path="settings" element={<PassportSettings />} />
                 </Route>
               </Route>
             </Route>
