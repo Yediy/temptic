@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.ensure_workforce_passport() FROM PUBLIC, anon, authenticated;
