@@ -84,6 +84,18 @@ export function AppSidebar() {
           <Sparkles className="h-4 w-4" />
           Workforce Passport
         </Link>
+        <Link
+          to="/onboarding-os"
+          className={cn(
+            "mt-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors",
+            isActivePath("/onboarding-os")
+              ? "bg-sidebar-accent text-sidebar-accent-foreground"
+              : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+          )}
+        >
+          <Brain className="h-4 w-4" />
+          Onboarding OS
+        </Link>
       </div>
 
       <nav className="flex-1 space-y-3 overflow-y-auto px-3 pt-2 pb-4">

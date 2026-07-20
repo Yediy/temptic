@@ -66,6 +66,11 @@ import OAuthConsent from "@/pages/OAuthConsent";
 import TalentList from "@/pages/talent/TalentList";
 import TalentPassport from "@/pages/talent/TalentPassport";
 import OnboardingKanban from "@/pages/onboarding/OnboardingKanban";
+import OnboardingOsLayout from "@/pages/onboarding-os/OnboardingOsLayout";
+import OnboardingOsDashboard from "@/pages/onboarding-os/OnboardingOsDashboard";
+import OnboardingReadiness from "@/pages/onboarding-os/OnboardingReadiness";
+import ClientRequirementsPage from "@/pages/onboarding-os/ClientRequirementsPage";
+import OnboardingAssistantPage from "@/pages/onboarding-os/OnboardingAssistantPage";
 import TrainingCatalog from "@/pages/training/TrainingCatalog";
 import CoursePlayer from "@/pages/training/CoursePlayer";
 import JobBoard from "@/pages/jobs/JobBoard";
@@ -180,6 +185,13 @@ const App = () => (
                 <Route path="/training" element={<TrainingCatalog />} />
                 <Route path="/training/:id" element={<CoursePlayer />} />
                 <Route path="/scheduling" element={<Scheduling />} />
+                <Route path="/onboarding-os" element={<OnboardingOsLayout />}>
+                  <Route index element={<OnboardingOsDashboard />} />
+                  <Route path="tasks" element={<OnboardingKanban />} />
+                  <Route path="readiness" element={<OnboardingReadiness />} />
+                  <Route path="requirements" element={<ClientRequirementsPage />} />
+                  <Route path="assistant" element={<OnboardingAssistantPage />} />
+                </Route>
                 <Route path="/timecards" element={<Timecards />} />
                 <Route path="/payroll" element={<ModulePlaceholder moduleKey="payroll" />} />
                 <Route path="/ai-center" element={<AICenter />} />
