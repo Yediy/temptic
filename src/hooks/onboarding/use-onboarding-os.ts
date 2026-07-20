@@ -15,7 +15,7 @@ export function useOnboardingSessions(agencyId?: string) {
         .eq("agency_id", agencyId!)
         .order("last_activity_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as (OnboardingSession & { worker: any })[];
+      return ((data ?? []) as unknown) as (OnboardingSession & { worker: any })[];
     },
   });
 }
@@ -32,7 +32,7 @@ export function useWorkerSession(workerId?: string) {
         .limit(1)
         .maybeSingle();
       if (error) throw error;
-      return data as OnboardingSession | null;
+      return (data as unknown) as OnboardingSession | null;
     },
   });
 }
@@ -46,7 +46,7 @@ export function useUpsertSession() {
         .select()
         .single();
       if (error) throw error;
-      return data as OnboardingSession;
+      return (data as unknown) as OnboardingSession;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["onboarding-sessions"] });
@@ -65,7 +65,7 @@ export function useClientRequirements(agencyId?: string) {
         .eq("agency_id", agencyId!)
         .order("name");
       if (error) throw error;
-      return (data ?? []) as (ClientRequirement & { client: any })[];
+      return ((data ?? []) as unknown) as (ClientRequirement & { client: any })[];
     },
   });
 }
@@ -76,7 +76,7 @@ export function useSaveClientRequirement() {
     mutationFn: async (input: Partial<ClientRequirement> & { agency_id: string; client_id: string; name: string }) => {
       const { data, error } = await T("client_requirements").upsert(input as any).select().single();
       if (error) throw error;
-      return data as ClientRequirement;
+      return (data as unknown) as ClientRequirement;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["client-requirements"] }),
   });
@@ -92,7 +92,7 @@ export function useReadiness(workerId?: string) {
         .eq("worker_id", workerId!)
         .order("computed_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as AssignmentReadiness[];
+      return ((data ?? []) as unknown) as AssignmentReadiness[];
     },
   });
 }
