@@ -372,6 +372,48 @@ export type Database = {
           },
         ]
       }
+      assignment_readiness: {
+        Row: {
+          agency_id: string
+          breakdown: Json
+          client_id: string | null
+          computed_at: string
+          created_at: string
+          id: string
+          missing: Json
+          ready: boolean
+          score: number
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          agency_id: string
+          breakdown?: Json
+          client_id?: string | null
+          computed_at?: string
+          created_at?: string
+          id?: string
+          missing?: Json
+          ready?: boolean
+          score?: number
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          agency_id?: string
+          breakdown?: Json
+          client_id?: string | null
+          computed_at?: string
+          created_at?: string
+          id?: string
+          missing?: Json
+          ready?: boolean
+          score?: number
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: []
+      }
       assignments: {
         Row: {
           agency_id: string
@@ -824,6 +866,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      client_requirements: {
+        Row: {
+          active: boolean
+          agency_id: string
+          background_required: boolean
+          client_id: string
+          created_at: string
+          drug_screen_required: boolean
+          forms: Json
+          id: string
+          name: string
+          policy_ids: string[]
+          required_certifications: string[]
+          required_licenses: string[]
+          screening_package_id: string | null
+          training_course_ids: string[]
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          agency_id: string
+          background_required?: boolean
+          client_id: string
+          created_at?: string
+          drug_screen_required?: boolean
+          forms?: Json
+          id?: string
+          name: string
+          policy_ids?: string[]
+          required_certifications?: string[]
+          required_licenses?: string[]
+          screening_package_id?: string | null
+          training_course_ids?: string[]
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          agency_id?: string
+          background_required?: boolean
+          client_id?: string
+          created_at?: string
+          drug_screen_required?: boolean
+          forms?: Json
+          id?: string
+          name?: string
+          policy_ids?: string[]
+          required_certifications?: string[]
+          required_licenses?: string[]
+          screening_package_id?: string | null
+          training_course_ids?: string[]
+          updated_at?: string
+        }
+        Relationships: []
       }
       client_signers: {
         Row: {
@@ -1787,6 +1883,47 @@ export type Database = {
           },
         ]
       }
+      onboarding_ai_events: {
+        Row: {
+          actor_id: string | null
+          agency_id: string
+          created_at: string
+          event_type: string
+          id: string
+          payload: Json
+          session_id: string | null
+          worker_id: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          agency_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          payload?: Json
+          session_id?: string | null
+          worker_id?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          agency_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          payload?: Json
+          session_id?: string | null
+          worker_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_ai_events_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "onboarding_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       onboarding_checklists: {
         Row: {
           agency_id: string
@@ -1959,6 +2096,65 @@ export type Database = {
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "onboarding_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      onboarding_sessions: {
+        Row: {
+          agency_id: string
+          checklist_id: string | null
+          completed_at: string | null
+          created_at: string
+          current_step: string | null
+          device_info: Json | null
+          id: string
+          last_activity_at: string
+          progress_pct: number
+          resume_token: string | null
+          started_at: string
+          status: string
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          agency_id: string
+          checklist_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_step?: string | null
+          device_info?: Json | null
+          id?: string
+          last_activity_at?: string
+          progress_pct?: number
+          resume_token?: string | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          agency_id?: string
+          checklist_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_step?: string | null
+          device_info?: Json | null
+          id?: string
+          last_activity_at?: string
+          progress_pct?: number
+          resume_token?: string | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_sessions_checklist_id_fkey"
+            columns: ["checklist_id"]
+            isOneToOne: false
+            referencedRelation: "onboarding_checklists"
             referencedColumns: ["id"]
           },
         ]
