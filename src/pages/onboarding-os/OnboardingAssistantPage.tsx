@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Sparkles } from "lucide-react";
-import ReactMarkdown from "react-markdown";
+
 
 export default function OnboardingAssistantPage() {
   const ask = useOnboardingAssistant();
@@ -36,7 +36,7 @@ export default function OnboardingAssistantPage() {
             <div key={i} className="space-y-2">
               <div className="text-sm font-medium">You: {h.q}</div>
               <div className="prose prose-sm max-w-none rounded-md border bg-muted/40 p-3">
-                <ReactMarkdown>{h.a}</ReactMarkdown>
+                <div className="whitespace-pre-wrap">{h.a}</div>
               </div>
             </div>
           ))}

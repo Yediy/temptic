@@ -21,7 +21,7 @@ export default function ClientRequirementsPage() {
     queryKey: ["clients-simple", agencyId],
     enabled: !!agencyId,
     queryFn: async () => {
-      const { data } = await supabase.from("clients").select("id, name").eq("agency_id", agencyId!).order("name");
+      const { data } = await supabase.from("clients").select("id, company_name").eq("agency_id", agencyId!).order("name");
       return data ?? [];
     },
   });
@@ -41,7 +41,7 @@ export default function ClientRequirementsPage() {
             <Select value={clientId} onValueChange={setClientId}>
               <SelectTrigger><SelectValue placeholder="Select client" /></SelectTrigger>
               <SelectContent>
-                {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -76,7 +76,7 @@ export default function ClientRequirementsPage() {
           <Card key={r.id}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm">{r.name}</CardTitle>
-              <p className="text-xs text-muted-foreground">{r.client?.name}</p>
+              <p className="text-xs text-muted-foreground">{r.client?.company_name}</p>
             </CardHeader>
             <CardContent className="flex flex-wrap gap-1">
               {r.background_required && <Badge variant="secondary">Background</Badge>}
