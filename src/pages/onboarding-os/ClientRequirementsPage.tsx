@@ -21,7 +21,7 @@ export default function ClientRequirementsPage() {
     queryKey: ["clients-simple", agencyId],
     enabled: !!agencyId,
     queryFn: async () => {
-      const { data } = await supabase.from("clients").select("id, company_name").eq("agency_id", agencyId!).order("name");
+      const { data } = await supabase.from("clients").select("id, company_name").eq("agency_id", agencyId!).order("company_name");
       return data ?? [];
     },
   });
