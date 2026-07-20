@@ -185,6 +185,13 @@ const App = () => (
                 <Route path="/training" element={<TrainingCatalog />} />
                 <Route path="/training/:id" element={<CoursePlayer />} />
                 <Route path="/scheduling" element={<Scheduling />} />
+                <Route path="/onboarding-os" element={<OnboardingOsLayout />}>
+                  <Route index element={<OnboardingOsDashboard />} />
+                  <Route path="tasks" element={<OnboardingKanban />} />
+                  <Route path="readiness" element={<OnboardingReadiness />} />
+                  <Route path="requirements" element={<ClientRequirementsPage />} />
+                  <Route path="assistant" element={<OnboardingAssistantPage />} />
+                </Route>
                 <Route path="/timecards" element={<Timecards />} />
                 <Route path="/payroll" element={<ModulePlaceholder moduleKey="payroll" />} />
                 <Route path="/ai-center" element={<AICenter />} />
