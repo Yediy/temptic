@@ -2303,6 +2303,56 @@ export type Database = {
           },
         ]
       }
+      passport_badges: {
+        Row: {
+          awarded_at: string
+          awarded_by: string | null
+          badge_key: string
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          metadata: Json
+          name: string
+          passport_id: string
+          tier: string | null
+        }
+        Insert: {
+          awarded_at?: string
+          awarded_by?: string | null
+          badge_key: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          metadata?: Json
+          name: string
+          passport_id: string
+          tier?: string | null
+        }
+        Update: {
+          awarded_at?: string
+          awarded_by?: string | null
+          badge_key?: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          metadata?: Json
+          name?: string
+          passport_id?: string
+          tier?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "passport_badges_passport_id_fkey"
+            columns: ["passport_id"]
+            isOneToOne: false
+            referencedRelation: "workforce_passports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       passport_compliance: {
         Row: {
           completed_at: string | null
@@ -2600,6 +2650,59 @@ export type Database = {
           },
         ]
       }
+      passport_sharing: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          label: string | null
+          last_viewed_at: string | null
+          passport_id: string
+          revoked_at: string | null
+          scopes: string[]
+          token_hash: string
+          updated_at: string
+          view_count: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          label?: string | null
+          last_viewed_at?: string | null
+          passport_id: string
+          revoked_at?: string | null
+          scopes?: string[]
+          token_hash: string
+          updated_at?: string
+          view_count?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          label?: string | null
+          last_viewed_at?: string | null
+          passport_id?: string
+          revoked_at?: string | null
+          scopes?: string[]
+          token_hash?: string
+          updated_at?: string
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "passport_sharing_passport_id_fkey"
+            columns: ["passport_id"]
+            isOneToOne: false
+            referencedRelation: "workforce_passports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       passport_timeline: {
         Row: {
           created_at: string
@@ -2640,6 +2743,56 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "passport_timeline_passport_id_fkey"
+            columns: ["passport_id"]
+            isOneToOne: false
+            referencedRelation: "workforce_passports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      passport_verifications: {
+        Row: {
+          created_at: string
+          evidence_url: string | null
+          expires_at: string | null
+          id: string
+          metadata: Json
+          passport_id: string
+          status: string
+          updated_at: string
+          verification_type: string
+          verified_at: string | null
+          verifier: string | null
+        }
+        Insert: {
+          created_at?: string
+          evidence_url?: string | null
+          expires_at?: string | null
+          id?: string
+          metadata?: Json
+          passport_id: string
+          status?: string
+          updated_at?: string
+          verification_type: string
+          verified_at?: string | null
+          verifier?: string | null
+        }
+        Update: {
+          created_at?: string
+          evidence_url?: string | null
+          expires_at?: string | null
+          id?: string
+          metadata?: Json
+          passport_id?: string
+          status?: string
+          updated_at?: string
+          verification_type?: string
+          verified_at?: string | null
+          verifier?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "passport_verifications_passport_id_fkey"
             columns: ["passport_id"]
             isOneToOne: false
             referencedRelation: "workforce_passports"
