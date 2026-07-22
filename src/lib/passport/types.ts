@@ -11,9 +11,65 @@ export type PassportOpportunity = Tables<"passport_opportunities">;
 export type CareerRecommendation = Tables<"career_recommendations">;
 export type PassportAccessLog = Tables<"passport_access_log">;
 
+export interface PassportSharingLink {
+  id: string;
+  passport_id: string;
+  token_hash: string;
+  label: string | null;
+  scopes: string[];
+  expires_at: string | null;
+  revoked_at: string | null;
+  view_count: number;
+  last_viewed_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PassportVerification {
+  id: string;
+  passport_id: string;
+  verification_type: string;
+  status: string;
+  verifier: string | null;
+  evidence_url: string | null;
+  metadata: Record<string, unknown>;
+  verified_at: string | null;
+  expires_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PassportBadge {
+  id: string;
+  passport_id: string;
+  badge_key: string;
+  name: string;
+  description: string | null;
+  icon: string | null;
+  tier: string | null;
+  awarded_by: string | null;
+  metadata: Record<string, unknown>;
+  awarded_at: string;
+  created_at: string;
+}
+
+export const VERIFICATION_TYPES = [
+  { key: "government_id", label: "Government ID" },
+  { key: "work_authorization", label: "Work Authorization" },
+  { key: "identity", label: "Identity" },
+  { key: "address", label: "Address" },
+  { key: "phone", label: "Phone" },
+  { key: "email", label: "Email" },
+  { key: "education", label: "Education" },
+  { key: "reference", label: "Reference" },
+] as const;
+
 export const PASSPORT_TABS = [
   { key: "home", label: "Home", path: "" },
   { key: "identity", label: "Identity", path: "identity" },
+  { key: "verifications", label: "Verifications", path: "verifications" },
+  { key: "badges", label: "Badges", path: "badges" },
   { key: "skills", label: "Skills", path: "skills" },
   { key: "certifications", label: "Certifications", path: "certifications" },
   { key: "training", label: "Training", path: "training" },
@@ -24,7 +80,8 @@ export const PASSPORT_TABS = [
   { key: "timeline", label: "Timeline", path: "timeline" },
   { key: "coach", label: "Career Coach", path: "coach" },
   { key: "opportunities", label: "Opportunities", path: "opportunities" },
-  { key: "settings", label: "Sharing", path: "settings" },
+  { key: "sharing", label: "Sharing", path: "sharing" },
+  { key: "settings", label: "Privacy", path: "settings" },
 ] as const;
 
 export const REPUTATION_CATEGORIES = [
