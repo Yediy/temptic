@@ -103,8 +103,6 @@ export function useBadges(passportId?: string) {
   });
 }
 
-// legacy import bag; keep at top-level so downstream signatures unaffected
-import type {
 
 /** Resolve the current worker's passport id (owner view). */
 export function useMyPassport() {
