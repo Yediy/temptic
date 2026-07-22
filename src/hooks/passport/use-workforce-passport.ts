@@ -12,7 +12,97 @@ import type {
   PassportOpportunity,
   CareerRecommendation,
   PassportAccessLog,
+  PassportSharingLink,
+  PassportVerification,
+  PassportBadge,
 } from "@/lib/passport/types";
+
+// Tables added post-types-regen — cast the client until types refresh.
+const sb = supabase as any;
+
+async function sha256Hex(input: string): Promise<string> {
+  const buf = new TextEncoder().encode(input);
+  const digest = await crypto.subtle.digest("SHA-256", buf);
+  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function randomToken(): string {
+  const arr = new Uint8Array(24);
+  crypto.getRandomValues(arr);
+  return Array.from(arr).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+export function useSharingLinks(passportId?: string) {
+  return useQuery({
+    queryKey: ["passport-sharing", passportId],
+    enabled: !!passportId,
+    queryFn: async () => {
+      const { data, error } = await sb.from("passport_sharing")
+        .select("*").eq("passport_id", passportId).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as PassportSharingLink[];
+    },
+  });
+}
+
+export function useCreateSharingLink(passportId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { label?: string; scopes: string[]; expires_at?: string | null }) => {
+      const token = randomToken();
+      const token_hash = await sha256Hex(token);
+      const { error } = await sb.from("passport_sharing").insert({
+        passport_id: passportId,
+        token_hash,
+        label: input.label ?? null,
+        scopes: input.scopes,
+        expires_at: input.expires_at ?? null,
+      });
+      if (error) throw error;
+      return { token };
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["passport-sharing", passportId] }),
+  });
+}
+
+export function useRevokeSharingLink(passportId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await sb.from("passport_sharing")
+        .update({ revoked_at: new Date().toISOString() }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["passport-sharing", passportId] }),
+  });
+}
+
+export function useVerifications(passportId?: string) {
+  return useQuery({
+    queryKey: ["passport-verifications-granular", passportId],
+    enabled: !!passportId,
+    queryFn: async () => {
+      const { data, error } = await sb.from("passport_verifications")
+        .select("*").eq("passport_id", passportId).order("verification_type");
+      if (error) throw error;
+      return data as PassportVerification[];
+    },
+  });
+}
+
+export function useBadges(passportId?: string) {
+  return useQuery({
+    queryKey: ["passport-badges", passportId],
+    enabled: !!passportId,
+    queryFn: async () => {
+      const { data, error } = await sb.from("passport_badges")
+        .select("*").eq("passport_id", passportId).order("awarded_at", { ascending: false });
+      if (error) throw error;
+      return data as PassportBadge[];
+    },
+  });
+}
+
 
 /** Resolve the current worker's passport id (owner view). */
 export function useMyPassport() {

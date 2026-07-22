@@ -113,6 +113,9 @@ import {
   PassportEmployment, PassportCompliancePage, PassportDocuments, PassportPortfolio,
   PassportTimeline, PassportCareerCoach, PassportOpportunities,
 } from "@/pages/passport/PassportTabs";
+import PassportVerifications from "@/pages/passport/PassportVerifications";
+import PassportBadges from "@/pages/passport/PassportBadges";
+import PassportSharing from "@/pages/passport/PassportSharing";
 
 const queryClient = new QueryClient();
 
@@ -216,6 +219,9 @@ const App = () => (
                 <Route path="/passport/:passportId" element={<PassportLayout />}>
                   <Route index element={<PassportHome />} />
                   <Route path="identity" element={<PassportIdentity />} />
+                  <Route path="verifications" element={<PassportVerifications />} />
+                  <Route path="badges" element={<PassportBadges />} />
+                  <Route path="sharing" element={<PassportSharing />} />
                   <Route path="skills" element={<PassportSkills />} />
                   <Route path="certifications" element={<PassportCertifications />} />
                   <Route path="training" element={<PassportTraining />} />

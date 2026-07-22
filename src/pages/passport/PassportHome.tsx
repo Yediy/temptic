@@ -2,7 +2,9 @@ import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { usePassport, usePassportBundle, useRecomputeScores, useRunCareerCoach } from "@/hooks/passport/use-workforce-passport";
+import { usePassport, usePassportBundle, useRecomputeScores, useRunCareerCoach, useBadges } from "@/hooks/passport/use-workforce-passport";
+import { Badge } from "@/components/ui/badge";
+import { Award } from "lucide-react";
 import { LoadingState, ErrorState } from "@/components/woic/AsyncState";
 import { toast } from "@/hooks/use-toast";
 
@@ -12,6 +14,7 @@ export default function PassportHome() {
   const bundle = usePassportBundle(passportId, passport?.worker_id);
   const recompute = useRecomputeScores(passportId!);
   const coach = useRunCareerCoach(passportId!);
+  const badges = useBadges(passportId);
 
   if (isLoading) return <LoadingState />;
   if (error || !passport) return <ErrorState error={error} />;
@@ -75,6 +78,23 @@ export default function PassportHome() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader><CardTitle className="text-sm">Badges</CardTitle></CardHeader>
+        <CardContent>
+          {(badges.data ?? []).length === 0 ? (
+            <p className="text-sm text-muted-foreground">No badges earned yet.</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {(badges.data ?? []).slice(0, 8).map((b) => (
+                <Badge key={b.id} variant="outline" className="flex items-center gap-1">
+                  <Award className="h-3 w-3" /> {b.name}{b.tier ? ` · ${b.tier}` : ""}
+                </Badge>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader><CardTitle className="text-sm">Recent Timeline</CardTitle></CardHeader>
