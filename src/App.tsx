@@ -116,6 +116,18 @@ import {
 import PassportVerifications from "@/pages/passport/PassportVerifications";
 import PassportBadges from "@/pages/passport/PassportBadges";
 import PassportSharing from "@/pages/passport/PassportSharing";
+import TwinIndex from "@/pages/twin/TwinIndex";
+import TwinLayout from "@/pages/twin/TwinLayout";
+import TwinDashboard from "@/pages/twin/TwinDashboard";
+import TwinCapabilities from "@/pages/twin/TwinCapabilities";
+import TwinPredictions from "@/pages/twin/TwinPredictions";
+import TwinCareerSim from "@/pages/twin/TwinCareerSim";
+import TwinAssignmentSim from "@/pages/twin/TwinAssignmentSim";
+import TwinCoaching from "@/pages/twin/TwinCoaching";
+import TwinGrowth from "@/pages/twin/TwinGrowth";
+import TwinTimeline from "@/pages/twin/TwinTimeline";
+import TwinKnowledgeGraph from "@/pages/twin/TwinKnowledgeGraph";
+import TwinOrganization from "@/pages/twin/TwinOrganization";
 
 const queryClient = new QueryClient();
 
@@ -213,6 +225,20 @@ const App = () => (
                   <Route path="placements" element={<RecruitPlacements />} />
                   <Route path="analytics" element={<RecruitAnalytics />} />
                   <Route path="assistant" element={<RecruitAssistant />} />
+                </Route>
+                {/* Digital Worker Twin (IWOS 4.4) */}
+                <Route path="/twin" element={<TwinIndex />} />
+                <Route path="/twin/:workerId" element={<TwinLayout />}>
+                  <Route index element={<TwinDashboard />} />
+                  <Route path="capabilities" element={<TwinCapabilities />} />
+                  <Route path="predictions" element={<TwinPredictions />} />
+                  <Route path="career" element={<TwinCareerSim />} />
+                  <Route path="assignments" element={<TwinAssignmentSim />} />
+                  <Route path="coaching" element={<TwinCoaching />} />
+                  <Route path="growth" element={<TwinGrowth />} />
+                  <Route path="timeline" element={<TwinTimeline />} />
+                  <Route path="knowledge" element={<TwinKnowledgeGraph />} />
+                  <Route path="organization" element={<TwinOrganization />} />
                 </Route>
                 {/* Workforce Passport (IWOS Build 4.1) */}
                 <Route path="/passport" element={<PassportRedirect />} />

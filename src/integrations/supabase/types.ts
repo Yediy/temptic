@@ -414,6 +414,96 @@ export type Database = {
         }
         Relationships: []
       }
+      assignment_simulations: {
+        Row: {
+          agency_id: string
+          attendance_score: number | null
+          client_id: string | null
+          created_at: string
+          evidence: Json
+          id: string
+          job_id: string | null
+          performance_score: number | null
+          reasoning: string | null
+          retention_score: number | null
+          safety_score: number | null
+          satisfaction_score: number | null
+          success_probability: number | null
+          twin_id: string
+          worker_id: string
+        }
+        Insert: {
+          agency_id: string
+          attendance_score?: number | null
+          client_id?: string | null
+          created_at?: string
+          evidence?: Json
+          id?: string
+          job_id?: string | null
+          performance_score?: number | null
+          reasoning?: string | null
+          retention_score?: number | null
+          safety_score?: number | null
+          satisfaction_score?: number | null
+          success_probability?: number | null
+          twin_id: string
+          worker_id: string
+        }
+        Update: {
+          agency_id?: string
+          attendance_score?: number | null
+          client_id?: string | null
+          created_at?: string
+          evidence?: Json
+          id?: string
+          job_id?: string | null
+          performance_score?: number | null
+          reasoning?: string | null
+          retention_score?: number | null
+          safety_score?: number | null
+          satisfaction_score?: number | null
+          success_probability?: number | null
+          twin_id?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assignment_simulations_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assignment_simulations_twin_id_fkey"
+            columns: ["twin_id"]
+            isOneToOne: false
+            referencedRelation: "worker_twins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assignment_simulations_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "blind_candidate_view"
+            referencedColumns: ["worker_id"]
+          },
+          {
+            foreignKeyName: "assignment_simulations_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "worker_readiness"
+            referencedColumns: ["worker_id"]
+          },
+          {
+            foreignKeyName: "assignment_simulations_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assignments: {
         Row: {
           agency_id: string
@@ -799,6 +889,90 @@ export type Database = {
             columns: ["woic_recommendation_id"]
             isOneToOne: false
             referencedRelation: "woic_recommendations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      career_simulations: {
+        Row: {
+          agency_id: string
+          confidence: number | null
+          created_at: string
+          estimated_salary: Json
+          id: string
+          outcomes: Json
+          scenario: string
+          skill_growth: Json
+          target_role: string | null
+          timeline_months: number | null
+          training_required: Json
+          twin_id: string
+          worker_id: string
+        }
+        Insert: {
+          agency_id: string
+          confidence?: number | null
+          created_at?: string
+          estimated_salary?: Json
+          id?: string
+          outcomes?: Json
+          scenario: string
+          skill_growth?: Json
+          target_role?: string | null
+          timeline_months?: number | null
+          training_required?: Json
+          twin_id: string
+          worker_id: string
+        }
+        Update: {
+          agency_id?: string
+          confidence?: number | null
+          created_at?: string
+          estimated_salary?: Json
+          id?: string
+          outcomes?: Json
+          scenario?: string
+          skill_growth?: Json
+          target_role?: string | null
+          timeline_months?: number | null
+          training_required?: Json
+          twin_id?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "career_simulations_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "career_simulations_twin_id_fkey"
+            columns: ["twin_id"]
+            isOneToOne: false
+            referencedRelation: "worker_twins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "career_simulations_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "blind_candidate_view"
+            referencedColumns: ["worker_id"]
+          },
+          {
+            foreignKeyName: "career_simulations_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "worker_readiness"
+            referencedColumns: ["worker_id"]
+          },
+          {
+            foreignKeyName: "career_simulations_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
             referencedColumns: ["id"]
           },
         ]
@@ -1511,6 +1685,90 @@ export type Database = {
           },
         ]
       }
+      growth_plans: {
+        Row: {
+          agency_id: string
+          assignment_recommendations: Json
+          created_at: string
+          goals: Json
+          id: string
+          mentor_recommendations: Json
+          project_recommendations: Json
+          status: string
+          title: string
+          training_recommendations: Json
+          twin_id: string
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          agency_id: string
+          assignment_recommendations?: Json
+          created_at?: string
+          goals?: Json
+          id?: string
+          mentor_recommendations?: Json
+          project_recommendations?: Json
+          status?: string
+          title: string
+          training_recommendations?: Json
+          twin_id: string
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          agency_id?: string
+          assignment_recommendations?: Json
+          created_at?: string
+          goals?: Json
+          id?: string
+          mentor_recommendations?: Json
+          project_recommendations?: Json
+          status?: string
+          title?: string
+          training_recommendations?: Json
+          twin_id?: string
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "growth_plans_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "growth_plans_twin_id_fkey"
+            columns: ["twin_id"]
+            isOneToOne: false
+            referencedRelation: "worker_twins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "growth_plans_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "blind_candidate_view"
+            referencedColumns: ["worker_id"]
+          },
+          {
+            foreignKeyName: "growth_plans_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "worker_readiness"
+            referencedColumns: ["worker_id"]
+          },
+          {
+            foreignKeyName: "growth_plans_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       identity_verifications: {
         Row: {
           created_at: string
@@ -1721,6 +1979,102 @@ export type Database = {
             columns: ["job_order_id"]
             isOneToOne: false
             referencedRelation: "job_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      knowledge_graph_edges: {
+        Row: {
+          agency_id: string
+          created_at: string
+          from_node: string
+          id: string
+          metadata: Json
+          relationship: string
+          to_node: string
+          weight: number | null
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          from_node: string
+          id?: string
+          metadata?: Json
+          relationship: string
+          to_node: string
+          weight?: number | null
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          from_node?: string
+          id?: string
+          metadata?: Json
+          relationship?: string
+          to_node?: string
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_graph_edges_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_graph_edges_from_node_fkey"
+            columns: ["from_node"]
+            isOneToOne: false
+            referencedRelation: "knowledge_graph_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_graph_edges_to_node_fkey"
+            columns: ["to_node"]
+            isOneToOne: false
+            referencedRelation: "knowledge_graph_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      knowledge_graph_nodes: {
+        Row: {
+          agency_id: string
+          attributes: Json
+          created_at: string
+          id: string
+          label: string
+          node_type: string
+          ref_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          attributes?: Json
+          created_at?: string
+          id?: string
+          label: string
+          node_type: string
+          ref_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          attributes?: Json
+          created_at?: string
+          id?: string
+          label?: string
+          node_type?: string
+          ref_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_graph_nodes_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
             referencedColumns: ["id"]
           },
         ]
@@ -5413,6 +5767,447 @@ export type Database = {
         }
         Relationships: []
       }
+      twin_capabilities: {
+        Row: {
+          agency_id: string
+          confidence: number | null
+          created_at: string
+          evidence: Json
+          id: string
+          kind: string
+          label: string
+          last_evidenced_at: string | null
+          metadata: Json
+          proficiency: number | null
+          twin_id: string
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          agency_id: string
+          confidence?: number | null
+          created_at?: string
+          evidence?: Json
+          id?: string
+          kind: string
+          label: string
+          last_evidenced_at?: string | null
+          metadata?: Json
+          proficiency?: number | null
+          twin_id: string
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          agency_id?: string
+          confidence?: number | null
+          created_at?: string
+          evidence?: Json
+          id?: string
+          kind?: string
+          label?: string
+          last_evidenced_at?: string | null
+          metadata?: Json
+          proficiency?: number | null
+          twin_id?: string
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "twin_capabilities_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "twin_capabilities_twin_id_fkey"
+            columns: ["twin_id"]
+            isOneToOne: false
+            referencedRelation: "worker_twins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "twin_capabilities_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "blind_candidate_view"
+            referencedColumns: ["worker_id"]
+          },
+          {
+            foreignKeyName: "twin_capabilities_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "worker_readiness"
+            referencedColumns: ["worker_id"]
+          },
+          {
+            foreignKeyName: "twin_capabilities_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      twin_learning_events: {
+        Row: {
+          agency_id: string
+          created_at: string
+          event_type: string
+          id: string
+          impact: Json
+          occurred_at: string
+          payload: Json
+          source: string
+          twin_id: string
+          worker_id: string
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          impact?: Json
+          occurred_at?: string
+          payload?: Json
+          source: string
+          twin_id: string
+          worker_id: string
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          impact?: Json
+          occurred_at?: string
+          payload?: Json
+          source?: string
+          twin_id?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "twin_learning_events_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "twin_learning_events_twin_id_fkey"
+            columns: ["twin_id"]
+            isOneToOne: false
+            referencedRelation: "worker_twins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "twin_learning_events_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "blind_candidate_view"
+            referencedColumns: ["worker_id"]
+          },
+          {
+            foreignKeyName: "twin_learning_events_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "worker_readiness"
+            referencedColumns: ["worker_id"]
+          },
+          {
+            foreignKeyName: "twin_learning_events_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      twin_models: {
+        Row: {
+          agency_id: string | null
+          created_at: string
+          endpoint: string | null
+          feature_set: Json
+          id: string
+          metadata: Json
+          name: string
+          purpose: string | null
+          status: string
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          agency_id?: string | null
+          created_at?: string
+          endpoint?: string | null
+          feature_set?: Json
+          id?: string
+          metadata?: Json
+          name: string
+          purpose?: string | null
+          status?: string
+          updated_at?: string
+          version: string
+        }
+        Update: {
+          agency_id?: string | null
+          created_at?: string
+          endpoint?: string | null
+          feature_set?: Json
+          id?: string
+          metadata?: Json
+          name?: string
+          purpose?: string | null
+          status?: string
+          updated_at?: string
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "twin_models_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      twin_predictions: {
+        Row: {
+          agency_id: string
+          confidence: number | null
+          created_at: string
+          evidence: Json
+          horizon: string | null
+          id: string
+          kind: string
+          model_id: string | null
+          produced_at: string
+          reasoning: string | null
+          twin_id: string
+          value: Json
+          worker_id: string
+        }
+        Insert: {
+          agency_id: string
+          confidence?: number | null
+          created_at?: string
+          evidence?: Json
+          horizon?: string | null
+          id?: string
+          kind: string
+          model_id?: string | null
+          produced_at?: string
+          reasoning?: string | null
+          twin_id: string
+          value?: Json
+          worker_id: string
+        }
+        Update: {
+          agency_id?: string
+          confidence?: number | null
+          created_at?: string
+          evidence?: Json
+          horizon?: string | null
+          id?: string
+          kind?: string
+          model_id?: string | null
+          produced_at?: string
+          reasoning?: string | null
+          twin_id?: string
+          value?: Json
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "twin_predictions_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "twin_predictions_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "twin_models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "twin_predictions_twin_id_fkey"
+            columns: ["twin_id"]
+            isOneToOne: false
+            referencedRelation: "worker_twins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "twin_predictions_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "blind_candidate_view"
+            referencedColumns: ["worker_id"]
+          },
+          {
+            foreignKeyName: "twin_predictions_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "worker_readiness"
+            referencedColumns: ["worker_id"]
+          },
+          {
+            foreignKeyName: "twin_predictions_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      twin_recommendations: {
+        Row: {
+          agency_id: string
+          body: string | null
+          confidence: number | null
+          created_at: string
+          evidence: Json
+          expires_at: string | null
+          id: string
+          kind: string
+          reasoning: string | null
+          score: number | null
+          status: string
+          title: string
+          twin_id: string
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          agency_id: string
+          body?: string | null
+          confidence?: number | null
+          created_at?: string
+          evidence?: Json
+          expires_at?: string | null
+          id?: string
+          kind: string
+          reasoning?: string | null
+          score?: number | null
+          status?: string
+          title: string
+          twin_id: string
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          agency_id?: string
+          body?: string | null
+          confidence?: number | null
+          created_at?: string
+          evidence?: Json
+          expires_at?: string | null
+          id?: string
+          kind?: string
+          reasoning?: string | null
+          score?: number | null
+          status?: string
+          title?: string
+          twin_id?: string
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "twin_recommendations_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "twin_recommendations_twin_id_fkey"
+            columns: ["twin_id"]
+            isOneToOne: false
+            referencedRelation: "worker_twins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "twin_recommendations_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "blind_candidate_view"
+            referencedColumns: ["worker_id"]
+          },
+          {
+            foreignKeyName: "twin_recommendations_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "worker_readiness"
+            referencedColumns: ["worker_id"]
+          },
+          {
+            foreignKeyName: "twin_recommendations_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      twin_relationships: {
+        Row: {
+          agency_id: string
+          created_at: string
+          id: string
+          metadata: Json
+          related_entity: string
+          related_id: string | null
+          relationship: string
+          strength: number | null
+          twin_id: string
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          related_entity: string
+          related_id?: string | null
+          relationship: string
+          strength?: number | null
+          twin_id: string
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          related_entity?: string
+          related_id?: string | null
+          relationship?: string
+          strength?: number | null
+          twin_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "twin_relationships_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "twin_relationships_twin_id_fkey"
+            columns: ["twin_id"]
+            isOneToOne: false
+            referencedRelation: "worker_twins"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -6625,6 +7420,99 @@ export type Database = {
             foreignKeyName: "worker_skills_worker_id_fkey"
             columns: ["worker_id"]
             isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      worker_twins: {
+        Row: {
+          agency_id: string
+          career_forecast: Json
+          career_health: number | null
+          created_at: string
+          current_capabilities: Json
+          future_potential: number | null
+          growth_score: number | null
+          id: string
+          last_learned_at: string | null
+          learning_progress: number | null
+          model_version: string | null
+          passport_id: string | null
+          performance_trend: Json
+          risk_indicators: Json
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          agency_id: string
+          career_forecast?: Json
+          career_health?: number | null
+          created_at?: string
+          current_capabilities?: Json
+          future_potential?: number | null
+          growth_score?: number | null
+          id?: string
+          last_learned_at?: string | null
+          learning_progress?: number | null
+          model_version?: string | null
+          passport_id?: string | null
+          performance_trend?: Json
+          risk_indicators?: Json
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          agency_id?: string
+          career_forecast?: Json
+          career_health?: number | null
+          created_at?: string
+          current_capabilities?: Json
+          future_potential?: number | null
+          growth_score?: number | null
+          id?: string
+          last_learned_at?: string | null
+          learning_progress?: number | null
+          model_version?: string | null
+          passport_id?: string | null
+          performance_trend?: Json
+          risk_indicators?: Json
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "worker_twins_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "worker_twins_passport_id_fkey"
+            columns: ["passport_id"]
+            isOneToOne: false
+            referencedRelation: "workforce_passports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "worker_twins_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: true
+            referencedRelation: "blind_candidate_view"
+            referencedColumns: ["worker_id"]
+          },
+          {
+            foreignKeyName: "worker_twins_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: true
+            referencedRelation: "worker_readiness"
+            referencedColumns: ["worker_id"]
+          },
+          {
+            foreignKeyName: "worker_twins_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: true
             referencedRelation: "workers"
             referencedColumns: ["id"]
           },
