@@ -116,6 +116,18 @@ import {
 import PassportVerifications from "@/pages/passport/PassportVerifications";
 import PassportBadges from "@/pages/passport/PassportBadges";
 import PassportSharing from "@/pages/passport/PassportSharing";
+import TwinIndex from "@/pages/twin/TwinIndex";
+import TwinLayout from "@/pages/twin/TwinLayout";
+import TwinDashboard from "@/pages/twin/TwinDashboard";
+import TwinCapabilities from "@/pages/twin/TwinCapabilities";
+import TwinPredictions from "@/pages/twin/TwinPredictions";
+import TwinCareerSim from "@/pages/twin/TwinCareerSim";
+import TwinAssignmentSim from "@/pages/twin/TwinAssignmentSim";
+import TwinCoaching from "@/pages/twin/TwinCoaching";
+import TwinGrowth from "@/pages/twin/TwinGrowth";
+import TwinTimeline from "@/pages/twin/TwinTimeline";
+import TwinKnowledgeGraph from "@/pages/twin/TwinKnowledgeGraph";
+import TwinOrganization from "@/pages/twin/TwinOrganization";
 
 const queryClient = new QueryClient();
 
