@@ -226,6 +226,20 @@ const App = () => (
                   <Route path="analytics" element={<RecruitAnalytics />} />
                   <Route path="assistant" element={<RecruitAssistant />} />
                 </Route>
+                {/* Digital Worker Twin (IWOS 4.4) */}
+                <Route path="/twin" element={<TwinIndex />} />
+                <Route path="/twin/:workerId" element={<TwinLayout />}>
+                  <Route index element={<TwinDashboard />} />
+                  <Route path="capabilities" element={<TwinCapabilities />} />
+                  <Route path="predictions" element={<TwinPredictions />} />
+                  <Route path="career" element={<TwinCareerSim />} />
+                  <Route path="assignments" element={<TwinAssignmentSim />} />
+                  <Route path="coaching" element={<TwinCoaching />} />
+                  <Route path="growth" element={<TwinGrowth />} />
+                  <Route path="timeline" element={<TwinTimeline />} />
+                  <Route path="knowledge" element={<TwinKnowledgeGraph />} />
+                  <Route path="organization" element={<TwinOrganization />} />
+                </Route>
                 {/* Workforce Passport (IWOS Build 4.1) */}
                 <Route path="/passport" element={<PassportRedirect />} />
                 <Route path="/passport/:passportId" element={<PassportLayout />}>
