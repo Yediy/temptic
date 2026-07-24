@@ -19,7 +19,7 @@ export default function TwinPredictions() {
               <div key={p.id} className="rounded-md border p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium capitalize">{p.kind.replaceAll("_", " ")}</span>
+                    <span className="text-sm font-medium capitalize">{p.kind.replace(/_/g, " ")}</span>
                     {p.horizon ? <Badge variant="outline">{p.horizon}</Badge> : null}
                   </div>
                   {typeof p.confidence === "number" ? (

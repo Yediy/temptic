@@ -49,7 +49,7 @@ export default function TwinDashboard() {
               <ul className="space-y-2 text-sm">
                 {risks.map(([k, v]) => (
                   <li key={k} className="flex justify-between border-b py-1">
-                    <span className="capitalize">{k.replaceAll("_", " ")}</span>
+                    <span className="capitalize">{k.replace(/_/g, " ")}</span>
                     <span className="text-muted-foreground">{String(v)}</span>
                   </li>
                 ))}

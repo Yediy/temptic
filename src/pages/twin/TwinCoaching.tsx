@@ -20,7 +20,7 @@ export default function TwinCoaching() {
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
                     <p className="text-sm font-medium">{r.title}</p>
-                    <p className="text-xs text-muted-foreground capitalize">{r.kind.replaceAll("_", " ")}</p>
+                    <p className="text-xs text-muted-foreground capitalize">{r.kind.replace(/_/g, " ")}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     {typeof r.confidence === "number" ? <Badge variant="outline">{Math.round(r.confidence * 100)}%</Badge> : null}

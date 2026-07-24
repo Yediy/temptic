@@ -18,7 +18,7 @@ export default function TwinTimeline() {
               <li key={e.id}>
                 <span className="absolute -left-[5px] mt-2 h-2 w-2 rounded-full bg-primary" />
                 <div className="flex flex-wrap items-center gap-2 text-sm">
-                  <span className="font-medium capitalize">{e.event_type.replaceAll("_", " ")}</span>
+                  <span className="font-medium capitalize">{e.event_type.replace(/_/g, " ")}</span>
                   <span className="text-xs text-muted-foreground">{e.source}</span>
                   <span className="ml-auto text-xs text-muted-foreground">
                     {new Date(e.occurred_at).toLocaleString()}
