@@ -16,6 +16,7 @@ const adminItems = [
   { label: "Notifications", icon: AlertTriangle, path: "/admin/notifications" },
   { label: "Rate Limits", icon: Gauge, path: "/admin/rate-limits" },
   { label: "WOIC Admin", icon: Brain, path: "/woic" },
+  { label: "Worker Twins", icon: Users2, path: "/twin" },
   { label: "Handoff Pack", icon: Briefcase, path: "/handoff" },
 ];
 
