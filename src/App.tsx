@@ -236,6 +236,18 @@ const App = () => (
                   <Route path="analytics" element={<RecruitAnalytics />} />
                   <Route path="assistant" element={<RecruitAssistant />} />
                 </Route>
+                {/* Digital Time Ticket OS (IWOS 4.5) */}
+                <Route path="/tto" element={<TtoLayout />}>
+                  <Route index element={<TimeTicketDashboard />} />
+                  <Route path="live" element={<LiveLaborDashboard />} />
+                  <Route path="approvals" element={<SupervisorApprovalCenter />} />
+                  <Route path="corrections" element={<CorrectionQueue />} />
+                  <Route path="payroll" element={<PayrollPrep />} />
+                  <Route path="billing" element={<BillingPrep />} />
+                  <Route path="analytics" element={<LaborAnalytics />} />
+                  <Route path="audit" element={<AuditCenter />} />
+                  <Route path="worker" element={<WorkerTimeCenter />} />
+                </Route>
                 {/* Digital Worker Twin (IWOS 4.4) */}
                 <Route path="/twin" element={<TwinIndex />} />
                 <Route path="/twin/:workerId" element={<TwinLayout />}>
