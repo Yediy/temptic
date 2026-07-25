@@ -200,15 +200,12 @@ export function useTtoLiveLabor(agencyId: string | undefined) {
     enabled: !!agencyId,
     refetchInterval: 30_000,
     queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke("tto-live-labor", {
-        // pass via query string
-        body: null,
-        method: "GET",
-        // @ts-expect-error extended body option
-        headers: {},
-      } as Any);
-      if (error) throw error;
-      return data as { active_workers: number; total_hours_today: number; overtime_hours: number; late_arrivals: number; approval_queue: number };
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess.session?.access_token;
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tto-live-labor?agency_id=${agencyId}`;
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) throw new Error(`Live labor fetch failed: ${res.status}`);
+      return await res.json() as { active_workers: number; total_hours_today: number; overtime_hours: number; late_arrivals: number; approval_queue: number };
     },
   });
 }
