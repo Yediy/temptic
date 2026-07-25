@@ -62,7 +62,7 @@ export function useTtoPunches(ticketId: string | undefined) {
       const { data, error } = await supabase.from("tto_time_entries" as Any)
         .select("*").eq("time_ticket_id", ticketId!).order("occurred_at");
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []) as unknown as Array<Record<string, unknown>>;
     },
   });
 }
@@ -140,7 +140,7 @@ export function useTtoPayrollBatches() {
     queryKey: ["tto-payroll-batches"],
     queryFn: async () => {
       const { data, error } = await supabase.from("tto_payroll_batches" as Any).select("*").order("created_at", { ascending: false }).limit(50);
-      if (error) throw error; return data ?? [];
+      if (error) throw error; return (data ?? []) as unknown as Array<Record<string, unknown>>;
     },
   });
 }
@@ -150,7 +150,7 @@ export function useTtoBillingBatches() {
     queryKey: ["tto-billing-batches"],
     queryFn: async () => {
       const { data, error } = await supabase.from("tto_billing_batches" as Any).select("*").order("created_at", { ascending: false }).limit(50);
-      if (error) throw error; return data ?? [];
+      if (error) throw error; return (data ?? []) as unknown as Array<Record<string, unknown>>;
     },
   });
 }
@@ -162,7 +162,7 @@ export function useTtoCorrections(status?: string) {
       let q = supabase.from("tto_ticket_corrections" as Any).select("*").order("created_at", { ascending: false }).limit(200);
       if (status) q = q.eq("status", status);
       const { data, error } = await q;
-      if (error) throw error; return data ?? [];
+      if (error) throw error; return (data ?? []) as unknown as Array<Record<string, unknown>>;
     },
   });
 }
@@ -189,7 +189,7 @@ export function useTtoAuditEvents(ticketId?: string) {
       let q = supabase.from("tto_audit_events" as Any).select("*").order("occurred_at", { ascending: false }).limit(200);
       if (ticketId) q = q.eq("time_ticket_id", ticketId);
       const { data, error } = await q;
-      if (error) throw error; return data ?? [];
+      if (error) throw error; return (data ?? []) as unknown as Array<Record<string, unknown>>;
     },
   });
 }
