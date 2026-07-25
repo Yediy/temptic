@@ -5187,6 +5187,651 @@ export type Database = {
           },
         ]
       }
+      tto_audit_events: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_kind: string | null
+          agency_id: string
+          device: string | null
+          id: string
+          ip_address: string | null
+          occurred_at: string
+          original_value: Json | null
+          reason: string | null
+          time_ticket_id: string | null
+          updated_value: Json | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_kind?: string | null
+          agency_id: string
+          device?: string | null
+          id?: string
+          ip_address?: string | null
+          occurred_at?: string
+          original_value?: Json | null
+          reason?: string | null
+          time_ticket_id?: string | null
+          updated_value?: Json | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_kind?: string | null
+          agency_id?: string
+          device?: string | null
+          id?: string
+          ip_address?: string | null
+          occurred_at?: string
+          original_value?: Json | null
+          reason?: string | null
+          time_ticket_id?: string | null
+          updated_value?: Json | null
+        }
+        Relationships: []
+      }
+      tto_billable_hours: {
+        Row: {
+          agency_id: string
+          amount: number | null
+          bill_rate: number | null
+          client_id: string | null
+          created_at: string
+          hours: number | null
+          id: string
+          line_kind: string
+          metadata: Json | null
+          time_ticket_id: string
+        }
+        Insert: {
+          agency_id: string
+          amount?: number | null
+          bill_rate?: number | null
+          client_id?: string | null
+          created_at?: string
+          hours?: number | null
+          id?: string
+          line_kind: string
+          metadata?: Json | null
+          time_ticket_id: string
+        }
+        Update: {
+          agency_id?: string
+          amount?: number | null
+          bill_rate?: number | null
+          client_id?: string | null
+          created_at?: string
+          hours?: number | null
+          id?: string
+          line_kind?: string
+          metadata?: Json | null
+          time_ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tto_billable_hours_time_ticket_id_fkey"
+            columns: ["time_ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tto_time_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tto_billing_batches: {
+        Row: {
+          agency_id: string
+          client_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          period_end: string
+          period_start: string
+          status: string
+          ticket_ids: string[] | null
+          totals: Json | null
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          period_end: string
+          period_start: string
+          status?: string
+          ticket_ids?: string[] | null
+          totals?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          period_end?: string
+          period_start?: string
+          status?: string
+          ticket_ids?: string[] | null
+          totals?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tto_break_entries: {
+        Row: {
+          agency_id: string
+          break_end: string | null
+          break_start: string
+          created_at: string
+          id: string
+          minutes: number | null
+          paid: boolean | null
+          time_ticket_id: string
+        }
+        Insert: {
+          agency_id: string
+          break_end?: string | null
+          break_start: string
+          created_at?: string
+          id?: string
+          minutes?: number | null
+          paid?: boolean | null
+          time_ticket_id: string
+        }
+        Update: {
+          agency_id?: string
+          break_end?: string | null
+          break_start?: string
+          created_at?: string
+          id?: string
+          minutes?: number | null
+          paid?: boolean | null
+          time_ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tto_break_entries_time_ticket_id_fkey"
+            columns: ["time_ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tto_time_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tto_expense_entries: {
+        Row: {
+          agency_id: string
+          amount: number
+          approved: boolean | null
+          created_at: string
+          id: string
+          kind: string
+          note: string | null
+          quantity: number | null
+          receipt_url: string | null
+          time_ticket_id: string
+          worker_id: string
+        }
+        Insert: {
+          agency_id: string
+          amount?: number
+          approved?: boolean | null
+          created_at?: string
+          id?: string
+          kind: string
+          note?: string | null
+          quantity?: number | null
+          receipt_url?: string | null
+          time_ticket_id: string
+          worker_id: string
+        }
+        Update: {
+          agency_id?: string
+          amount?: number
+          approved?: boolean | null
+          created_at?: string
+          id?: string
+          kind?: string
+          note?: string | null
+          quantity?: number | null
+          receipt_url?: string | null
+          time_ticket_id?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tto_expense_entries_time_ticket_id_fkey"
+            columns: ["time_ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tto_time_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tto_gps_events: {
+        Row: {
+          accuracy_m: number | null
+          agency_id: string
+          id: string
+          latitude: number
+          longitude: number
+          occurred_at: string
+          time_ticket_id: string | null
+          worker_id: string
+        }
+        Insert: {
+          accuracy_m?: number | null
+          agency_id: string
+          id?: string
+          latitude: number
+          longitude: number
+          occurred_at?: string
+          time_ticket_id?: string | null
+          worker_id: string
+        }
+        Update: {
+          accuracy_m?: number | null
+          agency_id?: string
+          id?: string
+          latitude?: number
+          longitude?: number
+          occurred_at?: string
+          time_ticket_id?: string | null
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tto_gps_events_time_ticket_id_fkey"
+            columns: ["time_ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tto_time_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tto_labor_costs: {
+        Row: {
+          agency_id: string
+          amount: number | null
+          created_at: string
+          hours: number | null
+          id: string
+          line_kind: string
+          metadata: Json | null
+          rate: number | null
+          time_ticket_id: string
+          worker_id: string
+        }
+        Insert: {
+          agency_id: string
+          amount?: number | null
+          created_at?: string
+          hours?: number | null
+          id?: string
+          line_kind: string
+          metadata?: Json | null
+          rate?: number | null
+          time_ticket_id: string
+          worker_id: string
+        }
+        Update: {
+          agency_id?: string
+          amount?: number | null
+          created_at?: string
+          hours?: number | null
+          id?: string
+          line_kind?: string
+          metadata?: Json | null
+          rate?: number | null
+          time_ticket_id?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tto_labor_costs_time_ticket_id_fkey"
+            columns: ["time_ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tto_time_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tto_payroll_batches: {
+        Row: {
+          agency_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          period_end: string
+          period_start: string
+          status: string
+          ticket_ids: string[] | null
+          totals: Json | null
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          period_end: string
+          period_start: string
+          status?: string
+          ticket_ids?: string[] | null
+          totals?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          period_end?: string
+          period_start?: string
+          status?: string
+          ticket_ids?: string[] | null
+          totals?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tto_shift_events: {
+        Row: {
+          agency_id: string
+          created_at: string
+          detail: Json | null
+          event_type: string
+          id: string
+          occurred_at: string
+          time_ticket_id: string
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          detail?: Json | null
+          event_type: string
+          id?: string
+          occurred_at?: string
+          time_ticket_id: string
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          detail?: Json | null
+          event_type?: string
+          id?: string
+          occurred_at?: string
+          time_ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tto_shift_events_time_ticket_id_fkey"
+            columns: ["time_ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tto_time_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tto_ticket_approvals: {
+        Row: {
+          agency_id: string
+          approver_id: string | null
+          approver_kind: string
+          channel: string | null
+          comment: string | null
+          created_at: string
+          decided_at: string
+          decision: string
+          id: string
+          time_ticket_id: string
+        }
+        Insert: {
+          agency_id: string
+          approver_id?: string | null
+          approver_kind?: string
+          channel?: string | null
+          comment?: string | null
+          created_at?: string
+          decided_at?: string
+          decision: string
+          id?: string
+          time_ticket_id: string
+        }
+        Update: {
+          agency_id?: string
+          approver_id?: string | null
+          approver_kind?: string
+          channel?: string | null
+          comment?: string | null
+          created_at?: string
+          decided_at?: string
+          decision?: string
+          id?: string
+          time_ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tto_ticket_approvals_time_ticket_id_fkey"
+            columns: ["time_ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tto_time_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tto_ticket_corrections: {
+        Row: {
+          agency_id: string
+          created_at: string
+          evidence: Json | null
+          id: string
+          proposed_changes: Json | null
+          reason: string
+          requested_by: string | null
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          time_ticket_id: string
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          evidence?: Json | null
+          id?: string
+          proposed_changes?: Json | null
+          reason: string
+          requested_by?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          time_ticket_id: string
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          evidence?: Json | null
+          id?: string
+          proposed_changes?: Json | null
+          reason?: string
+          requested_by?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          time_ticket_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tto_ticket_corrections_time_ticket_id_fkey"
+            columns: ["time_ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tto_time_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tto_time_entries: {
+        Row: {
+          accuracy_m: number | null
+          agency_id: string
+          created_at: string
+          device_id: string | null
+          id: string
+          kind: Database["public"]["Enums"]["tto_punch_kind"]
+          latitude: number | null
+          longitude: number | null
+          metadata: Json | null
+          occurred_at: string
+          source: Database["public"]["Enums"]["tto_punch_source"]
+          time_ticket_id: string
+          worker_id: string
+        }
+        Insert: {
+          accuracy_m?: number | null
+          agency_id: string
+          created_at?: string
+          device_id?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["tto_punch_kind"]
+          latitude?: number | null
+          longitude?: number | null
+          metadata?: Json | null
+          occurred_at?: string
+          source?: Database["public"]["Enums"]["tto_punch_source"]
+          time_ticket_id: string
+          worker_id: string
+        }
+        Update: {
+          accuracy_m?: number | null
+          agency_id?: string
+          created_at?: string
+          device_id?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["tto_punch_kind"]
+          latitude?: number | null
+          longitude?: number | null
+          metadata?: Json | null
+          occurred_at?: string
+          source?: Database["public"]["Enums"]["tto_punch_source"]
+          time_ticket_id?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tto_time_entries_time_ticket_id_fkey"
+            columns: ["time_ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tto_time_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tto_time_tickets: {
+        Row: {
+          actual_end: string | null
+          actual_start: string | null
+          agency_id: string
+          anomalies: Json | null
+          approved_at: string | null
+          approved_by: string | null
+          assignment_id: string | null
+          break_minutes: number | null
+          client_id: string | null
+          created_at: string
+          double_time_hours: number | null
+          id: string
+          mileage: number | null
+          overtime_hours: number | null
+          regular_hours: number | null
+          scheduled_end: string | null
+          scheduled_start: string | null
+          shift_id: string | null
+          site_id: string | null
+          status: Database["public"]["Enums"]["tto_ticket_status"]
+          submitted_at: string | null
+          supervisor_notes: string | null
+          travel_minutes: number | null
+          updated_at: string
+          work_date: string
+          worker_id: string
+          worker_notes: string | null
+        }
+        Insert: {
+          actual_end?: string | null
+          actual_start?: string | null
+          agency_id: string
+          anomalies?: Json | null
+          approved_at?: string | null
+          approved_by?: string | null
+          assignment_id?: string | null
+          break_minutes?: number | null
+          client_id?: string | null
+          created_at?: string
+          double_time_hours?: number | null
+          id?: string
+          mileage?: number | null
+          overtime_hours?: number | null
+          regular_hours?: number | null
+          scheduled_end?: string | null
+          scheduled_start?: string | null
+          shift_id?: string | null
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["tto_ticket_status"]
+          submitted_at?: string | null
+          supervisor_notes?: string | null
+          travel_minutes?: number | null
+          updated_at?: string
+          work_date: string
+          worker_id: string
+          worker_notes?: string | null
+        }
+        Update: {
+          actual_end?: string | null
+          actual_start?: string | null
+          agency_id?: string
+          anomalies?: Json | null
+          approved_at?: string | null
+          approved_by?: string | null
+          assignment_id?: string | null
+          break_minutes?: number | null
+          client_id?: string | null
+          created_at?: string
+          double_time_hours?: number | null
+          id?: string
+          mileage?: number | null
+          overtime_hours?: number | null
+          regular_hours?: number | null
+          scheduled_end?: string | null
+          scheduled_start?: string | null
+          shift_id?: string | null
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["tto_ticket_status"]
+          submitted_at?: string | null
+          supervisor_notes?: string | null
+          travel_minutes?: number | null
+          updated_at?: string
+          work_date?: string
+          worker_id?: string
+          worker_notes?: string | null
+        }
+        Relationships: []
+      }
       ttos_ai_decisions: {
         Row: {
           agency_id: string
@@ -7898,6 +8543,24 @@ export type Database = {
         | "expired"
         | "revoked"
       training_lesson_type: "video" | "reading" | "quiz"
+      tto_punch_kind: "clock_in" | "clock_out" | "break_start" | "break_end"
+      tto_punch_source:
+        | "mobile"
+        | "portal"
+        | "qr"
+        | "nfc"
+        | "supervisor"
+        | "system"
+      tto_ticket_status:
+        | "open"
+        | "in_progress"
+        | "submitted"
+        | "approved"
+        | "rejected"
+        | "corrected"
+        | "payroll_ready"
+        | "billing_ready"
+        | "closed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -8140,6 +8803,26 @@ export const Constants = {
         "revoked",
       ],
       training_lesson_type: ["video", "reading", "quiz"],
+      tto_punch_kind: ["clock_in", "clock_out", "break_start", "break_end"],
+      tto_punch_source: [
+        "mobile",
+        "portal",
+        "qr",
+        "nfc",
+        "supervisor",
+        "system",
+      ],
+      tto_ticket_status: [
+        "open",
+        "in_progress",
+        "submitted",
+        "approved",
+        "rejected",
+        "corrected",
+        "payroll_ready",
+        "billing_ready",
+        "closed",
+      ],
     },
   },
 } as const
