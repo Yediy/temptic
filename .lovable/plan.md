@@ -1,91 +1,82 @@
 
-# Temptic Recruit OS — Operating Profile Build (IWOS Build 4.0)
+# IWOS 4.5 — Digital Time Ticket OS
 
-Recruit OS becomes a **profile layer** on top of existing IWOS (WOIC + TTOS). It **calls** shared services — it does not duplicate identity, workflow, document, comms, compliance, AI, or automation engines.
+Purely additive layer on top of the existing Temp Tic stack. Nothing in TTOS, WOIC, Recruit, Onboarding, Passport, Twin, Scheduling, or the legacy paper ticket system is modified. All new tables use the `tto_*` prefix (Time-Ticket OS) to avoid colliding with the existing `tickets` / `ticket_*` paper-ticket schema.
 
-## Guardrails
-- Additive migrations only. No changes to existing `woic_*`, `ttos_*`, or core tables.
-- All AI/recommendation calls route through `woic-api` / `woic-recommend`.
-- All workflow stages, notifications, tasks, and events route through TTOS (`ttos_*`, `ttos-dispatch`).
-- Multi-tenant isolation via existing `agency_id` + RLS pattern (has_role, requireAgencyMember).
-- No stack change. React + Vite + Supabase.
+## Scope
 
-## Reuse map (do not rebuild)
-| Concern | Existing service used |
-|---|---|
-| Identity | `woic_identities`, `woic_identity_memberships` |
-| Workers/base profile | `workers`, `worker_profiles`, `worker_skills`, `worker_credentials`, `worker_documents` |
-| Jobs (base) | `job_orders`, `job_requirements` |
-| Clients | `clients`, `client_sites`, `client_signers` |
-| Pipelines | `applications`, `candidate_submissions`, `interviews`, `offers`, `placements`, `assignments` |
-| Workflow stages | TTOS automations + `ttos_tasks` |
-| AI matching | `woic-recommend`, `woic_recommendations` |
-| Knowledge / resume intel | `woic_knowledge_*` + existing `parse-resume` edge function |
-| Notifications/comms | `ttos_notifications`, `ttos_messages` |
-| Compliance | `woic_compliance_*` |
-| Analytics/predictions | `woic_prediction_*` |
+Digital time capture (clock in/out, breaks, GPS, photos), supervisor approvals, AI validation via WOIC, worker correction center, payroll/billing prep, live labor dashboard, audit trail, and mobile experience.
 
-## New schema (additive, Recruit-OS-specific only)
+## Database (single additive migration)
 
-Only fields the existing tables lack:
+New tables, all tenant-scoped by `agency_id` with RLS, GRANTs, timestamps, and update triggers:
 
-- `recruit_candidate_scores` — `agency_id`, `worker_id`, `reliability_score`, `reputation_score`, `performance_score`, `last_computed_at`, `factors jsonb`.
-- `recruit_talent_preferences` — `agency_id`, `worker_id`, `preferred_roles text[]`, `preferred_locations text[]`, `min_pay_rate numeric`, `max_travel_miles int`, `availability jsonb`, `remote_ok bool`.
-- `recruit_marketplace_opportunities` — `agency_id`, `job_order_id`, `kind` (`job|training|certification|advancement`), `visibility` (`public|invited|network`), `published_at`, `expires_at`, `payload jsonb`.
-- `recruit_marketplace_interest` — `opportunity_id`, `worker_id`, `status` (`saved|interested|applied|dismissed`), timestamps.
-- `recruit_pipelines` — `agency_id`, `name`, `is_default bool`, `job_order_id?` (nullable = agency default).
-- `recruit_pipeline_stages` — `pipeline_id`, `key`, `label`, `position int`, `stage_type` (`sourcing|screening|interview|submission|offer|onboarding|active|closed`).
-- `recruit_pipeline_entries` — `pipeline_id`, `stage_id`, `worker_id`, `job_order_id`, `submission_id?`, `assignment_id?`, `entered_at`, `notes`.
-- `recruit_recruiter_activity` — `agency_id`, `recruiter_id`, `verb` (`call|email|note|submit|interview|placement`), `subject_entity`, `subject_id`, `metadata jsonb`.
-- `recruit_client_contacts` — `agency_id`, `client_id`, `name`, `title`, `email`, `phone`, `is_primary bool`, `preferences jsonb` (only if not covered by `client_signers`; otherwise skip).
+- `tto_time_tickets` — one per worker per shift/day; header, status, totals
+- `tto_time_entries` — clock in/out punches with source (mobile/qr/nfc/portal)
+- `tto_break_entries` — break start/end pairs
+- `tto_shift_events` — scheduled vs actual, late, early, no-show
+- `tto_ticket_approvals` — supervisor decisions (approve/reject/correction)
+- `tto_ticket_corrections` — worker-submitted correction requests + evidence
+- `tto_labor_costs` — computed pay lines (reg/OT/DT/holiday/diff/travel/bonus)
+- `tto_billable_hours` — computed bill lines (rate/markup/travel/expenses)
+- `tto_payroll_batches` / `tto_billing_batches` — grouped export runs
+- `tto_audit_events` — immutable action log (append-only, no update/delete)
+- `tto_gps_events` — optional geolocation pings
+- `tto_expense_entries` — per-diem, mileage, receipts
 
-Every new public table gets GRANTs (auth + service_role) + RLS scoped by `agency_id` via `agency_members`, mirroring existing patterns.
+Status enum: `open | in_progress | submitted | approved | rejected | corrected | payroll_ready | billing_ready | closed`.
 
-## Edge functions (thin — reuse WOIC/TTOS)
-- `recruit-score-candidate` → aggregates worker signals, writes `recruit_candidate_scores`, invokes `woic-recommend` for skill ranking.
-- `recruit-match-job` → wraps `woic-recommend` with `subject_entity='job'`, persists top-N results into `woic_recommendations`.
-- `recruit-recruiter-assistant` → routes to Lovable AI gateway (chat completions) with tools that fetch candidates via authenticated client; returns draft messages, summaries, next actions. All AI runs recorded in `ai_runs` + `woic_learning_history`.
-- `recruit-pipeline-advance` → moves a pipeline entry, emits TTOS event, creates TTOS task if stage requires action.
+Grants: `authenticated` for read/insert on rows they own or supervise; `service_role` all. RLS via existing `has_role`, `current_user_agency_ids`, and worker/client ownership helpers.
 
-## Frontend (new module, `agency` group)
+## Edge Functions
 
-New route group `/recruit/*` behind existing `ProtectedRoute` + agency_member check:
+- `tto-clock` — validates + inserts punch, emits TTOS `time.clock_in` / `time.clock_out`
+- `tto-submit-ticket` — closes ticket, runs WOIC validation, sets `submitted`
+- `tto-approve-ticket` — supervisor approve/reject/correction, writes audit
+- `tto-validate` — WOIC-backed anomaly scan (missing punches, overlaps, OT, geo mismatch, cert issues)
+- `tto-prepare-payroll` — computes reg/OT/DT/holiday/diff for a batch
+- `tto-prepare-billing` — computes bill lines with markup/expenses
+- `tto-live-labor` — aggregated live dashboard read (active workers, hours, cost)
 
-- `/recruit` — Recruit Dashboard (KPIs: time-to-fill, placement rate, pipeline health, revenue forecast — all from woic-api + supabase views).
-- `/recruit/candidates` — Candidate Database (list of `workers` + score + skills + AI summary).
-- `/recruit/candidates/:id` — Candidate 360 (existing passport + scores + submissions + activity + AI insights).
-- `/recruit/marketplace` — Talent Marketplace (opportunities feed, worker-facing subroute at `/worker/opportunities`).
-- `/recruit/jobs` — Job Orders (extends existing `job_orders`, adds pipeline + AI match tab).
-- `/recruit/jobs/:id` — Job order detail with AI-matched candidates panel (calls `recruit-match-job`).
-- `/recruit/clients` — Client CRM (extends `clients` with contacts, revenue, communication timeline via TTOS).
-- `/recruit/clients/:id` — Client detail.
-- `/recruit/pipeline` — Kanban of `recruit_pipeline_entries` grouped by stage.
-- `/recruit/interviews` — Interview list + scheduling (extends `interviews`).
-- `/recruit/placements` — Placement tracking (extends `placements`).
-- `/recruit/analytics` — Workforce analytics (WOIC predictions + saved reports).
-- `/recruit/assistant` — AI Recruiter Center (chat UI + tool calls).
+Every function uses `withSentry`, `_shared/auth.ts`, standardized JSON error contract, and emits TTOS events via the existing `ttos_events` table.
 
-Add "Recruit OS" section to `AppSidebar` (operations group) with these entries.
+## Client hooks
 
-## Hooks
-- `src/hooks/recruit/use-candidates.ts`, `use-job-orders.ts`, `use-pipeline.ts`, `use-marketplace.ts`, `use-recruit-assistant.ts` — all thin wrappers over supabase client + `supabase.functions.invoke`.
+- `src/hooks/tto/use-time-tickets.ts`
+- `src/hooks/tto/use-approvals.ts`
+- `src/hooks/tto/use-corrections.ts`
+- `src/hooks/tto/use-live-labor.ts`
+- `src/hooks/tto/use-payroll-billing.ts`
 
-## Security
-- Sensitive demographics (`eeo_demographics`) explicitly excluded from any AI ranking payload — enforced in `recruit-match-job` by selecting an allowlisted column set.
-- All recommendations write `explanation` into `woic_recommendations.reasoning` so UI can render "why".
-- Marketplace visibility gated by worker consent (`recruit_talent_preferences.remote_ok` / opt-in flags).
+## UI (new routes, no redesign of existing pages)
 
-## Build phases
+Under `src/pages/tto/`:
 
-1. **Schema migration** (one migration) — all `recruit_*` tables + GRANTs + RLS + `updated_at` triggers. Extend `agency` module registry.
-2. **Edge functions** — `recruit-score-candidate`, `recruit-match-job`, `recruit-pipeline-advance`, `recruit-recruiter-assistant`.
-3. **Client hooks + shared types** (`src/lib/recruit/types.ts`, `src/hooks/recruit/*`).
-4. **Route scaffolding** — layout, sidebar entries, `ProtectedRoute` wrappers, empty pages with `AsyncState`.
-5. **Page implementations** — Dashboard → Candidates → Jobs → Pipeline → Marketplace → Clients → Interviews → Placements → Analytics → Assistant.
-6. **Verification** — build + typecheck; Playwright smoke on `/recruit` dashboard; confirm no duplicate WOIC/TTOS logic introduced.
+- `TtoLayout.tsx` — tabbed shell
+- `TimeTicketDashboard.tsx` — agency overview
+- `WorkerTimeCenter.tsx` — worker clock in/out, my tickets, corrections
+- `SupervisorApprovalCenter.tsx` — queue, bulk approve, edit, comment
+- `CorrectionQueue.tsx` — corrections triage
+- `PayrollPrep.tsx` — batches, exceptions, export
+- `BillingPrep.tsx` — batches, invoice line items
+- `LiveLaborDashboard.tsx` — real-time via Supabase Realtime channel
+- `LaborAnalytics.tsx` — trends, OT, approval delay, no-show rate
+- `AuditCenter.tsx` — immutable event log viewer
 
-## Deliverable
-A new "Recruit OS" module accessible from the sidebar that agencies can use to run the full staffing workflow, with every intelligence surface delegating to WOIC and every workflow/notification surface delegating to TTOS.
+Routes registered in `src/App.tsx`. Sidebar entry "Time Ticket OS" added to `AppSidebar.tsx` (Agency portal only). Worker portal gets a "Time" tab; Client portal gets an "Approvals" tab — both additive.
 
-## Confirmation needed
-This is a large surface (1 migration, 4 edge functions, ~11 pages, ~5 hook files). Reply **"proceed"** to build it in order, or tell me to trim scope (e.g. ship phases 1–4 first, then pages incrementally).
+## Technical details
+
+- All new tables prefixed `tto_` to avoid clashing with existing `tickets` table (paper legacy).
+- All state transitions go through Edge Functions, matching the existing server-side transition rule.
+- WOIC integration reuses `woic-api` dispatcher; no new WOIC tables.
+- TTOS integration reuses `ttos_events` + `ttos-dispatch`; no new TTOS tables.
+- Audit uses `tto_audit_events` with RLS blocking UPDATE/DELETE for authenticated users, matching existing `ticket_signatures` immutability pattern.
+- Realtime enabled on `tto_time_entries` and `tto_time_tickets` for the live dashboard.
+- Mobile-first UI reusing existing `MobileBottomNav` and Tailwind tokens; no new palette.
+
+## Out of scope
+
+- No changes to the existing paper `tickets` flow — it stays intact.
+- NFC check-in stubbed (schema field only, no runtime).
+- No new payment/payroll provider integration; export is CSV to match existing bulk payroll export pattern.

@@ -128,6 +128,16 @@ import TwinGrowth from "@/pages/twin/TwinGrowth";
 import TwinTimeline from "@/pages/twin/TwinTimeline";
 import TwinKnowledgeGraph from "@/pages/twin/TwinKnowledgeGraph";
 import TwinOrganization from "@/pages/twin/TwinOrganization";
+import TtoLayout from "@/pages/tto/TtoLayout";
+import TimeTicketDashboard from "@/pages/tto/TimeTicketDashboard";
+import WorkerTimeCenter from "@/pages/tto/WorkerTimeCenter";
+import SupervisorApprovalCenter from "@/pages/tto/SupervisorApprovalCenter";
+import CorrectionQueue from "@/pages/tto/CorrectionQueue";
+import PayrollPrep from "@/pages/tto/PayrollPrep";
+import BillingPrep from "@/pages/tto/BillingPrep";
+import LiveLaborDashboard from "@/pages/tto/LiveLaborDashboard";
+import LaborAnalytics from "@/pages/tto/LaborAnalytics";
+import AuditCenter from "@/pages/tto/AuditCenter";
 
 const queryClient = new QueryClient();
 
@@ -225,6 +235,18 @@ const App = () => (
                   <Route path="placements" element={<RecruitPlacements />} />
                   <Route path="analytics" element={<RecruitAnalytics />} />
                   <Route path="assistant" element={<RecruitAssistant />} />
+                </Route>
+                {/* Digital Time Ticket OS (IWOS 4.5) */}
+                <Route path="/tto" element={<TtoLayout />}>
+                  <Route index element={<TimeTicketDashboard />} />
+                  <Route path="live" element={<LiveLaborDashboard />} />
+                  <Route path="approvals" element={<SupervisorApprovalCenter />} />
+                  <Route path="corrections" element={<CorrectionQueue />} />
+                  <Route path="payroll" element={<PayrollPrep />} />
+                  <Route path="billing" element={<BillingPrep />} />
+                  <Route path="analytics" element={<LaborAnalytics />} />
+                  <Route path="audit" element={<AuditCenter />} />
+                  <Route path="worker" element={<WorkerTimeCenter />} />
                 </Route>
                 {/* Digital Worker Twin (IWOS 4.4) */}
                 <Route path="/twin" element={<TwinIndex />} />
