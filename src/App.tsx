@@ -128,6 +128,16 @@ import TwinGrowth from "@/pages/twin/TwinGrowth";
 import TwinTimeline from "@/pages/twin/TwinTimeline";
 import TwinKnowledgeGraph from "@/pages/twin/TwinKnowledgeGraph";
 import TwinOrganization from "@/pages/twin/TwinOrganization";
+import TtoLayout from "@/pages/tto/TtoLayout";
+import TimeTicketDashboard from "@/pages/tto/TimeTicketDashboard";
+import WorkerTimeCenter from "@/pages/tto/WorkerTimeCenter";
+import SupervisorApprovalCenter from "@/pages/tto/SupervisorApprovalCenter";
+import CorrectionQueue from "@/pages/tto/CorrectionQueue";
+import PayrollPrep from "@/pages/tto/PayrollPrep";
+import BillingPrep from "@/pages/tto/BillingPrep";
+import LiveLaborDashboard from "@/pages/tto/LiveLaborDashboard";
+import LaborAnalytics from "@/pages/tto/LaborAnalytics";
+import AuditCenter from "@/pages/tto/AuditCenter";
 
 const queryClient = new QueryClient();
 
