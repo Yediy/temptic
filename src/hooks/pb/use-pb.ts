@@ -12,7 +12,7 @@ export function usePayrollRuns(agencyId?: string) {
       const { data, error } = await supabase.from("pb_payroll_runs" as Any).select("*")
         .eq("agency_id", agencyId!).order("period_end", { ascending: false }).limit(100);
       if (error) throw error;
-      return (data ?? []) as Array<Record<string, unknown>>;
+      return (data ?? []) as unknown as Array<Record<string, unknown>>;
     },
   });
 }
@@ -23,7 +23,7 @@ export function usePayrollRun(id?: string) {
     queryFn: async () => {
       const { data, error } = await supabase.from("pb_payroll_runs" as Any).select("*").eq("id", id!).maybeSingle();
       if (error) throw error;
-      return data as Record<string, unknown> | null;
+      return data as unknown as Record<string, unknown> | null;
     },
   });
 }
@@ -34,7 +34,7 @@ export function usePayrollItems(runId?: string) {
     queryFn: async () => {
       const { data, error } = await supabase.from("pb_payroll_items" as Any).select("*").eq("run_id", runId!);
       if (error) throw error;
-      return (data ?? []) as Array<Record<string, unknown>>;
+      return (data ?? []) as unknown as Array<Record<string, unknown>>;
     },
   });
 }
@@ -45,7 +45,7 @@ export function usePayrollExceptions(runId?: string) {
     queryFn: async () => {
       const { data, error } = await supabase.from("pb_payroll_exceptions" as Any).select("*").eq("run_id", runId!);
       if (error) throw error;
-      return (data ?? []) as Array<Record<string, unknown>>;
+      return (data ?? []) as unknown as Array<Record<string, unknown>>;
     },
   });
 }
@@ -108,7 +108,7 @@ export function useInvoices(agencyId?: string, status?: string) {
       if (status) q = q.eq("status", status);
       const { data, error } = await q;
       if (error) throw error;
-      return (data ?? []) as Array<Record<string, unknown>>;
+      return (data ?? []) as unknown as Array<Record<string, unknown>>;
     },
   });
 }
@@ -119,7 +119,7 @@ export function useInvoice(id?: string) {
     queryFn: async () => {
       const { data, error } = await supabase.from("pb_invoices" as Any).select("*").eq("id", id!).maybeSingle();
       if (error) throw error;
-      return data as Record<string, unknown> | null;
+      return data as unknown as Record<string, unknown> | null;
     },
   });
 }
@@ -130,7 +130,7 @@ export function useInvoiceItems(invoiceId?: string) {
     queryFn: async () => {
       const { data, error } = await supabase.from("pb_invoice_items" as Any).select("*").eq("invoice_id", invoiceId!);
       if (error) throw error;
-      return (data ?? []) as Array<Record<string, unknown>>;
+      return (data ?? []) as unknown as Array<Record<string, unknown>>;
     },
   });
 }
@@ -164,7 +164,7 @@ export function useInvoicePayments(invoiceId?: string) {
     queryFn: async () => {
       const { data, error } = await supabase.from("pb_invoice_payments" as Any).select("*").eq("invoice_id", invoiceId!);
       if (error) throw error;
-      return (data ?? []) as Array<Record<string, unknown>>;
+      return (data ?? []) as unknown as Array<Record<string, unknown>>;
     },
   });
 }
@@ -191,7 +191,7 @@ export function usePayRates(agencyId?: string) {
     queryFn: async () => {
       const { data, error } = await supabase.from("pb_worker_pay_rates" as Any).select("*").eq("agency_id", agencyId!);
       if (error) throw error;
-      return (data ?? []) as Array<Record<string, unknown>>;
+      return (data ?? []) as unknown as Array<Record<string, unknown>>;
     },
   });
 }
@@ -202,7 +202,7 @@ export function useBillRates(agencyId?: string) {
     queryFn: async () => {
       const { data, error } = await supabase.from("pb_client_bill_rates" as Any).select("*").eq("agency_id", agencyId!);
       if (error) throw error;
-      return (data ?? []) as Array<Record<string, unknown>>;
+      return (data ?? []) as unknown as Array<Record<string, unknown>>;
     },
   });
 }
@@ -235,7 +235,7 @@ export function useCommissionRules(agencyId?: string) {
     queryFn: async () => {
       const { data, error } = await supabase.from("pb_commission_rules" as Any).select("*").eq("agency_id", agencyId!);
       if (error) throw error;
-      return (data ?? []) as Array<Record<string, unknown>>;
+      return (data ?? []) as unknown as Array<Record<string, unknown>>;
     },
   });
 }
@@ -247,7 +247,7 @@ export function useCommissionRecords(agencyId?: string) {
       const { data, error } = await supabase.from("pb_commission_records" as Any).select("*")
         .eq("agency_id", agencyId!).order("created_at", { ascending: false }).limit(200);
       if (error) throw error;
-      return (data ?? []) as Array<Record<string, unknown>>;
+      return (data ?? []) as unknown as Array<Record<string, unknown>>;
     },
   });
 }
@@ -272,7 +272,7 @@ export function useForecasts(agencyId?: string) {
       const { data, error } = await supabase.from("pb_financial_forecasts" as Any).select("*")
         .eq("agency_id", agencyId!).order("generated_at", { ascending: false }).limit(50);
       if (error) throw error;
-      return (data ?? []) as Array<Record<string, unknown>>;
+      return (data ?? []) as unknown as Array<Record<string, unknown>>;
     },
   });
 }
@@ -284,7 +284,7 @@ export function useMarginAnalysis(agencyId?: string) {
       const { data, error } = await supabase.from("pb_margin_analysis" as Any).select("*")
         .eq("agency_id", agencyId!).order("period_end", { ascending: false }).limit(50);
       if (error) throw error;
-      return (data ?? []) as Array<Record<string, unknown>>;
+      return (data ?? []) as unknown as Array<Record<string, unknown>>;
     },
   });
 }
