@@ -3210,6 +3210,645 @@ export type Database = {
           },
         ]
       }
+      pb_client_bill_rates: {
+        Row: {
+          agency_id: string
+          amount: number
+          client_id: string
+          created_at: string
+          effective_from: string
+          effective_to: string | null
+          id: string
+          markup_pct: number
+          notes: string | null
+          rate_type: string
+          role_title: string | null
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          amount?: number
+          client_id: string
+          created_at?: string
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          markup_pct?: number
+          notes?: string | null
+          rate_type: string
+          role_title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          amount?: number
+          client_id?: string
+          created_at?: string
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          markup_pct?: number
+          notes?: string | null
+          rate_type?: string
+          role_title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pb_commission_records: {
+        Row: {
+          agency_id: string
+          amount: number
+          basis_amount: number
+          created_at: string
+          id: string
+          invoice_id: string | null
+          meta: Json
+          paid_at: string | null
+          placement_id: string | null
+          rate: number
+          recruiter_id: string
+          rule_id: string | null
+          status: string
+          updated_at: string
+          worker_id: string | null
+        }
+        Insert: {
+          agency_id: string
+          amount?: number
+          basis_amount?: number
+          created_at?: string
+          id?: string
+          invoice_id?: string | null
+          meta?: Json
+          paid_at?: string | null
+          placement_id?: string | null
+          rate?: number
+          recruiter_id: string
+          rule_id?: string | null
+          status?: string
+          updated_at?: string
+          worker_id?: string | null
+        }
+        Update: {
+          agency_id?: string
+          amount?: number
+          basis_amount?: number
+          created_at?: string
+          id?: string
+          invoice_id?: string | null
+          meta?: Json
+          paid_at?: string | null
+          placement_id?: string | null
+          rate?: number
+          recruiter_id?: string
+          rule_id?: string | null
+          status?: string
+          updated_at?: string
+          worker_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pb_commission_records_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "pb_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pb_commission_records_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "pb_commission_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pb_commission_rules: {
+        Row: {
+          active: boolean
+          agency_id: string
+          config: Json
+          created_at: string
+          id: string
+          name: string
+          recruiter_id: string | null
+          rule_type: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          agency_id: string
+          config?: Json
+          created_at?: string
+          id?: string
+          name: string
+          recruiter_id?: string | null
+          rule_type: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          agency_id?: string
+          config?: Json
+          created_at?: string
+          id?: string
+          name?: string
+          recruiter_id?: string | null
+          rule_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pb_financial_forecasts: {
+        Row: {
+          agency_id: string
+          created_at: string
+          generated_at: string
+          horizon_end: string
+          horizon_start: string
+          id: string
+          metric: string
+          updated_at: string
+          value_json: Json
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          generated_at?: string
+          horizon_end: string
+          horizon_start: string
+          id?: string
+          metric: string
+          updated_at?: string
+          value_json?: Json
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          generated_at?: string
+          horizon_end?: string
+          horizon_start?: string
+          id?: string
+          metric?: string
+          updated_at?: string
+          value_json?: Json
+        }
+        Relationships: []
+      }
+      pb_invoice_items: {
+        Row: {
+          agency_id: string
+          amount: number
+          bill_rate: number
+          created_at: string
+          description: string
+          expenses: number
+          hours: number
+          id: string
+          invoice_id: string
+          markup: number
+          tax: number
+          ticket_id: string | null
+          travel: number
+          updated_at: string
+          worker_id: string | null
+        }
+        Insert: {
+          agency_id: string
+          amount?: number
+          bill_rate?: number
+          created_at?: string
+          description: string
+          expenses?: number
+          hours?: number
+          id?: string
+          invoice_id: string
+          markup?: number
+          tax?: number
+          ticket_id?: string | null
+          travel?: number
+          updated_at?: string
+          worker_id?: string | null
+        }
+        Update: {
+          agency_id?: string
+          amount?: number
+          bill_rate?: number
+          created_at?: string
+          description?: string
+          expenses?: number
+          hours?: number
+          id?: string
+          invoice_id?: string
+          markup?: number
+          tax?: number
+          ticket_id?: string | null
+          travel?: number
+          updated_at?: string
+          worker_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pb_invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "pb_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pb_invoice_payments: {
+        Row: {
+          agency_id: string
+          amount: number
+          created_at: string
+          id: string
+          invoice_id: string
+          method: string
+          provider_event_id: string | null
+          received_at: string
+          recorded_by: string | null
+          reference: string | null
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          amount: number
+          created_at?: string
+          id?: string
+          invoice_id: string
+          method: string
+          provider_event_id?: string | null
+          received_at?: string
+          recorded_by?: string | null
+          reference?: string | null
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          amount?: number
+          created_at?: string
+          id?: string
+          invoice_id?: string
+          method?: string
+          provider_event_id?: string | null
+          received_at?: string
+          recorded_by?: string | null
+          reference?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pb_invoice_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "pb_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pb_invoices: {
+        Row: {
+          agency_id: string
+          client_id: string
+          created_at: string
+          created_by: string | null
+          credits: number
+          due_at: string | null
+          id: string
+          notes: string | null
+          number: string
+          paid_at: string | null
+          period_end: string
+          period_start: string
+          sent_at: string | null
+          source_batch_id: string | null
+          status: string
+          subtotal: number
+          tax: number
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          credits?: number
+          due_at?: string | null
+          id?: string
+          notes?: string | null
+          number: string
+          paid_at?: string | null
+          period_end: string
+          period_start: string
+          sent_at?: string | null
+          source_batch_id?: string | null
+          status?: string
+          subtotal?: number
+          tax?: number
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          credits?: number
+          due_at?: string | null
+          id?: string
+          notes?: string | null
+          number?: string
+          paid_at?: string | null
+          period_end?: string
+          period_start?: string
+          sent_at?: string | null
+          source_batch_id?: string | null
+          status?: string
+          subtotal?: number
+          tax?: number
+          total?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pb_margin_analysis: {
+        Row: {
+          agency_id: string
+          computed_at: string
+          cost: number
+          created_at: string
+          gross_margin: number
+          id: string
+          net_margin: number
+          period_end: string
+          period_start: string
+          revenue: number
+          scope: string
+          scope_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          computed_at?: string
+          cost?: number
+          created_at?: string
+          gross_margin?: number
+          id?: string
+          net_margin?: number
+          period_end: string
+          period_start: string
+          revenue?: number
+          scope: string
+          scope_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          computed_at?: string
+          cost?: number
+          created_at?: string
+          gross_margin?: number
+          id?: string
+          net_margin?: number
+          period_end?: string
+          period_start?: string
+          revenue?: number
+          scope?: string
+          scope_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pb_payroll_exceptions: {
+        Row: {
+          agency_id: string
+          category: string
+          created_at: string
+          id: string
+          item_id: string | null
+          message: string
+          resolved_at: string | null
+          resolved_by: string | null
+          run_id: string
+          severity: string
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          category: string
+          created_at?: string
+          id?: string
+          item_id?: string | null
+          message: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          run_id: string
+          severity?: string
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          category?: string
+          created_at?: string
+          id?: string
+          item_id?: string | null
+          message?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          run_id?: string
+          severity?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pb_payroll_exceptions_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "pb_payroll_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pb_payroll_exceptions_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "pb_payroll_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pb_payroll_items: {
+        Row: {
+          agency_id: string
+          bonuses: number
+          created_at: string
+          deductions: number
+          dt_hours: number
+          expenses: number
+          gross_pay: number
+          holiday_hours: number
+          id: string
+          meta: Json
+          mileage: number
+          net_pay: number
+          ot_hours: number
+          per_diem: number
+          regular_hours: number
+          run_id: string
+          shift_diff: number
+          taxes: number
+          ticket_id: string | null
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          agency_id: string
+          bonuses?: number
+          created_at?: string
+          deductions?: number
+          dt_hours?: number
+          expenses?: number
+          gross_pay?: number
+          holiday_hours?: number
+          id?: string
+          meta?: Json
+          mileage?: number
+          net_pay?: number
+          ot_hours?: number
+          per_diem?: number
+          regular_hours?: number
+          run_id: string
+          shift_diff?: number
+          taxes?: number
+          ticket_id?: string | null
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          agency_id?: string
+          bonuses?: number
+          created_at?: string
+          deductions?: number
+          dt_hours?: number
+          expenses?: number
+          gross_pay?: number
+          holiday_hours?: number
+          id?: string
+          meta?: Json
+          mileage?: number
+          net_pay?: number
+          ot_hours?: number
+          per_diem?: number
+          regular_hours?: number
+          run_id?: string
+          shift_diff?: number
+          taxes?: number
+          ticket_id?: string | null
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pb_payroll_items_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "pb_payroll_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pb_payroll_runs: {
+        Row: {
+          agency_id: string
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          paid_at: string | null
+          period_end: string
+          period_start: string
+          source_batch_id: string | null
+          status: string
+          totals: Json
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          paid_at?: string | null
+          period_end: string
+          period_start: string
+          source_batch_id?: string | null
+          status?: string
+          totals?: Json
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          paid_at?: string | null
+          period_end?: string
+          period_start?: string
+          source_batch_id?: string | null
+          status?: string
+          totals?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pb_worker_pay_rates: {
+        Row: {
+          agency_id: string
+          amount: number
+          created_at: string
+          effective_from: string
+          effective_to: string | null
+          id: string
+          notes: string | null
+          rate_type: string
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          agency_id: string
+          amount?: number
+          created_at?: string
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          notes?: string | null
+          rate_type: string
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          agency_id?: string
+          amount?: number
+          created_at?: string
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          notes?: string | null
+          rate_type?: string
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: []
+      }
       pdf_documents: {
         Row: {
           file_name: string
