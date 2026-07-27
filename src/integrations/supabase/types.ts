@@ -977,6 +977,659 @@ export type Database = {
           },
         ]
       }
+      cc_activities: {
+        Row: {
+          actor_kind: string
+          actor_user_id: string | null
+          agency_id: string
+          client_id: string
+          created_at: string
+          id: string
+          metadata: Json
+          object_id: string | null
+          object_type: string | null
+          verb: string
+        }
+        Insert: {
+          actor_kind?: string
+          actor_user_id?: string | null
+          agency_id: string
+          client_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          object_id?: string | null
+          object_type?: string | null
+          verb: string
+        }
+        Update: {
+          actor_kind?: string
+          actor_user_id?: string | null
+          agency_id?: string
+          client_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          object_id?: string | null
+          object_type?: string | null
+          verb?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cc_activities_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cc_activities_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cc_analytics_snapshots: {
+        Row: {
+          agency_id: string
+          client_id: string
+          created_at: string
+          id: string
+          metrics: Json
+          period_end: string
+          period_start: string
+        }
+        Insert: {
+          agency_id: string
+          client_id: string
+          created_at?: string
+          id?: string
+          metrics?: Json
+          period_end: string
+          period_start: string
+        }
+        Update: {
+          agency_id?: string
+          client_id?: string
+          created_at?: string
+          id?: string
+          metrics?: Json
+          period_end?: string
+          period_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cc_analytics_snapshots_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cc_analytics_snapshots_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cc_audit_logs: {
+        Row: {
+          action: string
+          actor_user_id: string | null
+          agency_id: string
+          client_id: string
+          created_at: string
+          id: string
+          ip: string | null
+          payload: Json
+          target_id: string | null
+          target_type: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          actor_user_id?: string | null
+          agency_id: string
+          client_id: string
+          created_at?: string
+          id?: string
+          ip?: string | null
+          payload?: Json
+          target_id?: string | null
+          target_type?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string | null
+          agency_id?: string
+          client_id?: string
+          created_at?: string
+          id?: string
+          ip?: string | null
+          payload?: Json
+          target_id?: string | null
+          target_type?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cc_audit_logs_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cc_audit_logs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cc_client_users: {
+        Row: {
+          agency_id: string
+          client_id: string
+          created_at: string
+          custom_permissions: Json
+          id: string
+          role: Database["public"]["Enums"]["cc_user_role"]
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agency_id: string
+          client_id: string
+          created_at?: string
+          custom_permissions?: Json
+          id?: string
+          role?: Database["public"]["Enums"]["cc_user_role"]
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agency_id?: string
+          client_id?: string
+          created_at?: string
+          custom_permissions?: Json
+          id?: string
+          role?: Database["public"]["Enums"]["cc_user_role"]
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cc_client_users_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cc_client_users_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cc_documents: {
+        Row: {
+          agency_id: string
+          category: Database["public"]["Enums"]["cc_doc_category"]
+          client_id: string
+          created_at: string
+          id: string
+          metadata: Json
+          name: string
+          parent_id: string | null
+          storage_path: string
+          updated_at: string
+          uploaded_by: string | null
+          version: number
+        }
+        Insert: {
+          agency_id: string
+          category?: Database["public"]["Enums"]["cc_doc_category"]
+          client_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          name: string
+          parent_id?: string | null
+          storage_path: string
+          updated_at?: string
+          uploaded_by?: string | null
+          version?: number
+        }
+        Update: {
+          agency_id?: string
+          category?: Database["public"]["Enums"]["cc_doc_category"]
+          client_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          name?: string
+          parent_id?: string | null
+          storage_path?: string
+          updated_at?: string
+          uploaded_by?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cc_documents_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cc_documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cc_documents_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "cc_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cc_messages: {
+        Row: {
+          agency_id: string
+          attachments: Json
+          body: string
+          client_id: string
+          created_at: string
+          id: string
+          read_by: Json
+          sender_kind: string
+          sender_user_id: string | null
+          thread_id: string
+        }
+        Insert: {
+          agency_id: string
+          attachments?: Json
+          body: string
+          client_id: string
+          created_at?: string
+          id?: string
+          read_by?: Json
+          sender_kind?: string
+          sender_user_id?: string | null
+          thread_id: string
+        }
+        Update: {
+          agency_id?: string
+          attachments?: Json
+          body?: string
+          client_id?: string
+          created_at?: string
+          id?: string
+          read_by?: Json
+          sender_kind?: string
+          sender_user_id?: string | null
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cc_messages_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cc_messages_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cc_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "cc_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cc_notifications: {
+        Row: {
+          agency_id: string
+          body: string | null
+          client_id: string
+          created_at: string
+          id: string
+          kind: string
+          link: string | null
+          read_at: string | null
+          severity: string
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          agency_id: string
+          body?: string | null
+          client_id: string
+          created_at?: string
+          id?: string
+          kind: string
+          link?: string | null
+          read_at?: string | null
+          severity?: string
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          agency_id?: string
+          body?: string | null
+          client_id?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          link?: string | null
+          read_at?: string | null
+          severity?: string
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cc_notifications_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cc_notifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cc_permissions: {
+        Row: {
+          actions: string[]
+          agency_id: string
+          client_id: string
+          created_at: string
+          id: string
+          module: string
+          role: Database["public"]["Enums"]["cc_user_role"]
+          updated_at: string
+        }
+        Insert: {
+          actions?: string[]
+          agency_id: string
+          client_id: string
+          created_at?: string
+          id?: string
+          module: string
+          role: Database["public"]["Enums"]["cc_user_role"]
+          updated_at?: string
+        }
+        Update: {
+          actions?: string[]
+          agency_id?: string
+          client_id?: string
+          created_at?: string
+          id?: string
+          module?: string
+          role?: Database["public"]["Enums"]["cc_user_role"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cc_permissions_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cc_permissions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cc_requests: {
+        Row: {
+          agency_id: string
+          assignee_user_id: string | null
+          body: string | null
+          client_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          kind: Database["public"]["Enums"]["cc_request_kind"]
+          metadata: Json
+          priority: string
+          status: Database["public"]["Enums"]["cc_request_status"]
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          assignee_user_id?: string | null
+          body?: string | null
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["cc_request_kind"]
+          metadata?: Json
+          priority?: string
+          status?: Database["public"]["Enums"]["cc_request_status"]
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          assignee_user_id?: string | null
+          body?: string | null
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["cc_request_kind"]
+          metadata?: Json
+          priority?: string
+          status?: Database["public"]["Enums"]["cc_request_status"]
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cc_requests_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cc_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cc_settings: {
+        Row: {
+          agency_id: string
+          branding: Json
+          client_id: string
+          created_at: string
+          id: string
+          notification_prefs: Json
+          preferences: Json
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          branding?: Json
+          client_id: string
+          created_at?: string
+          id?: string
+          notification_prefs?: Json
+          preferences?: Json
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          branding?: Json
+          client_id?: string
+          created_at?: string
+          id?: string
+          notification_prefs?: Json
+          preferences?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cc_settings_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cc_settings_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cc_threads: {
+        Row: {
+          agency_id: string
+          client_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          kind: Database["public"]["Enums"]["cc_thread_kind"]
+          last_message_at: string | null
+          participants: Json
+          subject: string | null
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["cc_thread_kind"]
+          last_message_at?: string | null
+          participants?: Json
+          subject?: string | null
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["cc_thread_kind"]
+          last_message_at?: string | null
+          participants?: Json
+          subject?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cc_threads_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cc_threads_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cc_workspaces: {
+        Row: {
+          agency_id: string
+          client_id: string
+          created_at: string
+          id: string
+          name: string
+          settings: Json
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          client_id: string
+          created_at?: string
+          id?: string
+          name: string
+          settings?: Json
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          client_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          settings?: Json
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cc_workspaces_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cc_workspaces_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_invites: {
         Row: {
           accepted_at: string | null
@@ -9111,6 +9764,34 @@ export type Database = {
         | "placed"
         | "rejected"
         | "withdrawn"
+      cc_doc_category:
+        | "contract"
+        | "msa"
+        | "sow"
+        | "insurance"
+        | "compliance"
+        | "invoice"
+        | "safety"
+        | "training"
+        | "other"
+      cc_request_kind:
+        | "additional_workers"
+        | "replacement"
+        | "schedule_change"
+        | "payroll_question"
+        | "billing_question"
+        | "compliance_review"
+        | "general"
+      cc_request_status: "open" | "in_progress" | "resolved" | "closed"
+      cc_thread_kind: "agency" | "worker" | "group"
+      cc_user_role:
+        | "corporate_admin"
+        | "branch_manager"
+        | "hiring_manager"
+        | "project_manager"
+        | "finance"
+        | "read_only"
+        | "custom"
       decision_type:
         | "advance"
         | "reject"
@@ -9362,6 +10043,37 @@ export const Constants = {
         "placed",
         "rejected",
         "withdrawn",
+      ],
+      cc_doc_category: [
+        "contract",
+        "msa",
+        "sow",
+        "insurance",
+        "compliance",
+        "invoice",
+        "safety",
+        "training",
+        "other",
+      ],
+      cc_request_kind: [
+        "additional_workers",
+        "replacement",
+        "schedule_change",
+        "payroll_question",
+        "billing_question",
+        "compliance_review",
+        "general",
+      ],
+      cc_request_status: ["open", "in_progress", "resolved", "closed"],
+      cc_thread_kind: ["agency", "worker", "group"],
+      cc_user_role: [
+        "corporate_admin",
+        "branch_manager",
+        "hiring_manager",
+        "project_manager",
+        "finance",
+        "read_only",
+        "custom",
       ],
       decision_type: [
         "advance",

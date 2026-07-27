@@ -1,87 +1,102 @@
-# IWOS Build 4.6 — Payroll & Billing Operating Profile
 
-Additive extension only. Consumes verified time from TTO (Build 4.5), uses WOIC for intelligence, and TTOS for automation. No existing tables, functions, or UI will be rebuilt.
+# IWOS Build 4.7 — Client Collaboration Operating Profile
 
-## 1. Database (additive migration)
+Additive extension only. Reuses IWOS Foundation, WOIC, TTOS, TTO, PB, Recruit, Passport, and Onboarding. No existing systems rebuilt. All state changes emit TTOS events; intelligence delegates to WOIC.
 
-New tables, all tenant-scoped by `agency_id` with RLS using `private.has_role` (matching the 4.5 pattern) and full GRANTs. All get `created_at` / `updated_at` + `update_updated_at_column` trigger.
+## Scope decisions
+- New tables all prefixed `cc_` (client collaboration) to avoid collision with existing `clients`, `client_signers`, `client_sites`, `client_invites`, `client_requirements`.
+- Client identity keeps using existing `clients` + `client_signers`. `cc_client_users` layers portal-user linkage + granular permissions on top; it does not replace the existing client auth.
+- Existing Client Portal (`/client`) stays functional. New collaboration workspace mounts at `/client/workspace/*` and progressively augments the existing portal.
+- All RLS scoped via `agency_id` + client membership check (`cc_client_users.user_id = auth.uid()`).
 
-- `pb_worker_pay_rates` — worker_id, agency_id, rate_type (regular/OT/DT/holiday/shift_diff), amount, effective_from/to
-- `pb_client_bill_rates` — client_id, agency_id, role, rate_type, amount, markup_pct, effective_from/to
-- `pb_commission_rules` — agency_id, recruiter_id (nullable=default), rule_type (placement/margin/referral/override/split), config jsonb
-- `pb_payroll_runs` — agency_id, period_start/end, status (draft/review/approved/paid/exception), totals jsonb, source_batch_id (fk tto_payroll_batches)
-- `pb_payroll_items` — run_id, worker_id, ticket_id, regular_hours, ot_hours, dt_hours, holiday_hours, shift_diff, bonuses, mileage, per_diem, expenses, gross_pay, taxes, deductions, net_pay
-- `pb_payroll_exceptions` — run_id, item_id (nullable), category, severity, message, resolved_at, resolved_by
-- `pb_invoices` — agency_id, client_id, number, status (draft/review/approved/sent/paid/overdue/void), period_start/end, subtotal, tax, credits, total, sent_at, due_at, paid_at, source_batch_id (fk tto_billing_batches)
-- `pb_invoice_items` — invoice_id, ticket_id, worker_id, description, hours, bill_rate, markup, travel, expenses, tax, amount
-- `pb_invoice_payments` — invoice_id, amount, method (ach/check/wire/stripe/plaid), reference, received_at, provider_event_id
-- `pb_commission_records` — agency_id, recruiter_id, rule_id, placement_id (nullable), worker_id, invoice_id (nullable), basis_amount, rate, amount, status (pending/approved/paid)
-- `pb_financial_forecasts` — agency_id, horizon_start/end, metric (payroll_cost/revenue/cash_flow/ar/profit), value_json, generated_at
-- `pb_margin_analysis` — agency_id, scope (client/worker/assignment/branch), scope_id, period_start/end, revenue, cost, gross_margin, net_margin, computed_at
+## Phase 1 — Database migration (additive)
 
-Every write emits a TTOS event (`payroll.*`, `billing.*`, `commission.*`) via the existing `ttos_events` insert pattern used by TTO.
+New tables (each: id, agency_id, timestamps, RLS ON, GRANTs to authenticated + service_role):
 
-## 2. Edge Functions (new only)
+- `cc_workspaces` (client_id, name, settings jsonb, status)
+- `cc_client_users` (client_id, user_id, role enum [corporate_admin, branch_manager, hiring_manager, project_manager, finance, read_only, custom], custom_permissions jsonb, status)
+- `cc_permissions` (client_id, role, module text, actions text[]) — permission matrix
+- `cc_threads` (client_id, kind [agency, worker, group], subject, participants jsonb, last_message_at)
+- `cc_messages` (thread_id, sender_user_id, sender_kind, body, attachments jsonb, read_by jsonb)
+- `cc_documents` (client_id, category [contract, msa, sow, insurance, compliance, invoice, safety, training, other], name, storage_path, version int, parent_id, uploaded_by, metadata jsonb)
+- `cc_notifications` (client_id, user_id, kind, title, body, link, read_at, severity)
+- `cc_requests` (client_id, kind [additional_workers, replacement, schedule_change, payroll_q, billing_q, compliance_review, general], subject, body, status [open, in_progress, resolved, closed], priority, assignee_user_id, metadata jsonb)
+- `cc_activities` (client_id, actor_user_id, actor_kind, verb, object_type, object_id, metadata jsonb) — activity feed
+- `cc_analytics_snapshots` (client_id, period_start, period_end, metrics jsonb) — periodic rollup cache
+- `cc_settings` (client_id unique, preferences jsonb, notification_prefs jsonb, branding jsonb)
+- `cc_audit_logs` (client_id, actor_user_id, action, target_type, target_id, ip, user_agent, payload jsonb) — immutable, no update/delete policies
 
-- `pb-generate-payroll` — Input: `{ agency_id, period_start, period_end, source_batch_id? }`. Pulls from `tto_labor_costs` + `tto_time_tickets` (approved only). Applies `pb_worker_pay_rates` to compute reg/OT/DT/holiday/shift_diff, taxes/deductions (rule-based stub, extensible), net pay. Writes `pb_payroll_runs` + `pb_payroll_items`. Runs exception detection → `pb_payroll_exceptions`.
-- `pb-generate-invoices` — Input: `{ agency_id, period_start, period_end, source_batch_id? }`. Pulls from `tto_billable_hours`. Groups by client, applies `pb_client_bill_rates` (with markup, travel, expenses, tax). Writes `pb_invoices` + `pb_invoice_items`.
-- `pb-compute-commissions` — Applies `pb_commission_rules` against placements/invoices/margins → `pb_commission_records`.
-- `pb-forecast` — WOIC-backed forecast writer: consumes recent payroll/invoice history, writes `pb_financial_forecasts` and `pb_margin_analysis`. Calls `woic-api` for intelligence.
-- `pb-record-payment` — Records payment against invoice, updates invoice status (paid/partial/overdue), emits TTOS event.
-- `pb-compliance-scan` — Wraps `woic-compliance-scan` for tax/OT/labor law checks on a payroll run, writes exceptions.
+Storage bucket: `client-documents` (private) for `cc_documents` uploads.
 
-All functions: shared auth helper (401/403 JSON contract), Sentry-wrapped, service-role DB writes, TTOS event emission, audit rows.
+RLS pattern: `agency_id IN (select agency_id from public.agency_members where user_id = auth.uid())` OR `client_id IN (select client_id from public.cc_client_users where user_id = auth.uid() and status='active')`. Audit logs insert-only for clients, immutable for all.
 
-## 3. Hooks
+## Phase 2 — Edge functions
 
-`src/hooks/pb/use-pb.ts` — React Query hooks:
-- `usePayrollRuns`, `usePayrollRun(id)`, `usePayrollItems(runId)`, `usePayrollExceptions(runId)`
-- `useGeneratePayroll`, `useApprovePayrollRun`, `useMarkPayrollPaid`
-- `useInvoices`, `useInvoice(id)`, `useInvoiceItems(invoiceId)`, `useGenerateInvoices`, `useSendInvoice`, `useRecordPayment`
-- `usePayRates`, `useBillRates`, `useCommissionRules`, `useCommissionRecords`
-- `useForecasts`, `useMarginAnalysis`, `useFinancialDashboard`
+- `cc-send-message` — post to thread, updates last_message_at, emits `ttos.event cc.message.sent`, sends notification email via existing send-transactional-email.
+- `cc-create-request` — validates payload, inserts request, notifies agency assignee, logs activity + TTOS event.
+- `cc-summarize-thread` — WOIC-backed conversation summary (delegates to existing `woic-conversation-summarize`).
+- `cc-client-advisor` — WOIC recommend wrapper scoped to client (staffing levels, replacements, risk alerts) using `woic-recommend`.
+- `cc-generate-analytics` — computes fill rate, time-to-fill, attendance, turnover, OT, labor costs from existing tables (job_orders, placements, tto_time_tickets, pb_invoices) and upserts `cc_analytics_snapshots`.
+- `cc-upload-document` — signed URL issuance + audit log entry.
+- `cc-approve` — dispatches approval to correct downstream function (tto-approve-ticket, pb approve invoice, etc.) with client-user auth check.
 
-All use `useAuthGuardedAction` and explicit `agency_id` scoping.
+## Phase 3 — Frontend hooks
 
-## 4. UI (new module under `/pb`)
+`src/hooks/cc/use-client-collab.ts` exposing:
+- `useCommandCenter(clientId)` — aggregated dashboard tiles
+- `useCcThreads`, `useCcMessages`, `useSendMessage`
+- `useCcDocuments`, `useUploadCcDocument`
+- `useCcRequests`, `useCreateCcRequest`
+- `useCcNotifications`
+- `useCcActivities`
+- `useCcAnalytics`
+- `useClientAdvisor` (WOIC recs)
+- `useCcPermissions`, `useCcClientUsers`
 
-`src/pages/pb/PbLayout.tsx` with tabbed nav. New pages:
+Realtime: subscribe to `cc_messages`, `cc_notifications`, `cc_activities` via existing supabase channel pattern.
 
-- `PayrollCommandCenter.tsx` — status tiles (open/pending/completed/exceptions), readiness gauge, upcoming dates, gross/net totals
-- `PayrollRuns.tsx` — list + detail drawer with items table, exception panel, approve/pay actions
-- `PayrollEngine.tsx` — trigger UI (period picker → `pb-generate-payroll`)
-- `PayrollExceptionCenter.tsx` — grouped by category with resolve action
-- `Invoices.tsx` — list w/ status filters (draft/review/sent/paid/overdue), detail drawer w/ line items, actions (approve/send/void)
-- `InvoiceGenerator.tsx` — period picker → `pb-generate-invoices`
-- `PaymentCenter.tsx` — payment log + record-payment form, outstanding balances
-- `RateBook.tsx` — CRUD for `pb_worker_pay_rates` and `pb_client_bill_rates`
-- `CommissionCenter.tsx` — commission rules CRUD + computed records list
-- `MarginIntelligence.tsx` — WOIC-driven margin cards by client/worker/assignment/branch
-- `FinancialForecast.tsx` — forecast charts (payroll cost, revenue, cash flow, AR, profit)
-- `ExecutiveDashboard.tsx` — top-line rev/payroll/profit/margins/AR/AP/growth
-- `PbAnalytics.tsx` — report generator (payroll, invoice, revenue, margin, commission, profitability)
-- `PbCompliance.tsx` — trigger `pb-compliance-scan`, view findings
-- `PbIntegrations.tsx` — connector status placeholders for QuickBooks, ADP, Paychex, Gusto, Stripe, Plaid, ERP, generic accounting (uses existing "activation pending" pattern until keys provided)
+## Phase 4 — UI (`/client/workspace/*`)
 
-Add to `AppSidebar.tsx` under a "Payroll & Billing" group. Register routes in `src/App.tsx` under existing agency `ProtectedRoute` (roles: `super_admin`, `agency_admin`, `payroll`).
+New route group under existing ClientLayout:
+- `ClientWorkspaceLayout.tsx` — side tabs
+- `CommandCenter.tsx` — tiles + activity feed + WOIC panel
+- `JobOrderCenter.tsx` — CRUD wrapper on existing `job_orders` scoped to client
+- `CandidateReview.tsx` — pulls existing `candidate_submissions` + Passport
+- `ApprovalCenter.tsx` — unified queue (time tickets, invoices, expenses, OT, extensions)
+- `DocumentCenter.tsx` — upload/version list per category
+- `CommunicationCenter.tsx` — threads + composer + AI summary button
+- `ClientAnalytics.tsx` — chart tiles from snapshots
+- `ClientAdvisor.tsx` — WOIC recommendations feed
+- `ServiceRequests.tsx` — request kanban (open/in_progress/resolved)
+- `Calendar.tsx` — merged event view
+- `Permissions.tsx` — role + user management (corporate_admin only)
+- `NotificationsCenter.tsx` — inbox
+- `ExecutiveView.tsx` — high-level KPIs
+- `ClientApiKeys.tsx` — placeholder for API keys (integration surface)
 
-## 5. Security
+Sidebar addition inside `ClientLayout` and Agency `AppSidebar` module entry: "Client Collab" pointing to `/client/workspace`.
 
-- All tables RLS-scoped by `agency_id` via `private.has_role` + agency membership.
-- Financial write actions restricted to `agency_admin`/`payroll`/`super_admin` roles.
-- `pb_payroll_items`, `pb_invoice_items` are UPDATE/DELETE-blocked post-approval (trigger).
-- All state changes append to `tto_audit_events` (reuse) with `module='pb'`.
+## Phase 5 — Automation & TTOS wiring
 
-## 6. Automation (TTOS)
+Register automation subscribers in `ttos_event_subscribers`:
+- `cc.request.created` → notify recruiter + create task
+- `cc.approval.pending > 24h` → escalate
+- `cc.message.unread > 6h` → email digest
+- `job_order.filled` → notify client
+- `worker.assigned` → post activity + notification
+- `time_ticket.submitted` → cc_notifications insert
 
-New TTOS event types: `payroll.run.created`, `payroll.run.approved`, `payroll.exception.raised`, `invoice.created`, `invoice.sent`, `invoice.paid`, `invoice.overdue`, `commission.computed`, `forecast.updated`. TTO batch closure auto-fires generation via `ttos-dispatch` subscriber pattern.
+## Technical notes
+- Every `CREATE TABLE public.cc_*` followed by GRANT to authenticated + service_role, then ENABLE RLS, then policies.
+- Use `private.has_role` for agency-side privileged reads.
+- Audit table has only INSERT policy (via trigger check that actor_user_id = auth.uid()); no UPDATE/DELETE policies.
+- Realtime enabled via `ALTER PUBLICATION supabase_realtime ADD TABLE public.cc_messages, cc_notifications, cc_activities;`.
+- Fix outstanding security finding `eeo_demographics_compliance_role_check` in the same migration by scoping the compliance_specialist policy to worker agency membership.
 
-## 7. Integrations (scaffolds)
-
-Config-only stubs in `PbIntegrations.tsx` and a single `pb-integrations` edge function that routes by provider slug. Live wiring deferred until user provides keys (matches existing "graceful degradation" memory).
-
-## Out of scope
-
-- Tax engine actual filings (rules table + stub calculations only)
-- Live QuickBooks/ADP/Gusto/Paychex/Plaid pushes (scaffolds only until API keys arrive)
-- No changes to any existing 4.x module, table, function, or route
+## Deliverables
+- 1 migration (13 tables + realtime + eeo fix)
+- 1 storage bucket
+- 7 edge functions
+- 1 hooks file
+- ~14 UI files + route registration in `src/App.tsx`
+- Sidebar entry in `AppSidebar.tsx` and `ClientLayout.tsx`
