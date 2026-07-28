@@ -235,7 +235,7 @@ export function useClientAdvisor(clientId?: string) {
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke("cc-client-advisor", { body: { client_id: clientId } });
       if (error) throw error;
-      return data as { data: { recommendations: Array<{ id: string; title: string; body: string; score: number }> } };
+      return data as { data: { recommendations: Array<{ id: string; kind?: string; title?: string; reasoning?: string; body?: string; score: number }> } };
     },
   });
 }
