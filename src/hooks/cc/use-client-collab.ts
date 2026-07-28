@@ -11,9 +11,9 @@ export function useCommandCenter(clientId?: string) {
       if (!clientId) return null;
       const [orders, placements, tickets, invoices, requests, notifications, activity, recs] = await Promise.all([
         supabase.from("job_orders").select("id, status").eq("client_id", clientId),
-        supabase.from("placements").select("id, status").eq("client_id", clientId),
+        supabase.from("placements").select("id, status, job_order:job_orders!inner(client_id)").eq("job_order.client_id", clientId),
         supabase.from("tto_time_tickets").select("id, status").eq("client_id", clientId),
-        supabase.from("pb_invoices").select("id, status, total_amount").eq("client_id", clientId),
+        supabase.from("pb_invoices").select("id, status, total").eq("client_id", clientId),
         supabase.from("cc_requests").select("id, status").eq("client_id", clientId),
         supabase.from("cc_notifications").select("id, read_at").eq("client_id", clientId).order("created_at", { ascending: false }).limit(50),
         supabase.from("cc_activities").select("*").eq("client_id", clientId).order("created_at", { ascending: false }).limit(10),
