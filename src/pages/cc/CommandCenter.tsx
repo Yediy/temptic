@@ -53,10 +53,10 @@ export default function CommandCenter() {
             {data.recommendations.length === 0 && (
               <p className="p-4 text-sm text-muted-foreground">No recommendations yet.</p>
             )}
-            {data.recommendations.map((r) => (
+            {data.recommendations.map((r: any) => (
               <div key={r.id} className="px-4 py-3">
-                <p className="text-sm font-medium">{r.title}</p>
-                <p className="text-xs text-muted-foreground line-clamp-2">{r.body}</p>
+                <p className="text-sm font-medium">{r.title ?? r.kind}</p>
+                <p className="text-xs text-muted-foreground line-clamp-2">{r.body ?? r.reasoning}</p>
               </div>
             ))}
           </div>
