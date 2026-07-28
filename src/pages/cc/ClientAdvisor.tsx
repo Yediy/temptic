@@ -17,10 +17,10 @@ export default function ClientAdvisor() {
         {recs.map((r) => (
           <div key={r.id} className="px-4 py-3">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium">{r.title}</p>
+              <p className="text-sm font-medium">{r.title ?? r.kind}</p>
               <span className="text-xs text-muted-foreground">score {Math.round((r.score ?? 0) * 100) / 100}</span>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">{r.body}</p>
+            <p className="text-xs text-muted-foreground mt-1">{r.body ?? r.reasoning}</p>
           </div>
         ))}
         {!recs.length && !isLoading && <p className="p-6 text-sm text-muted-foreground">No recommendations yet.</p>}
