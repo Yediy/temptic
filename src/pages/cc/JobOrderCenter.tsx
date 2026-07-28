@@ -24,7 +24,7 @@ export default function JobOrderCenter() {
             <div>
               <p className="font-medium text-sm">{o.title}</p>
               <p className="text-xs text-muted-foreground">
-                {o.positions_needed} positions · Priority {o.priority ?? "normal"}
+                {o.positions_needed} positions · {o.industry ?? "General"}
               </p>
             </div>
             <Badge variant="outline">{o.status}</Badge>
