@@ -17,7 +17,7 @@ export function useCommandCenter(clientId?: string) {
         supabase.from("cc_requests").select("id, status").eq("client_id", clientId),
         supabase.from("cc_notifications").select("id, read_at").eq("client_id", clientId).order("created_at", { ascending: false }).limit(50),
         supabase.from("cc_activities").select("*").eq("client_id", clientId).order("created_at", { ascending: false }).limit(10),
-        supabase.from("woic_recommendations").select("id, title, body, score").eq("subject_entity", "client").eq("subject_id", clientId).order("score", { ascending: false }).limit(5),
+        supabase.from("woic_recommendations").select("id, kind, reasoning, score").eq("subject_entity", "client").eq("subject_id", clientId).order("score", { ascending: false }).limit(5),
       ]);
       const o = orders.data ?? [];
       const t = tickets.data ?? [];
