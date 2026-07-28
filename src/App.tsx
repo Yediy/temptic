@@ -248,6 +248,23 @@ const App = () => (
                   <Route path="audit" element={<AuditCenter />} />
                   <Route path="worker" element={<WorkerTimeCenter />} />
                 </Route>
+                {/* Client Collaboration Workspace (IWOS 4.7) */}
+                <Route path="/cc/:clientId" element={<ClientWorkspaceLayout />}>
+                  <Route index element={<CcCommandCenter />} />
+                  <Route path="orders" element={<CcJobOrders />} />
+                  <Route path="candidates" element={<CcCandidates />} />
+                  <Route path="approvals" element={<CcApprovals />} />
+                  <Route path="documents" element={<CcDocuments />} />
+                  <Route path="communication" element={<CcCommunication />} />
+                  <Route path="requests" element={<CcRequests />} />
+                  <Route path="analytics" element={<CcAnalytics />} />
+                  <Route path="advisor" element={<CcAdvisor />} />
+                  <Route path="calendar" element={<CcCalendar />} />
+                  <Route path="notifications" element={<CcNotifs />} />
+                  <Route path="executive" element={<CcExecutive />} />
+                  <Route path="permissions" element={<CcPermissions />} />
+                  <Route path="api" element={<CcApi />} />
+                </Route>
                 {/* Digital Worker Twin (IWOS 4.4) */}
                 <Route path="/twin" element={<TwinIndex />} />
                 <Route path="/twin/:workerId" element={<TwinLayout />}>
