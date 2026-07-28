@@ -129,6 +129,21 @@ import TwinTimeline from "@/pages/twin/TwinTimeline";
 import TwinKnowledgeGraph from "@/pages/twin/TwinKnowledgeGraph";
 import TwinOrganization from "@/pages/twin/TwinOrganization";
 import TtoLayout from "@/pages/tto/TtoLayout";
+import ClientWorkspaceLayout from "@/pages/cc/ClientWorkspaceLayout";
+import CcCommandCenter from "@/pages/cc/CommandCenter";
+import CcJobOrders from "@/pages/cc/JobOrderCenter";
+import CcCandidates from "@/pages/cc/CandidateReview";
+import CcApprovals from "@/pages/cc/ApprovalCenter";
+import CcDocuments from "@/pages/cc/DocumentCenter";
+import CcCommunication from "@/pages/cc/CommunicationCenter";
+import CcRequests from "@/pages/cc/ServiceRequests";
+import CcAnalytics from "@/pages/cc/ClientAnalytics";
+import CcAdvisor from "@/pages/cc/ClientAdvisor";
+import CcCalendar from "@/pages/cc/CcCalendar";
+import CcNotifs from "@/pages/cc/NotificationsCenter";
+import CcExecutive from "@/pages/cc/ExecutiveView";
+import CcPermissions from "@/pages/cc/Permissions";
+import CcApi from "@/pages/cc/ClientApiKeys";
 import TimeTicketDashboard from "@/pages/tto/TimeTicketDashboard";
 import WorkerTimeCenter from "@/pages/tto/WorkerTimeCenter";
 import SupervisorApprovalCenter from "@/pages/tto/SupervisorApprovalCenter";
@@ -247,6 +262,23 @@ const App = () => (
                   <Route path="analytics" element={<LaborAnalytics />} />
                   <Route path="audit" element={<AuditCenter />} />
                   <Route path="worker" element={<WorkerTimeCenter />} />
+                </Route>
+                {/* Client Collaboration Workspace (IWOS 4.7) */}
+                <Route path="/cc/:clientId" element={<ClientWorkspaceLayout />}>
+                  <Route index element={<CcCommandCenter />} />
+                  <Route path="orders" element={<CcJobOrders />} />
+                  <Route path="candidates" element={<CcCandidates />} />
+                  <Route path="approvals" element={<CcApprovals />} />
+                  <Route path="documents" element={<CcDocuments />} />
+                  <Route path="communication" element={<CcCommunication />} />
+                  <Route path="requests" element={<CcRequests />} />
+                  <Route path="analytics" element={<CcAnalytics />} />
+                  <Route path="advisor" element={<CcAdvisor />} />
+                  <Route path="calendar" element={<CcCalendar />} />
+                  <Route path="notifications" element={<CcNotifs />} />
+                  <Route path="executive" element={<CcExecutive />} />
+                  <Route path="permissions" element={<CcPermissions />} />
+                  <Route path="api" element={<CcApi />} />
                 </Route>
                 {/* Digital Worker Twin (IWOS 4.4) */}
                 <Route path="/twin" element={<TwinIndex />} />
