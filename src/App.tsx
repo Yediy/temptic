@@ -153,6 +153,15 @@ import BillingPrep from "@/pages/tto/BillingPrep";
 import LiveLaborDashboard from "@/pages/tto/LiveLaborDashboard";
 import LaborAnalytics from "@/pages/tto/LaborAnalytics";
 import AuditCenter from "@/pages/tto/AuditCenter";
+import AutomationLayout from "@/pages/automation/AutomationLayout";
+import AutomationDashboard from "@/pages/automation/AutomationDashboard";
+import RuleBuilder from "@/pages/automation/RuleBuilder";
+import LiveMonitor from "@/pages/automation/LiveMonitor";
+import TemplatesLibrary from "@/pages/automation/TemplatesLibrary";
+import AgentActivity from "@/pages/automation/AgentActivity";
+import AutomationLogs from "@/pages/automation/AutomationLogs";
+import DeadLetterQueue from "@/pages/automation/DeadLetterQueue";
+import AutomationAnalyticsPage from "@/pages/automation/AutomationAnalytics";
 
 const queryClient = new QueryClient();
 
@@ -262,6 +271,17 @@ const App = () => (
                   <Route path="analytics" element={<LaborAnalytics />} />
                   <Route path="audit" element={<AuditCenter />} />
                   <Route path="worker" element={<WorkerTimeCenter />} />
+                </Route>
+                {/* Automation Studio (IWOS 4.8) */}
+                <Route path="/automation" element={<AutomationLayout />}>
+                  <Route index element={<AutomationDashboard />} />
+                  <Route path="builder" element={<RuleBuilder />} />
+                  <Route path="monitor" element={<LiveMonitor />} />
+                  <Route path="templates" element={<TemplatesLibrary />} />
+                  <Route path="agents" element={<AgentActivity />} />
+                  <Route path="logs" element={<AutomationLogs />} />
+                  <Route path="dead-letter" element={<DeadLetterQueue />} />
+                  <Route path="analytics" element={<AutomationAnalyticsPage />} />
                 </Route>
                 {/* Client Collaboration Workspace (IWOS 4.7) */}
                 <Route path="/cc/:clientId" element={<ClientWorkspaceLayout />}>

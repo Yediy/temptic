@@ -644,6 +644,155 @@ export type Database = {
           },
         ]
       }
+      automation_agent_runs: {
+        Row: {
+          agency_id: string
+          agent_id: string
+          automation_id: string | null
+          correlation_id: string | null
+          created_at: string
+          duration_ms: number | null
+          error: string | null
+          event_id: string | null
+          id: string
+          input: Json
+          output: Json | null
+          status: string
+          tokens_used: number | null
+        }
+        Insert: {
+          agency_id: string
+          agent_id: string
+          automation_id?: string | null
+          correlation_id?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          error?: string | null
+          event_id?: string | null
+          id?: string
+          input?: Json
+          output?: Json | null
+          status?: string
+          tokens_used?: number | null
+        }
+        Update: {
+          agency_id?: string
+          agent_id?: string
+          automation_id?: string | null
+          correlation_id?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          error?: string | null
+          event_id?: string | null
+          id?: string
+          input?: Json
+          output?: Json | null
+          status?: string
+          tokens_used?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_agent_runs_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "automation_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_agents: {
+        Row: {
+          agency_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          enabled: boolean
+          id: string
+          memory: Json
+          model: string
+          name: string
+          role: string
+          system_prompt: string
+          tools: Json
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          memory?: Json
+          model?: string
+          name: string
+          role: string
+          system_prompt: string
+          tools?: Json
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          memory?: Json
+          model?: string
+          name?: string
+          role?: string
+          system_prompt?: string
+          tools?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      automation_dead_letter: {
+        Row: {
+          agency_id: string
+          attempts: number
+          automation_id: string | null
+          created_at: string
+          error: string | null
+          event_id: string | null
+          id: string
+          payload: Json
+          resolved_at: string | null
+          resolved_by: string | null
+          source_id: string | null
+          source_kind: string
+        }
+        Insert: {
+          agency_id: string
+          attempts?: number
+          automation_id?: string | null
+          created_at?: string
+          error?: string | null
+          event_id?: string | null
+          id?: string
+          payload?: Json
+          resolved_at?: string | null
+          resolved_by?: string | null
+          source_id?: string | null
+          source_kind: string
+        }
+        Update: {
+          agency_id?: string
+          attempts?: number
+          automation_id?: string | null
+          created_at?: string
+          error?: string | null
+          event_id?: string | null
+          id?: string
+          payload?: Json
+          resolved_at?: string | null
+          resolved_by?: string | null
+          source_id?: string | null
+          source_kind?: string
+        }
+        Relationships: []
+      }
       automation_events: {
         Row: {
           actor_id: string | null
@@ -687,6 +836,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      automation_templates: {
+        Row: {
+          actions: Json
+          agency_id: string | null
+          category: string
+          conditions: Json
+          created_at: string
+          created_by: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_builtin: boolean
+          name: string
+          slug: string
+          tags: string[]
+          trigger_event: string
+          updated_at: string
+        }
+        Insert: {
+          actions?: Json
+          agency_id?: string | null
+          category: string
+          conditions?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_builtin?: boolean
+          name: string
+          slug: string
+          tags?: string[]
+          trigger_event: string
+          updated_at?: string
+        }
+        Update: {
+          actions?: Json
+          agency_id?: string | null
+          category?: string
+          conditions?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_builtin?: boolean
+          name?: string
+          slug?: string
+          tags?: string[]
+          trigger_event?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       bill_profiles: {
         Row: {
@@ -7179,34 +7382,43 @@ export type Database = {
           agency_id: string
           attempts: number
           automation_id: string
+          duration_ms: number | null
           error: string | null
           event_id: string | null
           id: string
+          next_retry_at: string | null
           output: Json | null
           ran_at: string
           status: string
+          triggered_by: string | null
         }
         Insert: {
           agency_id: string
           attempts?: number
           automation_id: string
+          duration_ms?: number | null
           error?: string | null
           event_id?: string | null
           id?: string
+          next_retry_at?: string | null
           output?: Json | null
           ran_at?: string
           status: string
+          triggered_by?: string | null
         }
         Update: {
           agency_id?: string
           attempts?: number
           automation_id?: string
+          duration_ms?: number | null
           error?: string | null
           event_id?: string | null
           id?: string
+          next_retry_at?: string | null
           output?: Json | null
           ran_at?: string
           status?: string
+          triggered_by?: string | null
         }
         Relationships: [
           {
@@ -7236,47 +7448,74 @@ export type Database = {
         Row: {
           actions: Json
           agency_id: string
+          approved_at: string | null
+          approved_by: string | null
           conditions: Json
           created_at: string
           created_by: string | null
           description: string | null
           enabled: boolean
+          failure_count: number
           id: string
+          last_run_at: string | null
           name: string
           priority: number
+          require_approval: boolean
           retries: number
+          success_count: number
+          tags: string[]
+          template_id: string | null
           trigger_event: string
           updated_at: string
+          version: number
         }
         Insert: {
           actions?: Json
           agency_id: string
+          approved_at?: string | null
+          approved_by?: string | null
           conditions?: Json
           created_at?: string
           created_by?: string | null
           description?: string | null
           enabled?: boolean
+          failure_count?: number
           id?: string
+          last_run_at?: string | null
           name: string
           priority?: number
+          require_approval?: boolean
           retries?: number
+          success_count?: number
+          tags?: string[]
+          template_id?: string | null
           trigger_event: string
           updated_at?: string
+          version?: number
         }
         Update: {
           actions?: Json
           agency_id?: string
+          approved_at?: string | null
+          approved_by?: string | null
           conditions?: Json
           created_at?: string
           created_by?: string | null
           description?: string | null
           enabled?: boolean
+          failure_count?: number
           id?: string
+          last_run_at?: string | null
           name?: string
           priority?: number
+          require_approval?: boolean
           retries?: number
+          success_count?: number
+          tags?: string[]
+          template_id?: string | null
           trigger_event?: string
           updated_at?: string
+          version?: number
         }
         Relationships: []
       }
