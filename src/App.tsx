@@ -153,6 +153,15 @@ import BillingPrep from "@/pages/tto/BillingPrep";
 import LiveLaborDashboard from "@/pages/tto/LiveLaborDashboard";
 import LaborAnalytics from "@/pages/tto/LaborAnalytics";
 import AuditCenter from "@/pages/tto/AuditCenter";
+import AutomationLayout from "@/pages/automation/AutomationLayout";
+import AutomationDashboard from "@/pages/automation/AutomationDashboard";
+import RuleBuilder from "@/pages/automation/RuleBuilder";
+import LiveMonitor from "@/pages/automation/LiveMonitor";
+import TemplatesLibrary from "@/pages/automation/TemplatesLibrary";
+import AgentActivity from "@/pages/automation/AgentActivity";
+import AutomationLogs from "@/pages/automation/AutomationLogs";
+import DeadLetterQueue from "@/pages/automation/DeadLetterQueue";
+import AutomationAnalyticsPage from "@/pages/automation/AutomationAnalytics";
 
 const queryClient = new QueryClient();
 
