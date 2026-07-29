@@ -272,6 +272,17 @@ const App = () => (
                   <Route path="audit" element={<AuditCenter />} />
                   <Route path="worker" element={<WorkerTimeCenter />} />
                 </Route>
+                {/* Automation Studio (IWOS 4.8) */}
+                <Route path="/automation" element={<AutomationLayout />}>
+                  <Route index element={<AutomationDashboard />} />
+                  <Route path="builder" element={<RuleBuilder />} />
+                  <Route path="monitor" element={<LiveMonitor />} />
+                  <Route path="templates" element={<TemplatesLibrary />} />
+                  <Route path="agents" element={<AgentActivity />} />
+                  <Route path="logs" element={<AutomationLogs />} />
+                  <Route path="dead-letter" element={<DeadLetterQueue />} />
+                  <Route path="analytics" element={<AutomationAnalyticsPage />} />
+                </Route>
                 {/* Client Collaboration Workspace (IWOS 4.7) */}
                 <Route path="/cc/:clientId" element={<ClientWorkspaceLayout />}>
                   <Route index element={<CcCommandCenter />} />
