@@ -162,6 +162,13 @@ import AgentActivity from "@/pages/automation/AgentActivity";
 import AutomationLogs from "@/pages/automation/AutomationLogs";
 import DeadLetterQueue from "@/pages/automation/DeadLetterQueue";
 import AutomationAnalyticsPage from "@/pages/automation/AutomationAnalytics";
+// Operational Intelligence Center (IWOS 4.9)
+import OicLayout from "@/pages/oic/OicLayout";
+import MissionControl from "@/pages/oic/MissionControl";
+import OrganizationHealthPage from "@/pages/oic/OrganizationHealthPage";
+import LiveEventStreamPage from "@/pages/oic/LiveEventStreamPage";
+import OicRiskCenter from "@/pages/oic/RiskCenter";
+import OicExecutiveOverview from "@/pages/oic/ExecutiveOverview";
 
 const queryClient = new QueryClient();
 
@@ -282,6 +289,14 @@ const App = () => (
                   <Route path="logs" element={<AutomationLogs />} />
                   <Route path="dead-letter" element={<DeadLetterQueue />} />
                   <Route path="analytics" element={<AutomationAnalyticsPage />} />
+                </Route>
+                {/* Operational Intelligence Center (IWOS 4.9) */}
+                <Route path="/oic" element={<OicLayout />}>
+                  <Route index element={<MissionControl />} />
+                  <Route path="health" element={<OrganizationHealthPage />} />
+                  <Route path="stream" element={<LiveEventStreamPage />} />
+                  <Route path="risk" element={<OicRiskCenter />} />
+                  <Route path="executive" element={<OicExecutiveOverview />} />
                 </Route>
                 {/* Client Collaboration Workspace (IWOS 4.7) */}
                 <Route path="/cc/:clientId" element={<ClientWorkspaceLayout />}>
