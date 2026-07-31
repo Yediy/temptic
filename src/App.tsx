@@ -84,6 +84,8 @@ import AICenter from "@/pages/ai-center/AICenter";
 import NetworkPage from "@/pages/network/Network";
 import { ModulePlaceholder } from "@/components/ModulePlaceholder";
 import WoicLayout from "@/pages/woic/WoicLayout";
+import WoicCognitive from "@/pages/woic/WoicCognitive";
+
 import WoicIdentity from "@/pages/woic/WoicIdentity";
 import WoicKnowledge from "@/pages/woic/WoicKnowledge";
 import WoicDecisions from "@/pages/woic/WoicDecisions";
