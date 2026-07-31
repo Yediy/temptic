@@ -3,7 +3,9 @@ import { cn } from "@/lib/utils";
 import { Brain } from "lucide-react";
 
 const tabs = [
+  { to: "/woic/cognitive", label: "Cognitive Core" },
   { to: "/woic/identity", label: "Identity" },
+
   { to: "/woic/knowledge", label: "Knowledge" },
   { to: "/woic/decisions", label: "Decisions" },
   { to: "/woic/recommendations", label: "Recommendations" },

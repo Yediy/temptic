@@ -84,6 +84,8 @@ import AICenter from "@/pages/ai-center/AICenter";
 import NetworkPage from "@/pages/network/Network";
 import { ModulePlaceholder } from "@/components/ModulePlaceholder";
 import WoicLayout from "@/pages/woic/WoicLayout";
+import WoicCognitive from "@/pages/woic/WoicCognitive";
+
 import WoicIdentity from "@/pages/woic/WoicIdentity";
 import WoicKnowledge from "@/pages/woic/WoicKnowledge";
 import WoicDecisions from "@/pages/woic/WoicDecisions";
@@ -356,8 +358,10 @@ const App = () => (
             <Route element={<ProtectedRoute allowedRoles={["super_admin"]} redirectTo="/unauthorized" />}>
               <Route element={<AppLayout />}>
                 <Route path="/woic" element={<WoicLayout />}>
-                  <Route index element={<WoicIdentity />} />
+                  <Route index element={<WoicCognitive />} />
+                  <Route path="cognitive" element={<WoicCognitive />} />
                   <Route path="identity" element={<WoicIdentity />} />
+
                   <Route path="knowledge" element={<WoicKnowledge />} />
                   <Route path="decisions" element={<WoicDecisions />} />
                   <Route path="recommendations" element={<WoicRecommendations />} />

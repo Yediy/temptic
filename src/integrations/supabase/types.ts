@@ -8435,6 +8435,126 @@ export type Database = {
         }
         Relationships: []
       }
+      woic_cache: {
+        Row: {
+          agency_id: string
+          cache_key: string
+          created_at: string
+          expires_at: string
+          id: string
+          value: Json
+        }
+        Insert: {
+          agency_id: string
+          cache_key: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          value: Json
+        }
+        Update: {
+          agency_id?: string
+          cache_key?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          value?: Json
+        }
+        Relationships: []
+      }
+      woic_cognitive_requests: {
+        Row: {
+          agency_id: string
+          cached: boolean
+          created_at: string
+          error: string | null
+          id: string
+          input: Json
+          latency_ms: number | null
+          model: string | null
+          operation: string
+          output: Json | null
+          service: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          agency_id: string
+          cached?: boolean
+          created_at?: string
+          error?: string | null
+          id?: string
+          input?: Json
+          latency_ms?: number | null
+          model?: string | null
+          operation: string
+          output?: Json | null
+          service: string
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          agency_id?: string
+          cached?: boolean
+          created_at?: string
+          error?: string | null
+          id?: string
+          input?: Json
+          latency_ms?: number | null
+          model?: string | null
+          operation?: string
+          output?: Json | null
+          service?: string
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      woic_communications: {
+        Row: {
+          agency_id: string
+          audience: string
+          body: string
+          channel: string
+          context: Json
+          created_at: string
+          created_by: string | null
+          id: string
+          language: string
+          status: string
+          subject: string | null
+          tone: string | null
+        }
+        Insert: {
+          agency_id: string
+          audience: string
+          body: string
+          channel: string
+          context?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          language?: string
+          status?: string
+          subject?: string | null
+          tone?: string | null
+        }
+        Update: {
+          agency_id?: string
+          audience?: string
+          body?: string
+          channel?: string
+          context?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          language?: string
+          status?: string
+          subject?: string | null
+          tone?: string | null
+        }
+        Relationships: []
+      }
       woic_compliance_events: {
         Row: {
           agency_id: string
@@ -8754,6 +8874,177 @@ export type Database = {
         }
         Relationships: []
       }
+      woic_executive_briefs: {
+        Row: {
+          agency_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          kind: string
+          metrics: Json
+          period_end: string | null
+          period_start: string | null
+          sections: Json
+          summary: string | null
+          title: string
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind: string
+          metrics?: Json
+          period_end?: string | null
+          period_start?: string | null
+          sections?: Json
+          summary?: string | null
+          title: string
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: string
+          metrics?: Json
+          period_end?: string | null
+          period_start?: string | null
+          sections?: Json
+          summary?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
+      woic_feedback: {
+        Row: {
+          agency_id: string
+          correction: string | null
+          created_at: string
+          id: string
+          metadata: Json
+          signal: string
+          target_id: string | null
+          target_kind: string
+          user_id: string | null
+          weight: number
+        }
+        Insert: {
+          agency_id: string
+          correction?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          signal: string
+          target_id?: string | null
+          target_kind: string
+          user_id?: string | null
+          weight?: number
+        }
+        Update: {
+          agency_id?: string
+          correction?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          signal?: string
+          target_id?: string | null
+          target_kind?: string
+          user_id?: string | null
+          weight?: number
+        }
+        Relationships: []
+      }
+      woic_graph_edges: {
+        Row: {
+          agency_id: string
+          attributes: Json
+          created_at: string
+          from_id: string
+          id: string
+          relation: string
+          to_id: string
+          weight: number
+        }
+        Insert: {
+          agency_id: string
+          attributes?: Json
+          created_at?: string
+          from_id: string
+          id?: string
+          relation: string
+          to_id: string
+          weight?: number
+        }
+        Update: {
+          agency_id?: string
+          attributes?: Json
+          created_at?: string
+          from_id?: string
+          id?: string
+          relation?: string
+          to_id?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "woic_graph_edges_from_id_fkey"
+            columns: ["from_id"]
+            isOneToOne: false
+            referencedRelation: "woic_graph_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "woic_graph_edges_to_id_fkey"
+            columns: ["to_id"]
+            isOneToOne: false
+            referencedRelation: "woic_graph_entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      woic_graph_entities: {
+        Row: {
+          agency_id: string
+          attributes: Json
+          created_at: string
+          entity_key: string
+          entity_type: string
+          id: string
+          label: string
+          ref_entity: string | null
+          ref_id: string | null
+          updated_at: string
+          weight: number
+        }
+        Insert: {
+          agency_id: string
+          attributes?: Json
+          created_at?: string
+          entity_key: string
+          entity_type: string
+          id?: string
+          label: string
+          ref_entity?: string | null
+          ref_id?: string | null
+          updated_at?: string
+          weight?: number
+        }
+        Update: {
+          agency_id?: string
+          attributes?: Json
+          created_at?: string
+          entity_key?: string
+          entity_type?: string
+          id?: string
+          label?: string
+          ref_entity?: string | null
+          ref_id?: string | null
+          updated_at?: string
+          weight?: number
+        }
+        Relationships: []
+      }
       woic_identities: {
         Row: {
           activity_score: number
@@ -9064,6 +9355,63 @@ export type Database = {
         }
         Relationships: []
       }
+      woic_memory: {
+        Row: {
+          agency_id: string
+          content: string
+          created_at: string
+          created_by: string | null
+          embedding: string | null
+          expires_at: string | null
+          id: string
+          importance: number
+          kind: string
+          metadata: Json
+          scope: string
+          source_entity: string | null
+          source_id: string | null
+          tags: string[]
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          content: string
+          created_at?: string
+          created_by?: string | null
+          embedding?: string | null
+          expires_at?: string | null
+          id?: string
+          importance?: number
+          kind?: string
+          metadata?: Json
+          scope?: string
+          source_entity?: string | null
+          source_id?: string | null
+          tags?: string[]
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          embedding?: string | null
+          expires_at?: string | null
+          id?: string
+          importance?: number
+          kind?: string
+          metadata?: Json
+          scope?: string
+          source_entity?: string | null
+          source_id?: string | null
+          tags?: string[]
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       woic_org_memory: {
         Row: {
           agency_id: string
@@ -9177,6 +9525,107 @@ export type Database = {
           },
         ]
       }
+      woic_reasoning_steps: {
+        Row: {
+          agency_id: string
+          confidence: number | null
+          content: string | null
+          created_at: string
+          data: Json
+          id: string
+          kind: string
+          step_no: number
+          trace_id: string
+        }
+        Insert: {
+          agency_id: string
+          confidence?: number | null
+          content?: string | null
+          created_at?: string
+          data?: Json
+          id?: string
+          kind: string
+          step_no: number
+          trace_id: string
+        }
+        Update: {
+          agency_id?: string
+          confidence?: number | null
+          content?: string | null
+          created_at?: string
+          data?: Json
+          id?: string
+          kind?: string
+          step_no?: number
+          trace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "woic_reasoning_steps_trace_id_fkey"
+            columns: ["trace_id"]
+            isOneToOne: false
+            referencedRelation: "woic_reasoning_traces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      woic_reasoning_traces: {
+        Row: {
+          agency_id: string
+          alternatives: Json
+          conclusion: string | null
+          confidence: number | null
+          created_at: string
+          domain: string
+          evidence: Json
+          explanation: string | null
+          id: string
+          question: string
+          risk: Json
+          status: string
+          subject_entity: string | null
+          subject_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          agency_id: string
+          alternatives?: Json
+          conclusion?: string | null
+          confidence?: number | null
+          created_at?: string
+          domain: string
+          evidence?: Json
+          explanation?: string | null
+          id?: string
+          question: string
+          risk?: Json
+          status?: string
+          subject_entity?: string | null
+          subject_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          agency_id?: string
+          alternatives?: Json
+          conclusion?: string | null
+          confidence?: number | null
+          created_at?: string
+          domain?: string
+          evidence?: Json
+          explanation?: string | null
+          id?: string
+          question?: string
+          risk?: Json
+          status?: string
+          subject_entity?: string | null
+          subject_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       woic_recommendations: {
         Row: {
           agency_id: string
@@ -9228,6 +9677,51 @@ export type Database = {
         }
         Relationships: []
       }
+      woic_security_signals: {
+        Row: {
+          agency_id: string
+          detail: string | null
+          detected_at: string
+          evidence: Json
+          id: string
+          kind: string
+          resolved_at: string | null
+          severity: string
+          status: string
+          subject_entity: string | null
+          subject_id: string | null
+          title: string
+        }
+        Insert: {
+          agency_id: string
+          detail?: string | null
+          detected_at?: string
+          evidence?: Json
+          id?: string
+          kind: string
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          subject_entity?: string | null
+          subject_id?: string | null
+          title: string
+        }
+        Update: {
+          agency_id?: string
+          detail?: string | null
+          detected_at?: string
+          evidence?: Json
+          id?: string
+          kind?: string
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          subject_entity?: string | null
+          subject_id?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       woic_service_registry: {
         Row: {
           description: string
@@ -9258,6 +9752,42 @@ export type Database = {
           status?: string
           updated_at?: string
           version?: string
+        }
+        Relationships: []
+      }
+      woic_simulations: {
+        Row: {
+          agency_id: string
+          confidence: number | null
+          created_at: string
+          created_by: string | null
+          id: string
+          inputs: Json
+          recommendations: Json
+          results: Json
+          scenario: string
+        }
+        Insert: {
+          agency_id: string
+          confidence?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          inputs?: Json
+          recommendations?: Json
+          results?: Json
+          scenario: string
+        }
+        Update: {
+          agency_id?: string
+          confidence?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          inputs?: Json
+          recommendations?: Json
+          results?: Json
+          scenario?: string
         }
         Relationships: []
       }
@@ -9968,6 +10498,23 @@ export type Database = {
         Returns: boolean
       }
       next_ticket_number: { Args: { _agency_id: string }; Returns: string }
+      woic_match_memory: {
+        Args: {
+          _agency_id: string
+          _embedding: string
+          _match_count?: number
+          _scope?: string
+        }
+        Returns: {
+          content: string
+          id: string
+          importance: number
+          kind: string
+          scope: string
+          similarity: number
+          title: string
+        }[]
+      }
     }
     Enums: {
       adverse_action_stage:
