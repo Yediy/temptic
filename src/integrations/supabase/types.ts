@@ -8959,31 +8959,40 @@ export type Database = {
         Row: {
           agency_id: string
           attributes: Json
+          confidence: number
           created_at: string
           from_id: string
           id: string
           relation: string
           to_id: string
+          valid_from: string
+          valid_to: string | null
           weight: number
         }
         Insert: {
           agency_id: string
           attributes?: Json
+          confidence?: number
           created_at?: string
           from_id: string
           id?: string
           relation: string
           to_id: string
+          valid_from?: string
+          valid_to?: string | null
           weight?: number
         }
         Update: {
           agency_id?: string
           attributes?: Json
+          confidence?: number
           created_at?: string
           from_id?: string
           id?: string
           relation?: string
           to_id?: string
+          valid_from?: string
+          valid_to?: string | null
           weight?: number
         }
         Relationships: [
@@ -9015,6 +9024,8 @@ export type Database = {
           ref_entity: string | null
           ref_id: string | null
           updated_at: string
+          valid_from: string
+          valid_to: string | null
           weight: number
         }
         Insert: {
@@ -9028,6 +9039,8 @@ export type Database = {
           ref_entity?: string | null
           ref_id?: string | null
           updated_at?: string
+          valid_from?: string
+          valid_to?: string | null
           weight?: number
         }
         Update: {
@@ -9041,7 +9054,108 @@ export type Database = {
           ref_entity?: string | null
           ref_id?: string | null
           updated_at?: string
+          valid_from?: string
+          valid_to?: string | null
           weight?: number
+        }
+        Relationships: []
+      }
+      woic_graph_node_types: {
+        Row: {
+          category: string
+          color: string | null
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          key: string
+          label: string
+        }
+        Insert: {
+          category: string
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          key: string
+          label: string
+        }
+        Update: {
+          category?: string
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          key?: string
+          label?: string
+        }
+        Relationships: []
+      }
+      woic_graph_query_cache: {
+        Row: {
+          agency_id: string
+          api: string
+          created_at: string
+          expires_at: string
+          id: string
+          query_key: string
+          result: Json
+        }
+        Insert: {
+          agency_id: string
+          api: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          query_key: string
+          result: Json
+        }
+        Update: {
+          agency_id?: string
+          api?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          query_key?: string
+          result?: Json
+        }
+        Relationships: []
+      }
+      woic_graph_relation_types: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          directed: boolean
+          from_types: string[]
+          id: string
+          key: string
+          label: string
+          to_types: string[]
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          directed?: boolean
+          from_types?: string[]
+          id?: string
+          key: string
+          label: string
+          to_types?: string[]
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          directed?: boolean
+          from_types?: string[]
+          id?: string
+          key?: string
+          label?: string
+          to_types?: string[]
         }
         Relationships: []
       }
@@ -10498,6 +10612,108 @@ export type Database = {
         Returns: boolean
       }
       next_ticket_number: { Args: { _agency_id: string }; Returns: string }
+      woic_graph_communities: {
+        Args: {
+          _agency_id: string
+          _limit?: number
+          _max_depth?: number
+          _relations?: string[]
+        }
+        Returns: {
+          community_id: string
+          community_label: string
+          members: Json
+          size: number
+        }[]
+      }
+      woic_graph_influence: {
+        Args: { _agency_id: string; _entity_type?: string; _limit?: number }
+        Returns: {
+          degree: number
+          entity_type: string
+          in_degree: number
+          label: string
+          node_id: string
+          out_degree: number
+          score: number
+        }[]
+      }
+      woic_graph_neighbors: {
+        Args: {
+          _agency_id: string
+          _as_of?: string
+          _depth?: number
+          _limit?: number
+          _node_id: string
+          _relations?: string[]
+        }
+        Returns: {
+          depth: number
+          entity_type: string
+          label: string
+          node_id: string
+          via: string
+          weight: number
+        }[]
+      }
+      woic_graph_risk_propagation: {
+        Args: {
+          _agency_id: string
+          _decay?: number
+          _depth?: number
+          _node_id: string
+        }
+        Returns: {
+          depth: number
+          entity_type: string
+          label: string
+          node_id: string
+          risk: number
+          via: string
+        }[]
+      }
+      woic_graph_shortest_path: {
+        Args: {
+          _agency_id: string
+          _from_id: string
+          _max_depth?: number
+          _to_id: string
+        }
+        Returns: {
+          entity_type: string
+          hop: number
+          label: string
+          node_id: string
+          relation: string
+        }[]
+      }
+      woic_graph_similar: {
+        Args: {
+          _agency_id: string
+          _entity_type?: string
+          _limit?: number
+          _node_id: string
+          _relations?: string[]
+        }
+        Returns: {
+          entity_type: string
+          label: string
+          node_id: string
+          shared: number
+          shared_labels: string[]
+          similarity: number
+        }[]
+      }
+      woic_graph_subgraph: {
+        Args: {
+          _agency_id: string
+          _as_of?: string
+          _entity_types?: string[]
+          _limit?: number
+          _relations?: string[]
+        }
+        Returns: Json
+      }
       woic_match_memory: {
         Args: {
           _agency_id: string
