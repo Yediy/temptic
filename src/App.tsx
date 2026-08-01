@@ -95,6 +95,11 @@ import WoicLearning from "@/pages/woic/WoicLearning";
 import WoicCompliance from "@/pages/woic/WoicCompliance";
 import WoicContext from "@/pages/woic/WoicContext";
 import WoicRegistry from "@/pages/woic/WoicRegistry";
+import GraphLayout from "@/pages/graph/GraphLayout";
+import GraphExplorer from "@/pages/graph/GraphExplorer";
+import GraphIntelligence from "@/pages/graph/GraphIntelligence";
+import GraphPaths from "@/pages/graph/GraphPaths";
+import GraphTaxonomy from "@/pages/graph/GraphTaxonomy";
 import RecruitLayout from "@/pages/recruit/RecruitLayout";
 import RecruitDashboard from "@/pages/recruit/RecruitDashboard";
 import RecruitCandidates from "@/pages/recruit/RecruitCandidates";
@@ -373,6 +378,20 @@ const App = () => (
                 </Route>
               </Route>
             </Route>
+
+            {/* IWOS Global Workforce Graph */}
+            <Route element={<ProtectedRoute allowedRoles={["agency_admin", "super_admin"]} redirectTo="/unauthorized" />}>
+              <Route element={<AppLayout />}>
+                <Route path="/graph" element={<GraphLayout />}>
+                  <Route index element={<GraphExplorer />} />
+                  <Route path="explorer" element={<GraphExplorer />} />
+                  <Route path="intelligence" element={<GraphIntelligence />} />
+                  <Route path="paths" element={<GraphPaths />} />
+                  <Route path="taxonomy" element={<GraphTaxonomy />} />
+                </Route>
+              </Route>
+            </Route>
+
 
             {/* Admin-only routes (super_admin only) */}
             <Route element={<ProtectedRoute allowedRoles={["super_admin"]} redirectTo="/unauthorized" />}>
