@@ -170,6 +170,16 @@ import AutomationLogs from "@/pages/automation/AutomationLogs";
 import DeadLetterQueue from "@/pages/automation/DeadLetterQueue";
 import AutomationAnalyticsPage from "@/pages/automation/AutomationAnalytics";
 // Operational Intelligence Center (IWOS 4.9)
+import ActivityLayout from "@/pages/activity/ActivityLayout";
+import ActivityLiveEvents from "@/pages/activity/LiveEvents";
+import ActivityExplorer from "@/pages/activity/EventExplorer";
+import ActivityTimeline from "@/pages/activity/EventTimeline";
+import ActivityReplay from "@/pages/activity/EventReplay";
+import ActivitySystemHealth from "@/pages/activity/SystemHealth";
+import ActivityNotifications from "@/pages/activity/ActivityNotifications";
+import ActivityAi from "@/pages/activity/AiActivity";
+import { OrganizationActivity as ActivityOrgs, WorkerActivity as ActivityWorkers } from "@/pages/activity/SubjectActivity";
+import ActivityAudit from "@/pages/activity/AuditHistory";
 import OicLayout from "@/pages/oic/OicLayout";
 import MissionControl from "@/pages/oic/MissionControl";
 import OrganizationHealthPage from "@/pages/oic/OrganizationHealthPage";
@@ -296,6 +306,19 @@ const App = () => (
                   <Route path="logs" element={<AutomationLogs />} />
                   <Route path="dead-letter" element={<DeadLetterQueue />} />
                   <Route path="analytics" element={<AutomationAnalyticsPage />} />
+                </Route>
+                {/* System Activity Center — Universal Event Fabric (IWOS 5.1B) */}
+                <Route path="/activity" element={<ActivityLayout />}>
+                  <Route index element={<ActivityLiveEvents />} />
+                  <Route path="explorer" element={<ActivityExplorer />} />
+                  <Route path="timeline" element={<ActivityTimeline />} />
+                  <Route path="replay" element={<ActivityReplay />} />
+                  <Route path="health" element={<ActivitySystemHealth />} />
+                  <Route path="notifications" element={<ActivityNotifications />} />
+                  <Route path="ai" element={<ActivityAi />} />
+                  <Route path="organizations" element={<ActivityOrgs />} />
+                  <Route path="workers" element={<ActivityWorkers />} />
+                  <Route path="audit" element={<ActivityAudit />} />
                 </Route>
                 {/* Operational Intelligence Center (IWOS 4.9) */}
                 <Route path="/oic" element={<OicLayout />}>
