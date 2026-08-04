@@ -7456,6 +7456,7 @@ export type Database = {
           description: string | null
           enabled: boolean
           failure_count: number
+          graph: Json
           id: string
           last_run_at: string | null
           name: string
@@ -7480,6 +7481,7 @@ export type Database = {
           description?: string | null
           enabled?: boolean
           failure_count?: number
+          graph?: Json
           id?: string
           last_run_at?: string | null
           name: string
@@ -7504,6 +7506,7 @@ export type Database = {
           description?: string | null
           enabled?: boolean
           failure_count?: number
+          graph?: Json
           id?: string
           last_run_at?: string | null
           name?: string
