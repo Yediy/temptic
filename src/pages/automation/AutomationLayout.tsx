@@ -1,16 +1,26 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Activity, Bot, FileCode, Gauge, LayoutDashboard, Library, ListChecks, Skull } from "lucide-react";
+import {
+  Activity, Bot, CheckSquare, FileCode, Filter, Gauge, LayoutDashboard, Library,
+  ListChecks, Settings, Skull, Sparkles, Workflow, Zap,
+} from "lucide-react";
 
 const tabs = [
   { to: "/automation", end: true, label: "Dashboard", icon: LayoutDashboard },
+  { to: "/automation/workflow", label: "Workflow Builder", icon: Workflow },
   { to: "/automation/builder", label: "Rule Builder", icon: FileCode },
+  { to: "/automation/templates", label: "Automation Library", icon: Library },
+  { to: "/automation/logs", label: "Execution History", icon: ListChecks },
   { to: "/automation/monitor", label: "Live Monitor", icon: Activity },
-  { to: "/automation/templates", label: "Templates", icon: Library },
-  { to: "/automation/agents", label: "AI Agents", icon: Bot },
-  { to: "/automation/logs", label: "Logs", icon: ListChecks },
-  { to: "/automation/dead-letter", label: "Dead Letter", icon: Skull },
+  { to: "/automation/triggers", label: "Triggers", icon: Zap },
+  { to: "/automation/actions", label: "Actions", icon: Sparkles },
+  { to: "/automation/conditions", label: "Conditions", icon: Filter },
+  { to: "/automation/approvals", label: "Approvals", icon: CheckSquare },
+  { to: "/automation/agents", label: "AI Automation", icon: Bot },
+  { to: "/automation/testing", label: "Testing", icon: CheckSquare },
   { to: "/automation/analytics", label: "Analytics", icon: Gauge },
+  { to: "/automation/dead-letter", label: "Dead Letter", icon: Skull },
+  { to: "/automation/settings", label: "Settings", icon: Settings },
 ];
 
 export default function AutomationLayout() {
