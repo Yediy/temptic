@@ -24,6 +24,7 @@ export type AutomationRule = {
   approved_by: string | null;
   approved_at: string | null;
   tags: string[];
+  graph: { nodes: unknown[]; edges: unknown[] } | null;
   last_run_at: string | null;
   success_count: number;
   failure_count: number;
@@ -121,7 +122,7 @@ export function useSaveRule() {
   const qc = useQueryClient();
   const { agencyId, user } = useAuth();
   return useMutation({
-    mutationFn: async (rule: Partial<AutomationRule> & { name: string; trigger_event: string; actions: unknown[] }) => {
+    mutationFn: async (rule: Partial<AutomationRule> & { name: string; trigger_event: string; actions: unknown[]; graph?: unknown }) => {
       const payload = {
         agency_id: agencyId,
         name: rule.name,
@@ -134,6 +135,7 @@ export function useSaveRule() {
         require_approval: rule.require_approval ?? false,
         tags: rule.tags ?? [],
         template_id: rule.template_id ?? null,
+        ...(rule.graph ? { graph: rule.graph } : {}),
         created_by: user?.id ?? null,
       };
       if (rule.id) {

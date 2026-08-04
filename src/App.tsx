@@ -169,6 +169,13 @@ import AgentActivity from "@/pages/automation/AgentActivity";
 import AutomationLogs from "@/pages/automation/AutomationLogs";
 import DeadLetterQueue from "@/pages/automation/DeadLetterQueue";
 import AutomationAnalyticsPage from "@/pages/automation/AutomationAnalytics";
+import WorkflowBuilder from "@/pages/automation/WorkflowBuilder";
+import TriggersCatalog from "@/pages/automation/TriggersCatalog";
+import ActionsCatalog from "@/pages/automation/ActionsCatalog";
+import ConditionsCatalog from "@/pages/automation/ConditionsCatalog";
+import ApprovalsCenter from "@/pages/automation/ApprovalsCenter";
+import WorkflowTesting from "@/pages/automation/WorkflowTesting";
+import AutomationSettings from "@/pages/automation/AutomationSettings";
 // Operational Intelligence Center (IWOS 4.9)
 import ActivityLayout from "@/pages/activity/ActivityLayout";
 import ActivityLiveEvents from "@/pages/activity/LiveEvents";
@@ -306,6 +313,13 @@ const App = () => (
                   <Route path="logs" element={<AutomationLogs />} />
                   <Route path="dead-letter" element={<DeadLetterQueue />} />
                   <Route path="analytics" element={<AutomationAnalyticsPage />} />
+                  <Route path="workflow" element={<WorkflowBuilder />} />
+                  <Route path="triggers" element={<TriggersCatalog />} />
+                  <Route path="actions" element={<ActionsCatalog />} />
+                  <Route path="conditions" element={<ConditionsCatalog />} />
+                  <Route path="approvals" element={<ApprovalsCenter />} />
+                  <Route path="testing" element={<WorkflowTesting />} />
+                  <Route path="settings" element={<AutomationSettings />} />
                 </Route>
                 {/* System Activity Center — Universal Event Fabric (IWOS 5.1B) */}
                 <Route path="/activity" element={<ActivityLayout />}>

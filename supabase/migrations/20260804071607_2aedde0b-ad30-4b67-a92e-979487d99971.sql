@@ -1,0 +1,1 @@
+ALTER TABLE public.ttos_automations ADD COLUMN IF NOT EXISTS graph jsonb NOT NULL DEFAULT '{"nodes": [], "edges": []}'::jsonb;
