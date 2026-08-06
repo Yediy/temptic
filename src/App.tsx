@@ -187,6 +187,10 @@ import ActivityNotifications from "@/pages/activity/ActivityNotifications";
 import ActivityAi from "@/pages/activity/AiActivity";
 import { OrganizationActivity as ActivityOrgs, WorkerActivity as ActivityWorkers } from "@/pages/activity/SubjectActivity";
 import ActivityAudit from "@/pages/activity/AuditHistory";
+import TimelineLayout from "@/pages/timeline/TimelineLayout";
+import TimelineWorkspace from "@/pages/timeline/TimelineWorkspace";
+import TimelineSavedViews from "@/pages/timeline/TimelineSavedViews";
+import TimelineSettingsPage from "@/pages/timeline/TimelineSettings";
 import OicLayout from "@/pages/oic/OicLayout";
 import MissionControl from "@/pages/oic/MissionControl";
 import OrganizationHealthPage from "@/pages/oic/OrganizationHealthPage";
@@ -333,6 +337,24 @@ const App = () => (
                   <Route path="organizations" element={<ActivityOrgs />} />
                   <Route path="workers" element={<ActivityWorkers />} />
                   <Route path="audit" element={<ActivityAudit />} />
+                </Route>
+                {/* Universal Timeline Workspace (IWOS 5.4B) */}
+                <Route path="/timeline" element={<TimelineLayout />}>
+                  <Route index element={<TimelineWorkspace scopeKey="global" />} />
+                  <Route path="worker" element={<TimelineWorkspace scopeKey="worker" />} />
+                  <Route path="organization" element={<TimelineWorkspace scopeKey="organization" />} />
+                  <Route path="project" element={<TimelineWorkspace scopeKey="project" />} />
+                  <Route path="assignment" element={<TimelineWorkspace scopeKey="assignment" />} />
+                  <Route path="recruiting" element={<TimelineWorkspace scopeKey="recruiting" />} />
+                  <Route path="compliance" element={<TimelineWorkspace scopeKey="compliance" />} />
+                  <Route path="payroll" element={<TimelineWorkspace scopeKey="payroll" />} />
+                  <Route path="communication" element={<TimelineWorkspace scopeKey="communication" />} />
+                  <Route path="ai" element={<TimelineWorkspace scopeKey="ai" />} />
+                  <Route path="automation" element={<TimelineWorkspace scopeKey="automation" />} />
+                  <Route path="twin" element={<TimelineWorkspace scopeKey="twin" />} />
+                  <Route path="explorer" element={<ActivityExplorer />} />
+                  <Route path="views" element={<TimelineSavedViews />} />
+                  <Route path="settings" element={<TimelineSettingsPage />} />
                 </Route>
                 {/* Operational Intelligence Center (IWOS 4.9) */}
                 <Route path="/oic" element={<OicLayout />}>
