@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.enforce_service_role_timeline_writes() FROM PUBLIC, anon, authenticated;
