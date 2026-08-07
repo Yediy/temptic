@@ -357,6 +357,8 @@ export function useKnowledgeWorkspaceState() {
     setState((s) => ({ ...s, settings: { ...s.settings, ...patch } }));
   }, []);
 
+  const resetWorkspace = useCallback(() => setState(EMPTY), []);
+
   return {
     ...state,
     trackView,
@@ -368,6 +370,7 @@ export function useKnowledgeWorkspaceState() {
     toggleInCollection,
     addAnnotation,
     updateSettings,
+    resetWorkspace,
   };
 }
 
