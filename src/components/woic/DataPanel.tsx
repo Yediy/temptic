@@ -29,6 +29,7 @@ interface DataPanelProps<T extends { id: string }> {
   renderDetail: (row: T) => ReactNode;
   detailTitle?: (row: T) => string;
   toolbar?: ReactNode;
+  footer?: ReactNode;
 }
 
 export function DataPanel<T extends { id: string }>({
@@ -42,6 +43,7 @@ export function DataPanel<T extends { id: string }>({
   renderDetail,
   detailTitle,
   toolbar,
+  footer,
 }: DataPanelProps<T>) {
   const [selected, setSelected] = useState<T | null>(null);
 
@@ -87,6 +89,7 @@ export function DataPanel<T extends { id: string }>({
               </Table>
             </div>
           )}
+          {!isLoading && !error && footer}
         </CardContent>
       </Card>
 
