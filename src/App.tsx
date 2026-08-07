@@ -191,6 +191,19 @@ import TimelineLayout from "@/pages/timeline/TimelineLayout";
 import TimelineWorkspace from "@/pages/timeline/TimelineWorkspace";
 import TimelineSavedViews from "@/pages/timeline/TimelineSavedViews";
 import TimelineSettingsPage from "@/pages/timeline/TimelineSettings";
+import KnowledgeLayout from "@/pages/knowledge/KnowledgeLayout";
+import KnowledgeHome from "@/pages/knowledge/KnowledgeHome";
+import KnowledgeSearchPage from "@/pages/knowledge/KnowledgeSearchPage";
+import KnowledgeInsights from "@/pages/knowledge/KnowledgeInsights";
+import KnowledgeGraphPage from "@/pages/knowledge/KnowledgeGraphPage";
+import KnowledgeCollections from "@/pages/knowledge/KnowledgeCollections";
+import KnowledgeApprovals from "@/pages/knowledge/KnowledgeApprovals";
+import KnowledgeAnalyticsPage from "@/pages/knowledge/KnowledgeAnalytics";
+import KnowledgeSettingsPage from "@/pages/knowledge/KnowledgeSettings";
+import {
+  KnowledgeBase, KnowledgePolicies, KnowledgeSops, KnowledgeRegulations,
+  KnowledgeTraining, KnowledgeCertifications, KnowledgeDocuments,
+} from "@/pages/knowledge/KnowledgeSections";
 import OicLayout from "@/pages/oic/OicLayout";
 import MissionControl from "@/pages/oic/MissionControl";
 import OrganizationHealthPage from "@/pages/oic/OrganizationHealthPage";
@@ -355,6 +368,24 @@ const App = () => (
                   <Route path="explorer" element={<ActivityExplorer />} />
                   <Route path="views" element={<TimelineSavedViews />} />
                   <Route path="settings" element={<TimelineSettingsPage />} />
+                </Route>
+                {/* Knowledge Workspace (IWOS 5.5B) */}
+                <Route path="/knowledge" element={<KnowledgeLayout />}>
+                  <Route index element={<KnowledgeHome />} />
+                  <Route path="search" element={<KnowledgeSearchPage />} />
+                  <Route path="base" element={<KnowledgeBase />} />
+                  <Route path="policies" element={<KnowledgePolicies />} />
+                  <Route path="sops" element={<KnowledgeSops />} />
+                  <Route path="regulations" element={<KnowledgeRegulations />} />
+                  <Route path="training" element={<KnowledgeTraining />} />
+                  <Route path="certifications" element={<KnowledgeCertifications />} />
+                  <Route path="documents" element={<KnowledgeDocuments />} />
+                  <Route path="insights" element={<KnowledgeInsights />} />
+                  <Route path="graph" element={<KnowledgeGraphPage />} />
+                  <Route path="collections" element={<KnowledgeCollections />} />
+                  <Route path="approvals" element={<KnowledgeApprovals />} />
+                  <Route path="analytics" element={<KnowledgeAnalyticsPage />} />
+                  <Route path="settings" element={<KnowledgeSettingsPage />} />
                 </Route>
                 {/* Operational Intelligence Center (IWOS 4.9) */}
                 <Route path="/oic" element={<OicLayout />}>

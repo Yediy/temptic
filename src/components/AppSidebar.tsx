@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { useAllClientInvites } from "@/hooks/use-client-invites";
 import { isPast } from "date-fns";
 import {
-  FileText, Plus, LogOut, Search, AlertTriangle, Shield, Mail, Gauge, Briefcase, Sparkles, Brain, Users2, MessageSquare, Activity, History,
+  FileText, Plus, LogOut, Search, AlertTriangle, Shield, Mail, Gauge, Briefcase, Sparkles, Brain, Users2, MessageSquare, Activity, History, BookOpen,
 } from "lucide-react";
 import { AGENCY_MODULES, GROUP_LABELS, type ModuleDef } from "@/lib/modules";
 import { useAccessibleModules } from "@/lib/permissions";
@@ -138,6 +138,18 @@ export function AppSidebar() {
         >
           <History className="h-4 w-4" />
           Timeline
+        </Link>
+        <Link
+          to="/knowledge"
+          className={cn(
+            "mt-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors",
+            isActivePath("/knowledge")
+              ? "bg-sidebar-accent text-sidebar-accent-foreground"
+              : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+          )}
+        >
+          <BookOpen className="h-4 w-4" />
+          Knowledge Workspace
         </Link>
         <Link
           to="/clients"
