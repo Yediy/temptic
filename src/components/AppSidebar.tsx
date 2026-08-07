@@ -9,6 +9,8 @@ import {
 import { AGENCY_MODULES, GROUP_LABELS, type ModuleDef } from "@/lib/modules";
 import { useAccessibleModules } from "@/lib/permissions";
 import { Badge } from "@/components/ui/badge";
+import { CommandCenterTrigger } from "@/components/command/CommandCenter";
+
 
 const adminItems = [
   { label: "Agencies", icon: Shield, path: "/admin/agencies" },
@@ -56,7 +58,9 @@ export function AppSidebar() {
       </div>
 
       <div className="px-3 pt-4 pb-2">
+        <CommandCenterTrigger className="mb-2" />
         <Link
+
           to="/tickets/create"
           className="flex w-full items-center gap-2 rounded-lg bg-sidebar-primary px-3 py-2.5 text-sm font-semibold text-sidebar-primary-foreground transition-colors hover:bg-sidebar-primary/90"
         >
