@@ -50,6 +50,7 @@ import ClientResetPassword from "@/pages/auth/ClientResetPassword";
 // Worker pages
 import WorkerTickets from "@/pages/worker/WorkerTickets";
 import WorkerHours from "@/pages/worker/WorkerHours";
+import WorkerOnboarding from "@/pages/worker/WorkerOnboarding";
 import WorkerForgotPassword from "@/pages/auth/WorkerForgotPassword";
 import WorkerResetPassword from "@/pages/auth/WorkerResetPassword";
 
@@ -557,6 +558,7 @@ const App = () => (
               <Route element={<WorkerLayout />}>
                 <Route path="/worker" element={<WorkerTickets />} />
                 <Route path="/worker/hours" element={<WorkerHours />} />
+                <Route path="/worker/onboarding" element={<WorkerOnboarding />} />
               </Route>
             </Route>
 
