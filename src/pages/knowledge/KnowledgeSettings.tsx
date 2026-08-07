@@ -4,15 +4,32 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useKnowledgeWorkspaceState } from "@/hooks/knowledge/use-knowledge";
 
-const toggles = [
-  { key: "aiSuggestions", label: "AI knowledge suggestions", hint: "Surface WOIC recommendations while browsing." },
-  { key: "showArchived", label: "Show archived knowledge", hint: "Include archived items in library lists." },
-  { key: "compactRows", label: "Compact list density", hint: "Tighter rows for large corpora." },
-  { key: "autoTrackRecents", label: "Track recently viewed", hint: "Store viewed articles locally for quick access." },
-] as const;
-
 export default function KnowledgeSettings() {
   const ws = useKnowledgeWorkspaceState();
+
+  const toggles = [
+    {
+      key: "showAiPanel" as const,
+      label: "AI knowledge assistant",
+      hint: "Show the WOIC assistant panel inside the article viewer.",
+      checked: ws.settings.showAiPanel,
+      onChange: (v: boolean) => ws.updateSettings({ showAiPanel: v }),
+    },
+    {
+      key: "density" as const,
+      label: "Compact list density",
+      hint: "Tighter rows for large knowledge corpora.",
+      checked: ws.settings.density === "compact",
+      onChange: (v: boolean) => ws.updateSettings({ density: v ? "compact" : "comfortable" }),
+    },
+    {
+      key: "dark" as const,
+      label: "Dark-first workspace surfaces",
+      hint: "Use the mission-control dark styling for knowledge panels.",
+      checked: ws.settings.dark,
+      onChange: (v: boolean) => ws.updateSettings({ dark: v }),
+    },
+  ];
 
   return (
     <div className="grid gap-4 lg:grid-cols-2">
@@ -25,11 +42,7 @@ export default function KnowledgeSettings() {
                 <Label htmlFor={t.key} className="text-sm">{t.label}</Label>
                 <p className="text-xs text-muted-foreground">{t.hint}</p>
               </div>
-              <Switch
-                id={t.key}
-                checked={ws.prefs[t.key]}
-                onCheckedChange={(v) => ws.setPref(t.key, v)}
-              />
+              <Switch id={t.key} checked={t.checked} onCheckedChange={t.onChange} />
             </div>
           ))}
         </CardContent>
