@@ -387,6 +387,24 @@ const App = () => (
                   <Route path="analytics" element={<KnowledgeAnalyticsPage />} />
                   <Route path="settings" element={<KnowledgeSettingsPage />} />
                 </Route>
+                {/* Unified Communications Workspace (IWOS 5.6B) */}
+                <Route path="/comms" element={<CommsLayout />}>
+                  <Route index element={<CommsInbox />} />
+                  <Route path="conversations" element={<CommsConversations />} />
+                  <Route path="assistant" element={<CommsAssistant />} />
+                  <Route path="notifications" element={<CommsNotifications />} />
+                  <Route path="broadcasts" element={<CommsBroadcasts />} />
+                  <Route path="announcements" element={<CommsAnnouncements />} />
+                  <Route path="calls" element={<CommsCalls />} />
+                  <Route path="meetings" element={<CommsMeetings />} />
+                  <Route path="tasks" element={<CommsTasks />} />
+                  <Route path="files" element={<CommsFiles />} />
+                  <Route path="history" element={<CommsHistory />} />
+                  <Route path="search" element={<CommsSearch />} />
+                  <Route path="templates" element={<CommsTemplates />} />
+                  <Route path="analytics" element={<CommsAnalytics />} />
+                  <Route path="settings" element={<CommsSettings />} />
+                </Route>
                 {/* Operational Intelligence Center (IWOS 4.9) */}
                 <Route path="/oic" element={<OicLayout />}>
                   <Route index element={<MissionControl />} />
