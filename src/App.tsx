@@ -191,6 +191,19 @@ import TimelineLayout from "@/pages/timeline/TimelineLayout";
 import TimelineWorkspace from "@/pages/timeline/TimelineWorkspace";
 import TimelineSavedViews from "@/pages/timeline/TimelineSavedViews";
 import TimelineSettingsPage from "@/pages/timeline/TimelineSettings";
+import KnowledgeLayout from "@/pages/knowledge/KnowledgeLayout";
+import KnowledgeHome from "@/pages/knowledge/KnowledgeHome";
+import KnowledgeSearchPage from "@/pages/knowledge/KnowledgeSearchPage";
+import KnowledgeInsights from "@/pages/knowledge/KnowledgeInsights";
+import KnowledgeGraphPage from "@/pages/knowledge/KnowledgeGraphPage";
+import KnowledgeCollections from "@/pages/knowledge/KnowledgeCollections";
+import KnowledgeApprovals from "@/pages/knowledge/KnowledgeApprovals";
+import KnowledgeAnalyticsPage from "@/pages/knowledge/KnowledgeAnalytics";
+import KnowledgeSettingsPage from "@/pages/knowledge/KnowledgeSettings";
+import {
+  KnowledgeBase, KnowledgePolicies, KnowledgeSops, KnowledgeRegulations,
+  KnowledgeTraining, KnowledgeCertifications, KnowledgeDocuments,
+} from "@/pages/knowledge/KnowledgeSections";
 import OicLayout from "@/pages/oic/OicLayout";
 import MissionControl from "@/pages/oic/MissionControl";
 import OrganizationHealthPage from "@/pages/oic/OrganizationHealthPage";
