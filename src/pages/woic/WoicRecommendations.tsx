@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useWoicRecommendations, useRunWoicRecommend } from "@/hooks/use-woic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +17,7 @@ import {
   short,
 } from "@/components/woic/DataPanel";
 import { ErrorState } from "@/components/woic/AsyncState";
+import { TablePagination } from "@/components/woic/TablePagination";
 import type { WoicRecommendation } from "@/lib/woic/types";
 
 const columns: DataPanelColumn<WoicRecommendation>[] = [
@@ -45,6 +46,33 @@ export default function WoicRecommendations() {
   const [id, setId] = useState("");
   const list = useWoicRecommendations(agencyId ?? undefined, { limit: 100 });
   const run = useRunWoicRecommend();
+
+  const [query, setQuery] = useState("");
+  const [kind, setKind] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(25);
+
+  const all = (list.data as WoicRecommendation[] | undefined) ?? [];
+  const kinds = useMemo(() => Array.from(new Set(all.map((r) => r.kind))).sort(), [all]);
+
+  const filtered = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    return all.filter((r) => {
+      if (kind !== "all" && r.kind !== kind) return false;
+      if (statusFilter !== "all" && r.status !== statusFilter) return false;
+      if (!needle) return true;
+      return [r.kind, r.subject_entity, r.subject_id, r.target_entity, r.target_id, r.reasoning ?? ""]
+        .join(" ")
+        .toLowerCase()
+        .includes(needle);
+    });
+  }, [all, query, kind, statusFilter]);
+
+  const paged = useMemo(
+    () => filtered.slice(page * pageSize, page * pageSize + pageSize),
+    [filtered, page, pageSize]
+  );
 
   const trigger = async () => {
     if (!agencyId || !id) return;
@@ -81,10 +109,49 @@ export default function WoicRecommendations() {
       <DataPanel<WoicRecommendation>
         title="Recent Recommendations"
         columns={columns}
-        rows={list.data as WoicRecommendation[] | undefined}
+        rows={list.isLoading ? undefined : paged}
         isLoading={list.isLoading}
         error={list.error}
-        emptyLabel="No recommendations yet."
+        emptyLabel={query || kind !== "all" || statusFilter !== "all" ? "No matches." : "No recommendations yet."}
+        toolbar={
+          <div className="flex flex-wrap items-center gap-2">
+            <Input
+              placeholder="Search recommendations…"
+              value={query}
+              onChange={(e) => { setQuery(e.target.value); setPage(0); }}
+              className="w-64"
+            />
+            <Select value={kind} onValueChange={(v) => { setKind(v); setPage(0); }}>
+              <SelectTrigger className="w-[150px]"><SelectValue placeholder="Kind" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All kinds</SelectItem>
+                {kinds.map((k) => (
+                  <SelectItem key={k} value={k}>{k}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(0); }}>
+              <SelectTrigger className="w-[150px]"><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="expired">Expired</SelectItem>
+                <SelectItem value="dismissed">Dismissed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        }
+        footer={
+          filtered.length > 0 ? (
+            <TablePagination
+              page={page}
+              pageSize={pageSize}
+              total={filtered.length}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+            />
+          ) : null
+        }
         detailTitle={(r) => `${r.kind} · ${fmtPct(r.score)}`}
         renderDetail={(r) => (
           <div className="space-y-1">
