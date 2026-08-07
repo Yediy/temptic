@@ -106,7 +106,7 @@ export function useCommThreads() {
   useEffect(() => {
     if (!agencyId) return;
     const ch = supabase
-      .channel(`comms-threads-${agencyId}`)
+      .channel(`comms-threads-${agencyId}-${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "ttos_message_threads" }, () => {
         qc.invalidateQueries({ queryKey: ["comms", "threads"] });
       })
@@ -136,7 +136,7 @@ export function useCommMessages(threadId?: string) {
   useEffect(() => {
     if (!threadId) return;
     const ch = supabase
-      .channel(`comms-msgs-${threadId}`)
+      .channel(`comms-msgs-${threadId}-${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "ttos_messages", filter: `thread_id=eq.${threadId}` },
@@ -263,7 +263,7 @@ export function useCommNotifications(limit = 200) {
   useEffect(() => {
     if (!user?.id) return;
     const ch = supabase
-      .channel(`comms-notif-${user.id}`)
+      .channel(`comms-notif-${user.id}-${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "ttos_notifications", filter: `recipient_id=eq.${user.id}` },
