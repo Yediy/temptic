@@ -18,13 +18,74 @@ export interface GraphCanvasProps {
   selectedId?: string | null;
   onSelect?: (node: GraphNode | null) => void;
   height?: number;
+  /** Visual arrangement of nodes. */
+  layout?: GraphLayoutMode;
 }
+
+export type GraphLayoutMode = "force" | "radial" | "hierarchy" | "tree";
 
 interface Sim { id: string; x: number; y: number; vx: number; vy: number; deg: number }
 
+/** Deterministic non-force arrangements (radial rings, typed columns, BFS tree). */
+function applyLayout(
+  mode: Exclude<GraphLayoutMode, "force">,
+  sims: Map<string, Sim>,
+  nodes: GraphNode[],
+  adjacency: Map<string, Set<string>>,
+) {
+  const types = [...new Set(nodes.map((n) => n.entity_type))].sort();
+  if (mode === "radial" || mode === "hierarchy") {
+    const buckets = new Map<string, GraphNode[]>();
+    for (const n of nodes) (buckets.get(n.entity_type) ?? buckets.set(n.entity_type, []).get(n.entity_type)!).push(n);
+    types.forEach((t, ti) => {
+      const group = buckets.get(t) ?? [];
+      group.forEach((n, i) => {
+        const s = sims.get(n.id);
+        if (!s) return;
+        if (mode === "radial") {
+          const radius = 90 + ti * 78;
+          const angle = (i / Math.max(group.length, 1)) * Math.PI * 2;
+          s.x = Math.cos(angle) * radius;
+          s.y = Math.sin(angle) * radius;
+        } else {
+          s.x = (ti - (types.length - 1) / 2) * 190;
+          s.y = (i - (group.length - 1) / 2) * 26;
+        }
+      });
+    });
+    return;
+  }
+  // tree: BFS levels from the highest-degree node
+  const root = [...sims.values()].sort((a, b) => b.deg - a.deg)[0];
+  if (!root) return;
+  const level = new Map<string, number>([[root.id, 0]]);
+  const queue = [root.id];
+  while (queue.length) {
+    const id = queue.shift()!;
+    for (const nb of adjacency.get(id) ?? []) {
+      if (level.has(nb)) continue;
+      level.set(nb, (level.get(id) ?? 0) + 1);
+      queue.push(nb);
+    }
+  }
+  const rows = new Map<number, string[]>();
+  for (const n of nodes) {
+    const lv = level.get(n.id) ?? 99;
+    (rows.get(lv) ?? rows.set(lv, []).get(lv)!).push(n.id);
+  }
+  for (const [lv, ids] of rows) {
+    ids.forEach((id, i) => {
+      const s = sims.get(id);
+      if (!s) return;
+      s.y = (lv - 2) * 110;
+      s.x = (i - (ids.length - 1) / 2) * 60;
+    });
+  }
+}
+
 export default function GraphCanvas({
   nodes, edges, colorForType, overlay, overlayMode = "none",
-  selectedId, onSelect, height = 560,
+  selectedId, onSelect, height = 560, layout = "force",
 }: GraphCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const simRef = useRef<Map<string, Sim>>(new Map());
@@ -93,10 +154,12 @@ export default function GraphCanvas({
         s.vx *= 0.82; s.vy *= 0.82;
       }
     }
+    if (layout !== "force") applyLayout(layout, sims, nodes, adjacency);
+
     simRef.current = sims;
     viewRef.current = { scale: 1, x: 0, y: 0 };
     force((v) => v + 1);
-  }, [nodes, edges, adjacency]);
+  }, [nodes, edges, adjacency, layout]);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;

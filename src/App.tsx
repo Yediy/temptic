@@ -100,6 +100,13 @@ import GraphExplorer from "@/pages/graph/GraphExplorer";
 import GraphIntelligence from "@/pages/graph/GraphIntelligence";
 import GraphPaths from "@/pages/graph/GraphPaths";
 import GraphTaxonomy from "@/pages/graph/GraphTaxonomy";
+import PlatformOverview from "@/pages/graph/PlatformOverview";
+import DomainGraphPage from "@/pages/graph/DomainGraphPage";
+import DependencyGraph from "@/pages/graph/DependencyGraph";
+import ImpactAnalysis from "@/pages/graph/ImpactAnalysis";
+import GraphSearchPage from "@/pages/graph/GraphSearch";
+import SavedViews from "@/pages/graph/SavedViews";
+import GraphSettings from "@/pages/graph/GraphSettings";
 import RecruitLayout from "@/pages/recruit/RecruitLayout";
 import RecruitDashboard from "@/pages/recruit/RecruitDashboard";
 import RecruitCandidates from "@/pages/recruit/RecruitCandidates";
@@ -507,7 +514,14 @@ const App = () => (
             <Route element={<ProtectedRoute allowedRoles={["agency_admin", "super_admin"]} redirectTo="/unauthorized" />}>
               <Route element={<AppLayout />}>
                 <Route path="/graph" element={<GraphLayout />}>
-                  <Route index element={<GraphExplorer />} />
+                  <Route index element={<PlatformOverview />} />
+                  <Route path="overview" element={<PlatformOverview />} />
+                  <Route path="domain/:domainKey" element={<DomainGraphPage />} />
+                  <Route path="dependencies" element={<DependencyGraph />} />
+                  <Route path="impact" element={<ImpactAnalysis />} />
+                  <Route path="search" element={<GraphSearchPage />} />
+                  <Route path="views" element={<SavedViews />} />
+                  <Route path="settings" element={<GraphSettings />} />
                   <Route path="explorer" element={<GraphExplorer />} />
                   <Route path="intelligence" element={<GraphIntelligence />} />
                   <Route path="paths" element={<GraphPaths />} />
