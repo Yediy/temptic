@@ -3324,6 +3324,7 @@ export type Database = {
           resume_token: string | null
           started_at: string
           status: string
+          step_state: Json
           updated_at: string
           worker_id: string
         }
@@ -3340,6 +3341,7 @@ export type Database = {
           resume_token?: string | null
           started_at?: string
           status?: string
+          step_state?: Json
           updated_at?: string
           worker_id: string
         }
@@ -3356,6 +3358,7 @@ export type Database = {
           resume_token?: string | null
           started_at?: string
           status?: string
+          step_state?: Json
           updated_at?: string
           worker_id?: string
         }

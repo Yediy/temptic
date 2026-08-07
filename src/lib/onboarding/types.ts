@@ -6,6 +6,7 @@ export interface OnboardingSession {
   status: "in_progress" | "paused" | "completed" | "abandoned";
   current_step: string | null;
   progress_pct: number;
+  step_state?: Record<string, { status: string; updated_at?: string; note?: string }>;
   started_at: string;
   last_activity_at: string;
   completed_at: string | null;

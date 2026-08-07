@@ -1,12 +1,13 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
-import { HardHat, FileText, Clock, LogOut } from "lucide-react";
+import { HardHat, FileText, Clock, ClipboardCheck, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const navItems = [
   { label: "My Tickets", icon: FileText, path: "/worker" },
   { label: "My Hours", icon: Clock, path: "/worker/hours" },
+  { label: "Onboarding", icon: ClipboardCheck, path: "/worker/onboarding" },
 ];
 
 export function WorkerLayout() {
@@ -23,13 +24,13 @@ export function WorkerLayout() {
             </div>
             <span className="font-bold text-sm">Temp Tic <span className="text-muted-foreground font-normal">Worker</span></span>
           </div>
-          <nav className="flex items-center gap-1">
+          <nav className="flex items-center gap-1 overflow-x-auto">
             {navItems.map(item => (
               <Link
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
+                  "flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs sm:text-sm font-medium transition-colors",
                   location.pathname === item.path
                     ? "bg-secondary text-foreground"
                     : "text-muted-foreground hover:text-foreground"
