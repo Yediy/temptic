@@ -191,6 +191,22 @@ import TimelineLayout from "@/pages/timeline/TimelineLayout";
 import TimelineWorkspace from "@/pages/timeline/TimelineWorkspace";
 import TimelineSavedViews from "@/pages/timeline/TimelineSavedViews";
 import TimelineSettingsPage from "@/pages/timeline/TimelineSettings";
+import CommsLayout from "@/pages/comms/CommsLayout";
+import CommsInbox from "@/pages/comms/CommsInbox";
+import CommsConversations from "@/pages/comms/CommsConversations";
+import CommsAssistant from "@/pages/comms/CommsAssistant";
+import CommsNotifications from "@/pages/comms/CommsNotifications";
+import CommsBroadcasts from "@/pages/comms/CommsBroadcasts";
+import CommsAnnouncements from "@/pages/comms/CommsAnnouncements";
+import CommsCalls from "@/pages/comms/CommsCalls";
+import CommsMeetings from "@/pages/comms/CommsMeetings";
+import CommsTasks from "@/pages/comms/CommsTasks";
+import CommsFiles from "@/pages/comms/CommsFiles";
+import CommsHistory from "@/pages/comms/CommsHistory";
+import CommsSearch from "@/pages/comms/CommsSearch";
+import CommsAnalytics from "@/pages/comms/CommsAnalytics";
+import CommsTemplates from "@/pages/comms/CommsTemplates";
+import CommsSettings from "@/pages/comms/CommsSettings";
 import KnowledgeLayout from "@/pages/knowledge/KnowledgeLayout";
 import KnowledgeHome from "@/pages/knowledge/KnowledgeHome";
 import KnowledgeSearchPage from "@/pages/knowledge/KnowledgeSearchPage";
@@ -386,6 +402,24 @@ const App = () => (
                   <Route path="approvals" element={<KnowledgeApprovals />} />
                   <Route path="analytics" element={<KnowledgeAnalyticsPage />} />
                   <Route path="settings" element={<KnowledgeSettingsPage />} />
+                </Route>
+                {/* Unified Communications Workspace (IWOS 5.6B) */}
+                <Route path="/comms" element={<CommsLayout />}>
+                  <Route index element={<CommsInbox />} />
+                  <Route path="conversations" element={<CommsConversations />} />
+                  <Route path="assistant" element={<CommsAssistant />} />
+                  <Route path="notifications" element={<CommsNotifications />} />
+                  <Route path="broadcasts" element={<CommsBroadcasts />} />
+                  <Route path="announcements" element={<CommsAnnouncements />} />
+                  <Route path="calls" element={<CommsCalls />} />
+                  <Route path="meetings" element={<CommsMeetings />} />
+                  <Route path="tasks" element={<CommsTasks />} />
+                  <Route path="files" element={<CommsFiles />} />
+                  <Route path="history" element={<CommsHistory />} />
+                  <Route path="search" element={<CommsSearch />} />
+                  <Route path="templates" element={<CommsTemplates />} />
+                  <Route path="analytics" element={<CommsAnalytics />} />
+                  <Route path="settings" element={<CommsSettings />} />
                 </Route>
                 {/* Operational Intelligence Center (IWOS 4.9) */}
                 <Route path="/oic" element={<OicLayout />}>
