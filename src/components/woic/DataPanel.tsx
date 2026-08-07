@@ -89,6 +89,7 @@ export function DataPanel<T extends { id: string }>({
               </Table>
             </div>
           )}
+          {!isLoading && !error && footer}
         </CardContent>
       </Card>
 
