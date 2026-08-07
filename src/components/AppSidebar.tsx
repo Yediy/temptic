@@ -9,6 +9,8 @@ import {
 import { AGENCY_MODULES, GROUP_LABELS, type ModuleDef } from "@/lib/modules";
 import { useAccessibleModules } from "@/lib/permissions";
 import { Badge } from "@/components/ui/badge";
+import { CommandCenterTrigger } from "@/components/command/CommandCenter";
+
 
 const adminItems = [
   { label: "Agencies", icon: Shield, path: "/admin/agencies" },
