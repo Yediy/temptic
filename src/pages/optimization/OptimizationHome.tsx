@@ -173,7 +173,7 @@ export default function OptimizationHome() {
                 selected.strategies.slice(0, 6).map((s) => (
                   <div key={s.id} className="rounded border p-1.5">
                     <p className="font-medium">{s.name}</p>
-                    <p className="text-muted-foreground">{s.benefits[0] ?? s.summary || "No benefit reported."}</p>
+                    <p className="text-muted-foreground">{s.benefits[0] || s.summary || "No benefit reported."}</p>
                   </div>
                 ))
               )}
