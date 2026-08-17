@@ -7,7 +7,7 @@ import {
   useSimSettings, useSimulationPermissions,
 } from "@/hooks/simulation/use-simulation";
 import {
-  DEFAULT_SIM_SETTINGS, PLATFORM_DNA, SIMULATION_MODES, TIME_HORIZONS,
+  DEFAULT_SIM_SETTINGS, PLATFORM_DNA, SIMULATION_MODES, TIME_HORIZONS, type TimeHorizon,
 } from "@/lib/simulation/platform";
 import { useToast } from "@/hooks/use-toast";
 
@@ -36,7 +36,7 @@ export default function SimulationSettings() {
           </label>
           <label className="flex items-center justify-between gap-2">
             Default time horizon
-            <select value={settings.defaultHorizon} onChange={(e) => patch({ defaultHorizon: e.target.value })}
+            <select value={settings.defaultHorizon} onChange={(e) => patch({ defaultHorizon: e.target.value as TimeHorizon })}
               className="h-9 rounded-md border bg-background px-2 text-sm">
               {TIME_HORIZONS.map((h) => <option key={h} value={h}>{h}</option>)}
             </select>
@@ -71,8 +71,8 @@ export default function SimulationSettings() {
           <CardHeader className="pb-2"><CardTitle className="text-sm">Access</CardTitle></CardHeader>
           <CardContent className="flex flex-wrap gap-1">
             {["run", "compare", "approve", "calibrate", "export"].map((c) => (
-              <Badge key={c} variant={permissions.has(c as never) ? "secondary" : "outline"} className="text-[10px]">
-                {c}: {permissions.has(c as never) ? "allowed" : "restricted"}
+              <Badge key={c} variant={permissions.can(c as never) ? "secondary" : "outline"} className="text-[10px]">
+                {c}: {permissions.can(c as never) ? "allowed" : "restricted"}
               </Badge>
             ))}
           </CardContent>
@@ -97,7 +97,7 @@ export default function SimulationSettings() {
           <CardHeader className="pb-2"><CardTitle className="text-sm">Platform DNA</CardTitle></CardHeader>
           <CardContent className="space-y-1 text-xs text-muted-foreground">
             <p>Architecture: {PLATFORM_DNA.architecture_version}</p>
-            <p>Engine: {PLATFORM_DNA.engine}</p>
+            <p>Platform contract: {PLATFORM_DNA.platform_contract}</p>
             <p>Production data is never mutated by simulations.</p>
           </CardContent>
         </Card>
