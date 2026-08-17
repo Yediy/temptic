@@ -122,6 +122,20 @@ import AssumptionInspector from "@/pages/simulation/AssumptionInspector";
 import Calibration from "@/pages/simulation/Calibration";
 import SavedSimulations from "@/pages/simulation/SavedSimulations";
 import SimulationSettings from "@/pages/simulation/SimulationSettings";
+import OptimizationLayout from "@/pages/optimization/OptimizationLayout";
+import OptimizationHome from "@/pages/optimization/OptimizationHome";
+import ObjectiveBuilder from "@/pages/optimization/ObjectiveBuilder";
+import ConstraintCenter from "@/pages/optimization/ConstraintCenter";
+import StrategyExplorer from "@/pages/optimization/StrategyExplorer";
+import CompareStrategies from "@/pages/optimization/CompareStrategies";
+import ParetoExplorer from "@/pages/optimization/ParetoExplorer";
+import SensitivityLab from "@/pages/optimization/SensitivityLab";
+import ResourcePlanner from "@/pages/optimization/ResourcePlanner";
+import RiskTradeoffs from "@/pages/optimization/RiskTradeoffs";
+import OptimizationRuns from "@/pages/optimization/OptimizationRuns";
+import OptCalibration from "@/pages/optimization/OptCalibration";
+import SavedOptimizations from "@/pages/optimization/SavedOptimizations";
+import OptimizationSettings from "@/pages/optimization/OptimizationSettings";
 import RecruitLayout from "@/pages/recruit/RecruitLayout";
 import RecruitDashboard from "@/pages/recruit/RecruitDashboard";
 import RecruitCandidates from "@/pages/recruit/RecruitCandidates";
@@ -567,6 +581,27 @@ const App = () => (
                   <Route path="calibration" element={<Calibration />} />
                   <Route path="saved" element={<SavedSimulations />} />
                   <Route path="settings" element={<SimulationSettings />} />
+                </Route>
+              </Route>
+            </Route>
+
+            {/* IWOS Platform Optimization Workspace (Phase 5.8D) */}
+            <Route element={<ProtectedRoute allowedRoles={["agency_admin", "super_admin"]} redirectTo="/unauthorized" />}>
+              <Route element={<AppLayout />}>
+                <Route path="/optimization" element={<OptimizationLayout />}>
+                  <Route index element={<OptimizationHome />} />
+                  <Route path="objectives" element={<ObjectiveBuilder />} />
+                  <Route path="constraints" element={<ConstraintCenter />} />
+                  <Route path="strategies" element={<StrategyExplorer />} />
+                  <Route path="compare" element={<CompareStrategies />} />
+                  <Route path="pareto" element={<ParetoExplorer />} />
+                  <Route path="sensitivity" element={<SensitivityLab />} />
+                  <Route path="resources" element={<ResourcePlanner />} />
+                  <Route path="risk" element={<RiskTradeoffs />} />
+                  <Route path="runs" element={<OptimizationRuns />} />
+                  <Route path="calibration" element={<OptCalibration />} />
+                  <Route path="saved" element={<SavedOptimizations />} />
+                  <Route path="settings" element={<OptimizationSettings />} />
                 </Route>
               </Route>
             </Route>
