@@ -6,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Lock } from "lucide-react";
 import { EmptyState } from "@/components/woic/AsyncState";
-import { ConstitutionNotice, EnforcementBadge, SourceBadge } from "@/components/optimization/OptBits";
+import { EnforcementBadge, SourceBadge } from "@/components/optimization/OptBits";
 import { useDraftDefinition, useOptimizationHistory } from "@/hooks/optimization/use-optimization";
 import {
   BASELINE_CONSTRAINTS, CONSTRAINT_SOURCES, isLocked, newConstraint, optName, sourceByKey,
@@ -33,8 +33,6 @@ export default function ConstraintCenter() {
   return (
     <div className="grid gap-3 lg:grid-cols-3">
       <div className="space-y-3 lg:col-span-2">
-        <ConstitutionNotice />
-
         <Card className="bg-card/60 backdrop-blur">
           <CardHeader className="flex-row flex-wrap items-center justify-between gap-2 pb-2">
             <CardTitle className="text-sm">Constraints ({visible.length})</CardTitle>
