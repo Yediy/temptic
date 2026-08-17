@@ -176,6 +176,18 @@ import CognitiveEscalations from "@/pages/cognition/EscalationCenter";
 import CognitivePerformance from "@/pages/cognition/CognitivePerformance";
 import CognitiveArchitecture from "@/pages/cognition/CognitiveArchitecture";
 import CognitionSettings from "@/pages/cognition/CognitionSettings";
+import PerceptionLayout from "@/pages/perception/PerceptionLayout";
+import PerceptionOverview from "@/pages/perception/PerceptionOverview";
+import LiveObservations from "@/pages/perception/LiveObservations";
+import ContextPacks from "@/pages/perception/ContextPacks";
+import EntityResolution from "@/pages/perception/EntityResolution";
+import RelevanceView from "@/pages/perception/RelevanceView";
+import AttentionSignals from "@/pages/perception/AttentionSignals";
+import PerceptionContradictions from "@/pages/perception/PerceptionContradictions";
+import MissingInformation from "@/pages/perception/MissingInformation";
+import ContextFreshness from "@/pages/perception/ContextFreshness";
+import SourceHealth from "@/pages/perception/SourceHealth";
+import PerceptionSettings from "@/pages/perception/PerceptionSettings";
 import OptimizationLayout from "@/pages/optimization/OptimizationLayout";
 import OptimizationHome from "@/pages/optimization/OptimizationHome";
 import ObjectiveBuilder from "@/pages/optimization/ObjectiveBuilder";
@@ -680,6 +692,25 @@ const App = () => (
                   <Route path="performance" element={<CognitivePerformance />} />
                   <Route path="architecture" element={<CognitiveArchitecture />} />
                   <Route path="settings" element={<CognitionSettings />} />
+                </Route>
+              </Route>
+            </Route>
+
+            {/* WOIC Perception & Context Workspace (Phase 6.1B) */}
+            <Route element={<ProtectedRoute allowedRoles={["agency_admin", "super_admin"]} redirectTo="/unauthorized" />}>
+              <Route element={<AppLayout />}>
+                <Route path="/perception" element={<PerceptionLayout />}>
+                  <Route index element={<PerceptionOverview />} />
+                  <Route path="observations" element={<LiveObservations />} />
+                  <Route path="context-packs" element={<ContextPacks />} />
+                  <Route path="entities" element={<EntityResolution />} />
+                  <Route path="relevance" element={<RelevanceView />} />
+                  <Route path="attention" element={<AttentionSignals />} />
+                  <Route path="contradictions" element={<PerceptionContradictions />} />
+                  <Route path="missing" element={<MissingInformation />} />
+                  <Route path="freshness" element={<ContextFreshness />} />
+                  <Route path="sources" element={<SourceHealth />} />
+                  <Route path="settings" element={<PerceptionSettings />} />
                 </Route>
               </Route>
             </Route>
