@@ -5,8 +5,7 @@ import { useAllClientInvites } from "@/hooks/use-client-invites";
 import { isPast } from "date-fns";
 import {
   FileText, Plus, LogOut, Search, AlertTriangle, Shield, Mail, Gauge, Briefcase, Sparkles, Brain, Users2, MessageSquare, Activity, History, BookOpen,
-  FlaskConical, Bot, Boxes,
-} from "lucide-react";
+  FlaskConical, Bot, Boxes, Cpu} from "lucide-react";
 import { AGENCY_MODULES, GROUP_LABELS, type ModuleDef } from "@/lib/modules";
 import { useAccessibleModules } from "@/lib/permissions";
 import { Badge } from "@/components/ui/badge";
@@ -200,6 +199,19 @@ export function AppSidebar() {
         >
           <Bot className="h-4 w-4" />
           Autonomous Ops
+        </Link>
+
+        <Link
+          to="/cognition"
+          className={cn(
+            "mt-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors",
+            isActivePath("/cognition")
+              ? "bg-sidebar-accent text-sidebar-accent-foreground"
+              : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+          )}
+        >
+          <Cpu className="h-4 w-4" />
+          WOIC Intelligence
         </Link>
 
         <Link
