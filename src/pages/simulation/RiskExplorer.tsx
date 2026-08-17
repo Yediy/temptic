@@ -62,7 +62,9 @@ export default function RiskExplorer() {
         });
       });
     }
-    (graphRisks.data ?? []).forEach((raw) => {
+    const graphRows = Array.isArray(graphRisks.data) ? [] : (graphRisks.data?.risks ?? []);
+    graphRows.forEach((raw) => {
+
       const r = raw as Record<string, unknown>;
       const label = String(r.label ?? r.name ?? "Organizational risk");
       out.push({
