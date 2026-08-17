@@ -6,7 +6,7 @@
 import {
   Plus, Users, Building2, Briefcase, FileText, DollarSign, CreditCard, Workflow,
   Sparkles, ShieldCheck, IdCard, Brain, Search, Clock, BarChart3, Settings,
-  Activity, History, Network, GraduationCap, CalendarRange, MessageSquare,
+  Activity, History, Network, GraduationCap, CalendarRange, MessageSquare, Boxes,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { AGENCY_MODULES } from "@/lib/modules";
