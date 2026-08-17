@@ -137,6 +137,30 @@ import AutonomyLedger from "@/pages/autonomy/AutonomyLedger";
 import AutonomyPerformance from "@/pages/autonomy/PerformancePage";
 import IncidentCenter from "@/pages/autonomy/IncidentCenter";
 import AutonomySettings from "@/pages/autonomy/AutonomySettings";
+import ArchitectureLayout from "@/pages/architecture/ArchitectureLayout";
+import ArchitectureOverview from "@/pages/architecture/ArchitectureOverview";
+import PlatformOrganisms from "@/pages/architecture/PlatformOrganisms";
+import OrganismDetail from "@/pages/architecture/OrganismDetail";
+import PlatformLayers from "@/pages/architecture/PlatformLayers";
+import PlatformDomains from "@/pages/architecture/PlatformDomains";
+import DependencyExplorer from "@/pages/architecture/DependencyExplorer";
+import DataOwnership from "@/pages/architecture/DataOwnership";
+import ApiCatalog from "@/pages/architecture/ApiCatalog";
+import EventCatalog from "@/pages/architecture/EventCatalog";
+import PermissionRegistry from "@/pages/architecture/PermissionRegistry";
+import PlatformContracts from "@/pages/architecture/PlatformContracts";
+import CapabilitySpecs from "@/pages/architecture/CapabilitySpecs";
+import PlatformDnaPage from "@/pages/architecture/PlatformDnaPage";
+import AdrsPage from "@/pages/architecture/AdrsPage";
+import ConstitutionViewer from "@/pages/architecture/ConstitutionViewer";
+import VersionsPage from "@/pages/architecture/VersionsPage";
+import CompatibilityMatrix from "@/pages/architecture/CompatibilityMatrix";
+import ArchitectureHealth from "@/pages/architecture/ArchitectureHealth";
+import ChangeImpact from "@/pages/architecture/ChangeImpact";
+import TechnicalDebt from "@/pages/architecture/TechnicalDebt";
+import IpRegister from "@/pages/architecture/IpRegister";
+import EngineerSearch from "@/pages/architecture/EngineerSearch";
+import ArchSettings from "@/pages/architecture/ArchSettings";
 import OptimizationLayout from "@/pages/optimization/OptimizationLayout";
 import OptimizationHome from "@/pages/optimization/OptimizationHome";
 import ObjectiveBuilder from "@/pages/optimization/ObjectiveBuilder";
@@ -621,6 +645,39 @@ const App = () => (
                 </Route>
               </Route>
             </Route>
+
+            {/* IWOS Architecture & Governance Console (Phase 5.10B) */}
+            <Route element={<ProtectedRoute allowedRoles={["agency_admin", "super_admin"]} redirectTo="/unauthorized" />}>
+              <Route element={<AppLayout />}>
+                <Route path="/architecture" element={<ArchitectureLayout />}>
+                  <Route index element={<ArchitectureOverview />} />
+                  <Route path="organisms" element={<PlatformOrganisms />} />
+                  <Route path="organisms/:organismId" element={<OrganismDetail />} />
+                  <Route path="layers" element={<PlatformLayers />} />
+                  <Route path="domains" element={<PlatformDomains />} />
+                  <Route path="dependencies" element={<DependencyExplorer />} />
+                  <Route path="data-ownership" element={<DataOwnership />} />
+                  <Route path="apis" element={<ApiCatalog />} />
+                  <Route path="events" element={<EventCatalog />} />
+                  <Route path="permissions" element={<PermissionRegistry />} />
+                  <Route path="contracts" element={<PlatformContracts />} />
+                  <Route path="capspecs" element={<CapabilitySpecs />} />
+                  <Route path="dna" element={<PlatformDnaPage />} />
+                  <Route path="adrs" element={<AdrsPage />} />
+                  <Route path="constitution" element={<ConstitutionViewer />} />
+                  <Route path="versions" element={<VersionsPage />} />
+                  <Route path="compatibility" element={<CompatibilityMatrix />} />
+                  <Route path="health" element={<ArchitectureHealth />} />
+                  <Route path="impact" element={<ChangeImpact />} />
+                  <Route path="debt" element={<TechnicalDebt />} />
+                  <Route path="ip" element={<IpRegister />} />
+                  <Route path="search" element={<EngineerSearch />} />
+                  <Route path="settings" element={<ArchSettings />} />
+                </Route>
+              </Route>
+            </Route>
+
+
 
             {/* IWOS Platform Optimization Workspace (Phase 5.8D) */}
             <Route element={<ProtectedRoute allowedRoles={["agency_admin", "super_admin"]} redirectTo="/unauthorized" />}>
