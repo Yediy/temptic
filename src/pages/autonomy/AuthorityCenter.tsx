@@ -26,10 +26,14 @@ export default function AuthorityCenter() {
   const [level, setLevel] = useState<string>(AUTHORITY_LEVELS[0].key);
   const authorized = can("authority.mutate");
 
-  const run = (action: string, envelopeId: string, reason: string) =>
-    mutate.mutateAsync({ action, envelope_id: envelopeId, level, reason })
-      .then(() => toast({ title: "Request submitted to the Autonomous Coordination Engine." }))
-      .catch((e: Error) => toast({ title: "Request rejected", description: e.message, variant: "destructive" }));
+  const run = async (action: string, envelopeId: string, reason: string): Promise<void> => {
+    try {
+      await mutate.mutateAsync({ action, envelope_id: envelopeId, level, reason });
+      toast({ title: "Request submitted to the Autonomous Coordination Engine." });
+    } catch (e) {
+      toast({ title: "Request rejected", description: (e as Error).message, variant: "destructive" });
+    }
+  };
 
   return (
     <div className="space-y-4">
