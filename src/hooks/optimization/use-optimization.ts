@@ -10,7 +10,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { cognitive, useSimulations as useCognitiveRows } from "@/hooks/woic/use-cognitive";
 import { useAuth } from "@/lib/auth";
 import {
-  DEFAULT_OPT_SETTINGS, OPT_CALIBRATION_KEY, OPT_DECISION_QUEUE_KEY, OPT_SAVED_DEFS_KEY,
+  DEFAULT_OPT_SETTINGS, emptyDefinition, OPT_CALIBRATION_KEY, OPT_DECISION_QUEUE_KEY, OPT_SAVED_DEFS_KEY,
   OPT_SAVED_RESULTS_KEY, OPT_SETTINGS_KEY, isOptimizationRow, optName, optimizationCapabilities,
   parseOptimization, readJson, toEnginePayload, writeJson,
   type DecisionHandoff, type OptCalibrationRecord, type OptSettings, type OptimizationCapability,
@@ -342,6 +342,8 @@ function useLocalStore<T>(key: string, fallback: T) {
   return [value, setValue] as const;
 }
 
+export const useDraftDefinition = () =>
+  useLocalStore<OptimizationDefinition>("iwos.optimization.draft.v1", emptyDefinition());
 export const useOptSettings = () => useLocalStore<OptSettings>(OPT_SETTINGS_KEY, DEFAULT_OPT_SETTINGS);
 export const useSavedDefinitions = () => useLocalStore<SavedDefinition[]>(OPT_SAVED_DEFS_KEY, []);
 export const useSavedOptimizations = () => useLocalStore<string[]>(OPT_SAVED_RESULTS_KEY, []);
