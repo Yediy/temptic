@@ -122,6 +122,21 @@ import AssumptionInspector from "@/pages/simulation/AssumptionInspector";
 import Calibration from "@/pages/simulation/Calibration";
 import SavedSimulations from "@/pages/simulation/SavedSimulations";
 import SimulationSettings from "@/pages/simulation/SimulationSettings";
+import AutonomyLayout from "@/pages/autonomy/AutonomyLayout";
+import OperationsOverview from "@/pages/autonomy/OperationsOverview";
+import LiveCoordinations from "@/pages/autonomy/LiveCoordinations";
+import AutonomyObjectives from "@/pages/autonomy/ObjectivesPage";
+import AutonomyPlans from "@/pages/autonomy/PlansPage";
+import AutonomyTasks from "@/pages/autonomy/TasksPage";
+import ActorCenter from "@/pages/autonomy/ActorCenter";
+import AuthorityCenter from "@/pages/autonomy/AuthorityCenter";
+import ApprovalQueue from "@/pages/autonomy/ApprovalQueue";
+import InterventionCenter from "@/pages/autonomy/InterventionCenter";
+import AutonomyEscalations from "@/pages/autonomy/EscalationsPage";
+import AutonomyLedger from "@/pages/autonomy/AutonomyLedger";
+import AutonomyPerformance from "@/pages/autonomy/PerformancePage";
+import IncidentCenter from "@/pages/autonomy/IncidentCenter";
+import AutonomySettings from "@/pages/autonomy/AutonomySettings";
 import OptimizationLayout from "@/pages/optimization/OptimizationLayout";
 import OptimizationHome from "@/pages/optimization/OptimizationHome";
 import ObjectiveBuilder from "@/pages/optimization/ObjectiveBuilder";
@@ -581,6 +596,28 @@ const App = () => (
                   <Route path="calibration" element={<Calibration />} />
                   <Route path="saved" element={<SavedSimulations />} />
                   <Route path="settings" element={<SimulationSettings />} />
+                </Route>
+              </Route>
+            </Route>
+
+            {/* IWOS Autonomous Operations Workspace (Phase 5.9B) */}
+            <Route element={<ProtectedRoute allowedRoles={["agency_admin", "super_admin"]} redirectTo="/unauthorized" />}>
+              <Route element={<AppLayout />}>
+                <Route path="/autonomy" element={<AutonomyLayout />}>
+                  <Route index element={<OperationsOverview />} />
+                  <Route path="coordinations" element={<LiveCoordinations />} />
+                  <Route path="objectives" element={<AutonomyObjectives />} />
+                  <Route path="plans" element={<AutonomyPlans />} />
+                  <Route path="tasks" element={<AutonomyTasks />} />
+                  <Route path="actors" element={<ActorCenter />} />
+                  <Route path="authority" element={<AuthorityCenter />} />
+                  <Route path="approvals" element={<ApprovalQueue />} />
+                  <Route path="intervention" element={<InterventionCenter />} />
+                  <Route path="escalations" element={<AutonomyEscalations />} />
+                  <Route path="ledger" element={<AutonomyLedger />} />
+                  <Route path="performance" element={<AutonomyPerformance />} />
+                  <Route path="incidents" element={<IncidentCenter />} />
+                  <Route path="settings" element={<AutonomySettings />} />
                 </Route>
               </Route>
             </Route>

@@ -52,6 +52,13 @@ export const QUICK_ACTIONS: CommandDef[] = [
 export const EXTRA_DESTINATIONS: CommandDef[] = [
   { id: "go.timeline", label: "Universal Timeline", group: "Go to", icon: History, kind: "navigate", to: "/timeline" },
   { id: "go.simulation", label: "Simulation Workspace", group: "Go to", icon: Activity, kind: "navigate", to: "/simulation", keywords: ["scenario", "what if", "forecast"] },
+  { id: "go.autonomy", label: "Autonomous Operations", group: "Go to", icon: Activity, kind: "navigate", to: "/autonomy", keywords: ["autonomy", "agents", "coordination", "operations"] },
+  { id: "go.autonomy.coordinations", label: "Open Coordination Map", group: "Go to", icon: Activity, kind: "navigate", to: "/autonomy/coordinations", keywords: ["coordination", "live", "map"] },
+  { id: "go.autonomy.approvals", label: "Show Approval Queue", group: "Go to", icon: Activity, kind: "navigate", to: "/autonomy/approvals", keywords: ["approval", "approve", "queue"] },
+  { id: "go.autonomy.intervention", label: "Pause or Intervene in a Coordination", group: "Go to", icon: Activity, kind: "navigate", to: "/autonomy/intervention", keywords: ["pause", "kill switch", "intervene", "stop"] },
+  { id: "go.autonomy.authority", label: "Show Actor Authority", group: "Go to", icon: Activity, kind: "navigate", to: "/autonomy/authority", keywords: ["authority", "envelope", "permission"] },
+  { id: "go.autonomy.escalations", label: "Show Escalations", group: "Go to", icon: Activity, kind: "navigate", to: "/autonomy/escalations", keywords: ["escalation", "urgent"] },
+  { id: "go.autonomy.ledger", label: "Show Autonomy Ledger", group: "Go to", icon: Activity, kind: "navigate", to: "/autonomy/ledger", keywords: ["ledger", "audit", "governance"] },
   { id: "go.optimization", label: "Optimization Workspace", group: "Go to", icon: Activity, kind: "navigate", to: "/optimization", keywords: ["optimize", "objectives", "constraints", "strategy", "pareto"] },
   { id: "go.optimization.objectives", label: "Define Optimization Objectives", group: "Go to", icon: Activity, kind: "navigate", to: "/optimization/objectives", keywords: ["objective", "goal", "weight"] },
   { id: "go.optimization.strategies", label: "Explore Optimization Strategies", group: "Go to", icon: Activity, kind: "navigate", to: "/optimization/strategies", keywords: ["strategy", "recommendation"] },
