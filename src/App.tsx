@@ -108,6 +108,20 @@ import ImpactAnalysis from "@/pages/graph/ImpactAnalysis";
 import GraphSearchPage from "@/pages/graph/GraphSearch";
 import SavedViews from "@/pages/graph/SavedViews";
 import GraphSettings from "@/pages/graph/GraphSettings";
+import SimulationLayout from "@/pages/simulation/SimulationLayout";
+import SimulationHome from "@/pages/simulation/SimulationHome";
+import ScenarioBuilder from "@/pages/simulation/ScenarioBuilder";
+import ScenarioLibrary from "@/pages/simulation/ScenarioLibrary";
+import CompareScenarios from "@/pages/simulation/CompareScenarios";
+import LiveRuns from "@/pages/simulation/LiveRuns";
+import SimulationHistory from "@/pages/simulation/SimulationHistory";
+import ProjectedTimeline from "@/pages/simulation/ProjectedTimeline";
+import ImpactMap from "@/pages/simulation/ImpactMap";
+import RiskExplorer from "@/pages/simulation/RiskExplorer";
+import AssumptionInspector from "@/pages/simulation/AssumptionInspector";
+import Calibration from "@/pages/simulation/Calibration";
+import SavedSimulations from "@/pages/simulation/SavedSimulations";
+import SimulationSettings from "@/pages/simulation/SimulationSettings";
 import RecruitLayout from "@/pages/recruit/RecruitLayout";
 import RecruitDashboard from "@/pages/recruit/RecruitDashboard";
 import RecruitCandidates from "@/pages/recruit/RecruitCandidates";
@@ -535,6 +549,27 @@ const App = () => (
               </Route>
             </Route>
 
+
+            {/* IWOS Platform Simulation Workspace (Phase 5.8B) */}
+            <Route element={<ProtectedRoute allowedRoles={["agency_admin", "super_admin"]} redirectTo="/unauthorized" />}>
+              <Route element={<AppLayout />}>
+                <Route path="/simulation" element={<SimulationLayout />}>
+                  <Route index element={<SimulationHome />} />
+                  <Route path="builder" element={<ScenarioBuilder />} />
+                  <Route path="library" element={<ScenarioLibrary />} />
+                  <Route path="compare" element={<CompareScenarios />} />
+                  <Route path="runs" element={<LiveRuns />} />
+                  <Route path="history" element={<SimulationHistory />} />
+                  <Route path="timeline" element={<ProjectedTimeline />} />
+                  <Route path="impact" element={<ImpactMap />} />
+                  <Route path="risk" element={<RiskExplorer />} />
+                  <Route path="assumptions" element={<AssumptionInspector />} />
+                  <Route path="calibration" element={<Calibration />} />
+                  <Route path="saved" element={<SavedSimulations />} />
+                  <Route path="settings" element={<SimulationSettings />} />
+                </Route>
+              </Route>
+            </Route>
 
             {/* Admin-only routes (super_admin only) */}
             <Route element={<ProtectedRoute allowedRoles={["super_admin"]} redirectTo="/unauthorized" />}>

@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { useAllClientInvites } from "@/hooks/use-client-invites";
 import { isPast } from "date-fns";
 import {
-  FileText, Plus, LogOut, Search, AlertTriangle, Shield, Mail, Gauge, Briefcase, Sparkles, Brain, Users2, MessageSquare, Activity, History, BookOpen,
+  FileText, Plus, LogOut, Search, AlertTriangle, Shield, Mail, Gauge, Briefcase, Sparkles, Brain, Users2, MessageSquare, Activity, History, BookOpen, FlaskConical,
 } from "lucide-react";
 import { AGENCY_MODULES, GROUP_LABELS, type ModuleDef } from "@/lib/modules";
 import { useAccessibleModules } from "@/lib/permissions";
@@ -175,6 +175,19 @@ export function AppSidebar() {
           <MessageSquare className="h-4 w-4" />
           Client Collab
         </Link>
+        <Link
+          to="/simulation"
+          className={cn(
+            "mt-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors",
+            isActivePath("/simulation")
+              ? "bg-sidebar-accent text-sidebar-accent-foreground"
+              : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+          )}
+        >
+          <FlaskConical className="h-4 w-4" />
+          Simulation
+        </Link>
+
 
       </div>
 

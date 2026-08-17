@@ -51,6 +51,7 @@ export const QUICK_ACTIONS: CommandDef[] = [
 /** Destinations outside the sidebar module registry. */
 export const EXTRA_DESTINATIONS: CommandDef[] = [
   { id: "go.timeline", label: "Universal Timeline", group: "Go to", icon: History, kind: "navigate", to: "/timeline" },
+  { id: "go.simulation", label: "Simulation Workspace", group: "Go to", icon: Activity, kind: "navigate", to: "/simulation", keywords: ["scenario", "what if", "forecast"] },
   { id: "go.activity", label: "System Activity Center", group: "Go to", icon: Activity, kind: "navigate", to: "/activity" },
   { id: "go.oic", label: "Operational Intelligence Center", group: "Go to", icon: BarChart3, kind: "navigate", to: "/oic" },
   { id: "go.graph", label: "Workforce Graph", group: "Go to", icon: Network, kind: "navigate", to: "/graph" },
