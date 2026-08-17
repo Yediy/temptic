@@ -129,6 +129,7 @@ import {
   PassportCareerCoach, PassportOpportunities,
 } from "@/pages/passport/PassportTabs";
 import PassportTimelineView from "@/pages/passport/PassportTimelineView";
+import PassportReputation from "@/pages/passport/PassportReputation";
 import PassportVerifications from "@/pages/passport/PassportVerifications";
 import PassportBadges from "@/pages/passport/PassportBadges";
 import PassportSharing from "@/pages/passport/PassportSharing";
@@ -484,6 +485,7 @@ const App = () => (
                   <Route path="compliance" element={<PassportCompliancePage />} />
                   <Route path="documents" element={<PassportDocuments />} />
                   <Route path="portfolio" element={<PassportPortfolio />} />
+                  <Route path="reputation" element={<PassportReputation />} />
                   <Route path="timeline" element={<PassportTimelineView />} />
                   <Route path="coach" element={<PassportCareerCoach />} />
                   <Route path="opportunities" element={<PassportOpportunities />} />

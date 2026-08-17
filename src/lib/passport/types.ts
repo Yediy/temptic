@@ -77,6 +77,7 @@ export const PASSPORT_TABS = [
   { key: "compliance", label: "Compliance", path: "compliance" },
   { key: "documents", label: "Documents", path: "documents" },
   { key: "portfolio", label: "Portfolio", path: "portfolio" },
+  { key: "reputation", label: "Reputation", path: "reputation" },
   { key: "timeline", label: "Timeline", path: "timeline" },
   { key: "coach", label: "Career Coach", path: "coach" },
   { key: "opportunities", label: "Opportunities", path: "opportunities" },
