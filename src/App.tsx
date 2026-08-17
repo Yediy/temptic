@@ -684,6 +684,25 @@ const App = () => (
               </Route>
             </Route>
 
+            {/* WOIC Perception & Context Workspace (Phase 6.1B) */}
+            <Route element={<ProtectedRoute allowedRoles={["agency_admin", "super_admin"]} redirectTo="/unauthorized" />}>
+              <Route element={<AppLayout />}>
+                <Route path="/perception" element={<PerceptionLayout />}>
+                  <Route index element={<PerceptionOverview />} />
+                  <Route path="observations" element={<LiveObservations />} />
+                  <Route path="context-packs" element={<ContextPacks />} />
+                  <Route path="entities" element={<EntityResolution />} />
+                  <Route path="relevance" element={<RelevanceView />} />
+                  <Route path="attention" element={<AttentionSignals />} />
+                  <Route path="contradictions" element={<PerceptionContradictions />} />
+                  <Route path="missing" element={<MissingInformation />} />
+                  <Route path="freshness" element={<ContextFreshness />} />
+                  <Route path="sources" element={<SourceHealth />} />
+                  <Route path="settings" element={<PerceptionSettings />} />
+                </Route>
+              </Route>
+            </Route>
+
             {/* IWOS Architecture & Governance Console (Phase 5.10B) */}
             <Route element={<ProtectedRoute allowedRoles={["agency_admin", "super_admin"]} redirectTo="/unauthorized" />}>
               <Route element={<AppLayout />}>
