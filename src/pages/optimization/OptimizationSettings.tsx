@@ -33,13 +33,18 @@ export default function OptimizationSettings() {
               onChange={(e) => setSettings({ ...settings, confidenceThreshold: Number(e.target.value) })} />
           </label>
           <label className="flex items-center justify-between gap-2">
-            Show rejected strategies
-            <Switch checked={settings.showRejected} onCheckedChange={(v) => setSettings({ ...settings, showRejected: v })} />
+            Show raw engine output
+            <Switch checked={settings.showRawOutput} onCheckedChange={(v) => setSettings({ ...settings, showRawOutput: v })} />
           </label>
           <label className="flex items-center justify-between gap-2">
-            Always require approval before execution
-            <Switch checked={settings.requireApproval} disabled
-              onCheckedChange={() => { /* constitutionally locked */ }} />
+            Show solver metadata
+            <Switch checked={settings.showSolverMetadata} onCheckedChange={(v) => setSettings({ ...settings, showSolverMetadata: v })} />
+          </label>
+          <label className="flex items-center justify-between gap-2">
+            History row limit
+            <input type="number" min={25} max={500} step={25} value={settings.rowLimit} aria-label="History row limit"
+              className="h-8 w-24 rounded border bg-background px-2"
+              onChange={(e) => setSettings({ ...settings, rowLimit: Number(e.target.value) })} />
           </label>
           <p className="text-muted-foreground">
             Approval before execution is constitutionally locked. The workspace never executes a strategy; it only routes it to
