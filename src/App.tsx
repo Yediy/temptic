@@ -125,7 +125,7 @@ import PassportRedirect from "@/pages/passport/PassportRedirect";
 import PassportSettings from "@/pages/passport/PassportSettings";
 import {
   PassportIdentity, PassportSkills, PassportCertifications, PassportTraining,
-  PassportEmployment, PassportCompliancePage, PassportDocuments, PassportPortfolio,
+  PassportEmployment, PassportCompliancePage, PassportDocuments,
   PassportCareerCoach, PassportOpportunities,
 } from "@/pages/passport/PassportTabs";
 import PassportTimelineView from "@/pages/passport/PassportTimelineView";
