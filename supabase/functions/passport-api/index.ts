@@ -150,7 +150,7 @@ Deno.serve(withSentry("passport-api", async (req: Request) => {
 
   if (has("verifications")) jobs.push((async () => {
     const { data: rows } = await admin.from("passport_verifications")
-      .select("id, verification_type, status, verified_at, verified_by, expires_at, metadata")
+      .select("id, verification_type, status, verified_at, verifier, expires_at, metadata")
       .eq("passport_id", passportId).eq("status", "verified");
     data.verifications = (rows ?? []).filter((r: { expires_at: string | null }) => !r.expires_at || r.expires_at > nowIso);
   })());
@@ -164,14 +164,14 @@ Deno.serve(withSentry("passport-api", async (req: Request) => {
 
   if (has("credentials")) jobs.push((async () => {
     const { data: rows } = await admin.from("worker_credentials")
-      .select("id, credential_id, status, issued_on, expires_on, verified_at")
+      .select("id, credential_id, name, issuer, status, issued_on, expires_on")
       .eq("worker_id", workerId).in("status", ["verified", "active", "approved"]);
     data.credentials = (rows ?? []).filter((r: { expires_on: string | null }) => !r.expires_on || r.expires_on >= nowIso.slice(0, 10));
   })());
 
   if (has("skills")) jobs.push((async () => {
     const { data: rows } = await admin.from("worker_skills")
-      .select("id, skill_id, level, years_experience").eq("worker_id", workerId);
+      .select("id, skill_id, proficiency, years_experience").eq("worker_id", workerId);
     data.skills = rows ?? [];
   })());
 
@@ -210,7 +210,7 @@ Deno.serve(withSentry("passport-api", async (req: Request) => {
 
   if (has("work_history")) jobs.push((async () => {
     const { data: rows } = await admin.from("assignments")
-      .select("id, status, starts_on, ends_on, job_order_id").eq("worker_id", workerId)
+      .select("id, status, starts_on, ends_on, placement_id, client_id").eq("worker_id", workerId)
       .order("starts_on", { ascending: false }).limit(200);
     const completed = (rows ?? []).filter((r: { status: string }) => ["completed", "closed", "ended"].includes(r.status));
     data.work_history = { total_assignments: (rows ?? []).length, completed: completed.length, assignments: completed };
