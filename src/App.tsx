@@ -161,6 +161,21 @@ import TechnicalDebt from "@/pages/architecture/TechnicalDebt";
 import IpRegister from "@/pages/architecture/IpRegister";
 import EngineerSearch from "@/pages/architecture/EngineerSearch";
 import ArchSettings from "@/pages/architecture/ArchSettings";
+import CognitionLayout from "@/pages/cognition/CognitionLayout";
+import CognitiveOverview from "@/pages/cognition/CognitiveOverview";
+import ActiveSessions from "@/pages/cognition/ActiveSessions";
+import CognitiveRequests from "@/pages/cognition/CognitiveRequests";
+import FacultyRegistry from "@/pages/cognition/FacultyRegistry";
+import EvidenceExplorer from "@/pages/cognition/EvidenceExplorer";
+import ClaimExplorer from "@/pages/cognition/ClaimExplorer";
+import ContradictionCenter from "@/pages/cognition/ContradictionCenter";
+import UncertaintyCenter from "@/pages/cognition/UncertaintyCenter";
+import ModelOperations from "@/pages/cognition/ModelOperations";
+import CognitiveBudgets from "@/pages/cognition/CognitiveBudgets";
+import CognitiveEscalations from "@/pages/cognition/EscalationCenter";
+import CognitivePerformance from "@/pages/cognition/CognitivePerformance";
+import CognitiveArchitecture from "@/pages/cognition/CognitiveArchitecture";
+import CognitionSettings from "@/pages/cognition/CognitionSettings";
 import OptimizationLayout from "@/pages/optimization/OptimizationLayout";
 import OptimizationHome from "@/pages/optimization/OptimizationHome";
 import ObjectiveBuilder from "@/pages/optimization/ObjectiveBuilder";
@@ -642,6 +657,29 @@ const App = () => (
                   <Route path="performance" element={<AutonomyPerformance />} />
                   <Route path="incidents" element={<IncidentCenter />} />
                   <Route path="settings" element={<AutonomySettings />} />
+                </Route>
+              </Route>
+            </Route>
+
+
+            {/* WOIC Cognitive Control & Observability Workspace (Phase 6.0B) */}
+            <Route element={<ProtectedRoute allowedRoles={["agency_admin", "super_admin"]} redirectTo="/unauthorized" />}>
+              <Route element={<AppLayout />}>
+                <Route path="/cognition" element={<CognitionLayout />}>
+                  <Route index element={<CognitiveOverview />} />
+                  <Route path="sessions" element={<ActiveSessions />} />
+                  <Route path="requests" element={<CognitiveRequests />} />
+                  <Route path="faculties" element={<FacultyRegistry />} />
+                  <Route path="evidence" element={<EvidenceExplorer />} />
+                  <Route path="claims" element={<ClaimExplorer />} />
+                  <Route path="contradictions" element={<ContradictionCenter />} />
+                  <Route path="uncertainty" element={<UncertaintyCenter />} />
+                  <Route path="models" element={<ModelOperations />} />
+                  <Route path="budgets" element={<CognitiveBudgets />} />
+                  <Route path="escalations" element={<CognitiveEscalations />} />
+                  <Route path="performance" element={<CognitivePerformance />} />
+                  <Route path="architecture" element={<CognitiveArchitecture />} />
+                  <Route path="settings" element={<CognitionSettings />} />
                 </Route>
               </Route>
             </Route>
