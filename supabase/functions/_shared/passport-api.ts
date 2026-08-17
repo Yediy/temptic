@@ -105,8 +105,8 @@ export async function resolveGrant(opts: {
   }
 
   // 4. Platform super admins may read for oversight (always logged).
-  const { data: isSuper } = await userClient.rpc("has_role", { _user_id: user.id, _role: "super_admin" });
-  if (isSuper === true) {
+  const { data: roles } = await admin.from("user_roles").select("role").eq("user_id", user.id);
+  if ((roles ?? []).some((r: { role: string }) => r.role === "super_admin")) {
     return { via: "super_admin", scopes: [...PASSPORT_SCOPES], permission_id: null, expires_at: null, grantee_id: null };
   }
 
