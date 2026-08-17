@@ -622,6 +622,39 @@ const App = () => (
               </Route>
             </Route>
 
+            {/* IWOS Architecture & Governance Console (Phase 5.10B) */}
+            <Route element={<ProtectedRoute allowedRoles={["agency_admin", "super_admin"]} redirectTo="/unauthorized" />}>
+              <Route element={<AppLayout />}>
+                <Route path="/architecture" element={<ArchitectureLayout />}>
+                  <Route index element={<ArchitectureOverview />} />
+                  <Route path="organisms" element={<PlatformOrganisms />} />
+                  <Route path="organisms/:organismId" element={<OrganismDetail />} />
+                  <Route path="layers" element={<PlatformLayers />} />
+                  <Route path="domains" element={<PlatformDomains />} />
+                  <Route path="dependencies" element={<DependencyExplorer />} />
+                  <Route path="data-ownership" element={<DataOwnership />} />
+                  <Route path="apis" element={<ApiCatalog />} />
+                  <Route path="events" element={<EventCatalog />} />
+                  <Route path="permissions" element={<PermissionRegistry />} />
+                  <Route path="contracts" element={<PlatformContracts />} />
+                  <Route path="capspecs" element={<CapabilitySpecs />} />
+                  <Route path="dna" element={<PlatformDnaPage />} />
+                  <Route path="adrs" element={<AdrsPage />} />
+                  <Route path="constitution" element={<ConstitutionViewer />} />
+                  <Route path="versions" element={<VersionsPage />} />
+                  <Route path="compatibility" element={<CompatibilityMatrix />} />
+                  <Route path="health" element={<ArchitectureHealth />} />
+                  <Route path="impact" element={<ChangeImpact />} />
+                  <Route path="debt" element={<TechnicalDebt />} />
+                  <Route path="ip" element={<IpRegister />} />
+                  <Route path="search" element={<EngineerSearch />} />
+                  <Route path="settings" element={<ArchSettings />} />
+                </Route>
+              </Route>
+            </Route>
+
+
+
             {/* IWOS Platform Optimization Workspace (Phase 5.8D) */}
             <Route element={<ProtectedRoute allowedRoles={["agency_admin", "super_admin"]} redirectTo="/unauthorized" />}>
               <Route element={<AppLayout />}>
