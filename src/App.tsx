@@ -125,7 +125,7 @@ import PassportRedirect from "@/pages/passport/PassportRedirect";
 import PassportSettings from "@/pages/passport/PassportSettings";
 import {
   PassportIdentity, PassportSkills, PassportCertifications, PassportTraining,
-  PassportEmployment, PassportCompliancePage, PassportDocuments, PassportPortfolio,
+  PassportEmployment, PassportCompliancePage, PassportDocuments,
   PassportCareerCoach, PassportOpportunities,
 } from "@/pages/passport/PassportTabs";
 import PassportTimelineView from "@/pages/passport/PassportTimelineView";
@@ -133,6 +133,7 @@ import PassportReputation from "@/pages/passport/PassportReputation";
 import PassportVerifications from "@/pages/passport/PassportVerifications";
 import PassportBadges from "@/pages/passport/PassportBadges";
 import PassportSharing from "@/pages/passport/PassportSharing";
+import PassportPortfolioManager from "@/pages/passport/PassportPortfolioManager";
 import TwinIndex from "@/pages/twin/TwinIndex";
 import TwinLayout from "@/pages/twin/TwinLayout";
 import TwinDashboard from "@/pages/twin/TwinDashboard";
@@ -484,7 +485,7 @@ const App = () => (
                   <Route path="employment" element={<PassportEmployment />} />
                   <Route path="compliance" element={<PassportCompliancePage />} />
                   <Route path="documents" element={<PassportDocuments />} />
-                  <Route path="portfolio" element={<PassportPortfolio />} />
+                  <Route path="portfolio" element={<PassportPortfolioManager />} />
                   <Route path="reputation" element={<PassportReputation />} />
                   <Route path="timeline" element={<PassportTimelineView />} />
                   <Route path="coach" element={<PassportCareerCoach />} />
