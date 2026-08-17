@@ -215,6 +215,19 @@ export function AppSidebar() {
         </Link>
 
         <Link
+          to="/perception"
+          className={cn(
+            "mt-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors",
+            isActivePath("/perception")
+              ? "bg-sidebar-accent text-sidebar-accent-foreground"
+              : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+          )}
+        >
+          <Radar className="h-4 w-4" />
+          Perception &amp; Context
+        </Link>
+
+        <Link
           to="/architecture"
           className={cn(
             "mt-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors",
