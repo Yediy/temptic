@@ -3871,11 +3871,18 @@ export type Database = {
           id: string
           label: string | null
           last_viewed_at: string | null
+          last_viewed_ip: string | null
+          last_viewed_user_agent: string | null
+          max_uses: number
+          one_time: boolean
           passport_id: string
           revoked_at: string | null
+          revoked_by: string | null
+          revoked_reason: string | null
           scopes: string[]
           token_hash: string
           updated_at: string
+          used_count: number
           view_count: number
         }
         Insert: {
@@ -3885,11 +3892,18 @@ export type Database = {
           id?: string
           label?: string | null
           last_viewed_at?: string | null
+          last_viewed_ip?: string | null
+          last_viewed_user_agent?: string | null
+          max_uses?: number
+          one_time?: boolean
           passport_id: string
           revoked_at?: string | null
+          revoked_by?: string | null
+          revoked_reason?: string | null
           scopes?: string[]
           token_hash: string
           updated_at?: string
+          used_count?: number
           view_count?: number
         }
         Update: {
@@ -3899,11 +3913,18 @@ export type Database = {
           id?: string
           label?: string | null
           last_viewed_at?: string | null
+          last_viewed_ip?: string | null
+          last_viewed_user_agent?: string | null
+          max_uses?: number
+          one_time?: boolean
           passport_id?: string
           revoked_at?: string | null
+          revoked_by?: string | null
+          revoked_reason?: string | null
           scopes?: string[]
           token_hash?: string
           updated_at?: string
+          used_count?: number
           view_count?: number
         }
         Relationships: [

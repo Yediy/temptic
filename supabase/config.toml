@@ -17,3 +17,6 @@ project_id = "nwyjqphqszonzlulezsq"
     verify_jwt = false
   [functions.handle-stripe-webhook]
     verify_jwt = false
+  [functions.passport-share-view]
+    verify_jwt = false
+

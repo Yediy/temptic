@@ -227,6 +227,7 @@ import PassportReputation from "@/pages/passport/PassportReputation";
 import PassportVerifications from "@/pages/passport/PassportVerifications";
 import PassportBadges from "@/pages/passport/PassportBadges";
 import PassportSharing from "@/pages/passport/PassportSharing";
+import PassportSharedView from "@/pages/passport/PassportSharedView";
 import PassportPortfolioManager from "@/pages/passport/PassportPortfolioManager";
 import TwinIndex from "@/pages/twin/TwinIndex";
 import TwinLayout from "@/pages/twin/TwinLayout";
@@ -364,7 +365,8 @@ const App = () => (
             <Route path="/client/reset-password" element={<ClientResetPassword />} />
             <Route path="/worker/forgot-password" element={<WorkerForgotPassword />} />
             <Route path="/worker/reset-password" element={<WorkerResetPassword />} />
-            <Route path="/unsubscribe" element={<Unsubscribe />} />
+              <Route path="/passport/share/:token" element={<PassportSharedView />} />
+              <Route path="/unsubscribe" element={<Unsubscribe />} />
             <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
 
             {/* Public legal / info routes */}
