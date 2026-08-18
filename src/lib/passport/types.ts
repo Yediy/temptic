@@ -20,7 +20,15 @@ export interface PassportSharingLink {
   expires_at: string | null;
   revoked_at: string | null;
   view_count: number;
+  used_count: number;
+  max_uses: number;
+  one_time: boolean;
+  revoked_by: string | null;
+  revoked_reason: string | null;
   last_viewed_at: string | null;
+  last_viewed_ip: string | null;
+  last_viewed_user_agent: string | null;
+
   created_by: string | null;
   created_at: string;
   updated_at: string;
