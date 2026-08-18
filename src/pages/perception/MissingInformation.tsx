@@ -109,7 +109,7 @@ export default function MissingInformation() {
                 {escalate.isPending ? "Escalating…" : "Escalate gap"}
               </Button>
               <Button asChild type="button" size="sm" variant="outline">
-                <Link to="/ttos/tasks">Open Tasks</Link>
+                <Link to="/comms/tasks">Open Tasks</Link>
               </Button>
               <Button asChild type="button" size="sm" variant="outline">
                 <Link to="/cognition/escalations">Escalation Center</Link>
