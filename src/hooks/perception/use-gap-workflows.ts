@@ -102,8 +102,8 @@ export function useGapWorkflows() {
           entity_id: id || null,
           due_at: dueAt || null,
           created_by: userRes?.user?.id ?? null,
-          metadata: { source: "perception.missing", contract: "PC-6.1B", gap },
-        })
+          metadata: { source: "perception.missing", contract: "PC-6.1B", gap } as never,
+        } as never)
         .select("id")
         .single();
       if (error) throw new Error(error.message);
@@ -135,8 +135,8 @@ export function useGapWorkflows() {
         body: [gapSummary(gap), note ? `\nEscalation note: ${note}` : ""].join(""),
         entity_type: GAP_ENTITY_TYPE,
         entity_id: id || null,
-        metadata: { source: "perception.missing", contract: "PC-6.1B", gap },
-      });
+        metadata: { source: "perception.missing", contract: "PC-6.1B", gap } as never,
+      } as never);
       if (error) throw new Error(error.message);
       await emit({
         agencyId,
