@@ -365,7 +365,8 @@ const App = () => (
             <Route path="/client/reset-password" element={<ClientResetPassword />} />
             <Route path="/worker/forgot-password" element={<WorkerForgotPassword />} />
             <Route path="/worker/reset-password" element={<WorkerResetPassword />} />
-            <Route path="/unsubscribe" element={<Unsubscribe />} />
+            <Route path="/passport/share/:token" element={<PassportSharedView />} />
+              <Route path="/unsubscribe" element={<Unsubscribe />} />
             <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
 
             {/* Public legal / info routes */}
@@ -567,7 +568,6 @@ const App = () => (
                   <Route path="organization" element={<TwinOrganization />} />
                 </Route>
                 {/* Workforce Passport (IWOS Build 4.1) */}
-                <Route path="/passport/share/:token" element={<PassportSharedView />} />
                 <Route path="/passport" element={<PassportRedirect />} />
                 <Route path="/passport/:passportId" element={<PassportLayout />}>
                   <Route index element={<PassportHome />} />
