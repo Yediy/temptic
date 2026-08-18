@@ -20,18 +20,6 @@ import type {
 // Tables added post-types-regen — cast the client until types refresh.
 const sb = supabase as any;
 
-async function sha256Hex(input: string): Promise<string> {
-  const buf = new TextEncoder().encode(input);
-  const digest = await crypto.subtle.digest("SHA-256", buf);
-  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-function randomToken(): string {
-  const arr = new Uint8Array(24);
-  crypto.getRandomValues(arr);
-  return Array.from(arr).map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
 export function useSharingLinks(passportId?: string) {
   return useQuery({
     queryKey: ["passport-sharing", passportId],
@@ -45,21 +33,29 @@ export function useSharingLinks(passportId?: string) {
   });
 }
 
+/** Share links are minted server-side; the plaintext token is returned once. */
 export function useCreateSharingLink(passportId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { label?: string; scopes: string[]; expires_at?: string | null }) => {
-      const token = randomToken();
-      const token_hash = await sha256Hex(token);
-      const { error } = await sb.from("passport_sharing").insert({
-        passport_id: passportId,
-        token_hash,
-        label: input.label ?? null,
-        scopes: input.scopes,
-        expires_at: input.expires_at ?? null,
+    mutationFn: async (input: {
+      label?: string;
+      scopes: string[];
+      expires_in_hours?: number;
+      max_uses?: number;
+    }) => {
+      const { data, error } = await supabase.functions.invoke("passport-share", {
+        body: {
+          action: "create",
+          passport_id: passportId,
+          label: input.label ?? null,
+          scopes: input.scopes,
+          expires_in_hours: input.expires_in_hours ?? 168,
+          max_uses: input.max_uses ?? 1,
+        },
       });
       if (error) throw error;
-      return { token };
+      if (!data?.token) throw new Error(data?.error ?? "Could not create share link.");
+      return data as { token: string; link: { id: string; expires_at: string; max_uses: number; one_time: boolean } };
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["passport-sharing", passportId] }),
   });
@@ -69,13 +65,16 @@ export function useRevokeSharingLink(passportId: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await sb.from("passport_sharing")
-        .update({ revoked_at: new Date().toISOString() }).eq("id", id);
+      const { data, error } = await supabase.functions.invoke("passport-share", {
+        body: { action: "revoke", link_id: id },
+      });
       if (error) throw error;
+      if (!data?.ok) throw new Error(data?.error ?? "Could not revoke share link.");
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["passport-sharing", passportId] }),
   });
 }
+
 
 export function useVerifications(passportId?: string) {
   return useQuery({
