@@ -365,7 +365,7 @@ const App = () => (
             <Route path="/client/reset-password" element={<ClientResetPassword />} />
             <Route path="/worker/forgot-password" element={<WorkerForgotPassword />} />
             <Route path="/worker/reset-password" element={<WorkerResetPassword />} />
-            <Route path="/passport/share/:token" element={<PassportSharedView />} />
+              <Route path="/passport/share/:token" element={<PassportSharedView />} />
               <Route path="/unsubscribe" element={<Unsubscribe />} />
             <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
 
