@@ -227,6 +227,7 @@ import PassportReputation from "@/pages/passport/PassportReputation";
 import PassportVerifications from "@/pages/passport/PassportVerifications";
 import PassportBadges from "@/pages/passport/PassportBadges";
 import PassportSharing from "@/pages/passport/PassportSharing";
+import PassportSharedView from "@/pages/passport/PassportSharedView";
 import PassportPortfolioManager from "@/pages/passport/PassportPortfolioManager";
 import TwinIndex from "@/pages/twin/TwinIndex";
 import TwinLayout from "@/pages/twin/TwinLayout";
@@ -566,6 +567,7 @@ const App = () => (
                   <Route path="organization" element={<TwinOrganization />} />
                 </Route>
                 {/* Workforce Passport (IWOS Build 4.1) */}
+                <Route path="/passport/share/:token" element={<PassportSharedView />} />
                 <Route path="/passport" element={<PassportRedirect />} />
                 <Route path="/passport/:passportId" element={<PassportLayout />}>
                   <Route index element={<PassportHome />} />
