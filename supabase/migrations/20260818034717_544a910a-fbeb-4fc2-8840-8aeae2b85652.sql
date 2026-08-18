@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.protect_passport_share_link() FROM PUBLIC, anon, authenticated;
