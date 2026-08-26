@@ -5,7 +5,7 @@ import { useAllClientInvites } from "@/hooks/use-client-invites";
 import { isPast } from "date-fns";
 import {
   FileText, Plus, LogOut, Search, AlertTriangle, Shield, Mail, Gauge, Briefcase, Sparkles, Brain, Users2, MessageSquare, Activity, History, BookOpen,
-  FlaskConical, Bot, Boxes, Cpu, Radar} from "lucide-react";
+  FlaskConical, Bot, Boxes, Cpu, Radar, Layers} from "lucide-react";
 import { AGENCY_MODULES, GROUP_LABELS, type ModuleDef } from "@/lib/modules";
 import { useAccessibleModules } from "@/lib/permissions";
 import { Badge } from "@/components/ui/badge";
@@ -225,6 +225,19 @@ export function AppSidebar() {
         >
           <Radar className="h-4 w-4" />
           Perception &amp; Context
+        </Link>
+
+        <Link
+          to="/memory"
+          className={cn(
+            "mt-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors",
+            isActivePath("/memory")
+              ? "bg-sidebar-accent text-sidebar-accent-foreground"
+              : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+          )}
+        >
+          <Layers className="h-4 w-4" />
+          Working Memory
         </Link>
 
         <Link

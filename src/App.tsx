@@ -188,6 +188,20 @@ import MissingInformation from "@/pages/perception/MissingInformation";
 import ContextFreshness from "@/pages/perception/ContextFreshness";
 import SourceHealth from "@/pages/perception/SourceHealth";
 import PerceptionSettings from "@/pages/perception/PerceptionSettings";
+import MemoryLayout from "@/pages/memory/MemoryLayout";
+import MemoryOverview from "@/pages/memory/MemoryOverview";
+import MemorySessions from "@/pages/memory/MemorySessions";
+import CognitiveStateView from "@/pages/memory/CognitiveStateView";
+import MemoryItems from "@/pages/memory/MemoryItems";
+import GoalsView from "@/pages/memory/GoalsView";
+import OpenQuestions from "@/pages/memory/OpenQuestions";
+import HypothesesView from "@/pages/memory/HypothesesView";
+import EvidenceView from "@/pages/memory/EvidenceView";
+import CheckpointCenter from "@/pages/memory/CheckpointCenter";
+import CompressionView from "@/pages/memory/CompressionView";
+import MemoryLifecycleView from "@/pages/memory/MemoryLifecycle";
+import MemoryBudgets from "@/pages/memory/MemoryBudgets";
+import MemoryHealth from "@/pages/memory/MemoryHealth";
 import OptimizationLayout from "@/pages/optimization/OptimizationLayout";
 import OptimizationHome from "@/pages/optimization/OptimizationHome";
 import ObjectiveBuilder from "@/pages/optimization/ObjectiveBuilder";
@@ -716,6 +730,28 @@ const App = () => (
                 </Route>
               </Route>
             </Route>
+
+            {/* WOIC Cognitive Memory Workspace (Phase 6.2B) */}
+            <Route element={<ProtectedRoute allowedRoles={["agency_admin", "super_admin"]} redirectTo="/unauthorized" />}>
+              <Route element={<AppLayout />}>
+                <Route path="/memory" element={<MemoryLayout />}>
+                  <Route index element={<MemoryOverview />} />
+                  <Route path="sessions" element={<MemorySessions />} />
+                  <Route path="state" element={<CognitiveStateView />} />
+                  <Route path="items" element={<MemoryItems />} />
+                  <Route path="goals" element={<GoalsView />} />
+                  <Route path="questions" element={<OpenQuestions />} />
+                  <Route path="hypotheses" element={<HypothesesView />} />
+                  <Route path="evidence" element={<EvidenceView />} />
+                  <Route path="checkpoints" element={<CheckpointCenter />} />
+                  <Route path="compression" element={<CompressionView />} />
+                  <Route path="lifecycle" element={<MemoryLifecycleView />} />
+                  <Route path="budgets" element={<MemoryBudgets />} />
+                  <Route path="health" element={<MemoryHealth />} />
+                </Route>
+              </Route>
+            </Route>
+
 
             {/* IWOS Architecture & Governance Console (Phase 5.10B) */}
             <Route element={<ProtectedRoute allowedRoles={["agency_admin", "super_admin"]} redirectTo="/unauthorized" />}>
