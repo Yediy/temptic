@@ -731,6 +731,28 @@ const App = () => (
               </Route>
             </Route>
 
+            {/* WOIC Cognitive Memory Workspace (Phase 6.2B) */}
+            <Route element={<ProtectedRoute allowedRoles={["agency_admin", "super_admin"]} redirectTo="/unauthorized" />}>
+              <Route element={<AppLayout />}>
+                <Route path="/memory" element={<MemoryLayout />}>
+                  <Route index element={<MemoryOverview />} />
+                  <Route path="sessions" element={<MemorySessions />} />
+                  <Route path="state" element={<CognitiveStateView />} />
+                  <Route path="items" element={<MemoryItems />} />
+                  <Route path="goals" element={<GoalsView />} />
+                  <Route path="questions" element={<OpenQuestions />} />
+                  <Route path="hypotheses" element={<HypothesesView />} />
+                  <Route path="evidence" element={<EvidenceView />} />
+                  <Route path="checkpoints" element={<CheckpointCenter />} />
+                  <Route path="compression" element={<CompressionView />} />
+                  <Route path="lifecycle" element={<MemoryLifecycleView />} />
+                  <Route path="budgets" element={<MemoryBudgets />} />
+                  <Route path="health" element={<MemoryHealth />} />
+                </Route>
+              </Route>
+            </Route>
+
+
             {/* IWOS Architecture & Governance Console (Phase 5.10B) */}
             <Route element={<ProtectedRoute allowedRoles={["agency_admin", "super_admin"]} redirectTo="/unauthorized" />}>
               <Route element={<AppLayout />}>
