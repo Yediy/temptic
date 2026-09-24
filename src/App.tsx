@@ -202,6 +202,19 @@ import CompressionView from "@/pages/memory/CompressionView";
 import MemoryLifecycleView from "@/pages/memory/MemoryLifecycle";
 import MemoryBudgets from "@/pages/memory/MemoryBudgets";
 import MemoryHealth from "@/pages/memory/MemoryHealth";
+import ReasoningLayout from "@/pages/reasoning/ReasoningLayout";
+import ReasoningOverview from "@/pages/reasoning/ReasoningOverview";
+import ActiveReasoning from "@/pages/reasoning/ActiveReasoning";
+import ReasoningConclusions from "@/pages/reasoning/Conclusions";
+import HypothesesExplorer from "@/pages/reasoning/HypothesesExplorer";
+import EvidenceMatrix from "@/pages/reasoning/EvidenceMatrix";
+import ReasoningContradictions from "@/pages/reasoning/Contradictions";
+import ReasoningAlternatives from "@/pages/reasoning/Alternatives";
+import CriticalReview from "@/pages/reasoning/CriticalReview";
+import Causality from "@/pages/reasoning/Causality";
+import ModelDisagreement from "@/pages/reasoning/ModelDisagreement";
+import ReasoningHistory from "@/pages/reasoning/ReasoningHistory";
+import ReasoningHealth from "@/pages/reasoning/ReasoningHealth";
 import OptimizationLayout from "@/pages/optimization/OptimizationLayout";
 import OptimizationHome from "@/pages/optimization/OptimizationHome";
 import ObjectiveBuilder from "@/pages/optimization/ObjectiveBuilder";
@@ -751,6 +764,27 @@ const App = () => (
                 </Route>
               </Route>
             </Route>
+
+            {/* WOIC Reasoning & Evidence Workspace (Phase 6.3B) */}
+            <Route element={<ProtectedRoute allowedRoles={["agency_admin", "super_admin"]} redirectTo="/unauthorized" />}>
+              <Route element={<AppLayout />}>
+                <Route path="/reasoning" element={<ReasoningLayout />}>
+                  <Route index element={<ReasoningOverview />} />
+                  <Route path="active" element={<ActiveReasoning />} />
+                  <Route path="conclusions" element={<ReasoningConclusions />} />
+                  <Route path="hypotheses" element={<HypothesesExplorer />} />
+                  <Route path="evidence" element={<EvidenceMatrix />} />
+                  <Route path="contradictions" element={<ReasoningContradictions />} />
+                  <Route path="alternatives" element={<ReasoningAlternatives />} />
+                  <Route path="critical-review" element={<CriticalReview />} />
+                  <Route path="causality" element={<Causality />} />
+                  <Route path="disagreements" element={<ModelDisagreement />} />
+                  <Route path="history" element={<ReasoningHistory />} />
+                  <Route path="health" element={<ReasoningHealth />} />
+                </Route>
+              </Route>
+            </Route>
+
 
 
             {/* IWOS Architecture & Governance Console (Phase 5.10B) */}
