@@ -765,6 +765,27 @@ const App = () => (
               </Route>
             </Route>
 
+            {/* WOIC Reasoning & Evidence Workspace (Phase 6.3B) */}
+            <Route element={<ProtectedRoute allowedRoles={["agency_admin", "super_admin"]} redirectTo="/unauthorized" />}>
+              <Route element={<AppLayout />}>
+                <Route path="/reasoning" element={<ReasoningLayout />}>
+                  <Route index element={<ReasoningOverview />} />
+                  <Route path="active" element={<ActiveReasoning />} />
+                  <Route path="conclusions" element={<ReasoningConclusions />} />
+                  <Route path="hypotheses" element={<HypothesesExplorer />} />
+                  <Route path="evidence" element={<EvidenceMatrix />} />
+                  <Route path="contradictions" element={<ReasoningContradictions />} />
+                  <Route path="alternatives" element={<ReasoningAlternatives />} />
+                  <Route path="critical-review" element={<CriticalReview />} />
+                  <Route path="causality" element={<Causality />} />
+                  <Route path="disagreements" element={<ModelDisagreement />} />
+                  <Route path="history" element={<ReasoningHistory />} />
+                  <Route path="health" element={<ReasoningHealth />} />
+                </Route>
+              </Route>
+            </Route>
+
+
 
             {/* IWOS Architecture & Governance Console (Phase 5.10B) */}
             <Route element={<ProtectedRoute allowedRoles={["agency_admin", "super_admin"]} redirectTo="/unauthorized" />}>
