@@ -50,6 +50,8 @@ import ClientResetPassword from "@/pages/auth/ClientResetPassword";
 // Worker pages
 import WorkerTickets from "@/pages/worker/WorkerTickets";
 import WorkerHours from "@/pages/worker/WorkerHours";
+import WorkerCheckIn from "@/pages/worker/WorkerCheckIn";
+import SiteQrCodes from "@/pages/tto/SiteQrCodes";
 import WorkerOnboarding from "@/pages/worker/WorkerOnboarding";
 import WorkerForgotPassword from "@/pages/auth/WorkerForgotPassword";
 import WorkerResetPassword from "@/pages/auth/WorkerResetPassword";
@@ -462,6 +464,7 @@ const App = () => (
                 <Route path="/tto" element={<TtoLayout />}>
                   <Route index element={<TimeTicketDashboard />} />
                   <Route path="live" element={<LiveLaborDashboard />} />
+                  <Route path="site-qr" element={<SiteQrCodes />} />
                   <Route path="approvals" element={<SupervisorApprovalCenter />} />
                   <Route path="corrections" element={<CorrectionQueue />} />
                   <Route path="payroll" element={<PayrollPrep />} />
@@ -867,6 +870,7 @@ const App = () => (
               <Route element={<WorkerLayout />}>
                 <Route path="/worker" element={<WorkerTickets />} />
                 <Route path="/worker/hours" element={<WorkerHours />} />
+                <Route path="/worker/checkin/:siteId" element={<WorkerCheckIn />} />
                 <Route path="/worker/onboarding" element={<WorkerOnboarding />} />
               </Route>
             </Route>

@@ -24,6 +24,19 @@ Deno.serve(withSentry("tto-clock", async (req) => {
     .from("tto_time_tickets").select("*").eq("id", time_ticket_id).maybeSingle();
   if (tErr || !ticket) return jsonResponse({ error: "Ticket not found", code: "not_found" }, 404, corsHeaders);
 
+  if (source === "qr") {
+    // QR check-in: caller must be the assigned worker and the scanned site must match the ticket's site.
+    const { data: w } = await admin.from("workers").select("user_id").eq("id", ticket.worker_id).maybeSingle();
+    if (!w || w.user_id !== auth.user.id) {
+      return jsonResponse({ error: "This shift isn't assigned to you", code: "forbidden" }, 403, corsHeaders);
+    }
+    if (!body.site_id || String(body.site_id) !== String(ticket.site_id)) {
+      return jsonResponse({ error: "Wrong site QR code for this shift", code: "forbidden" }, 403, corsHeaders);
+    }
+    if (kind === "clock_in" && ticket.actual_start) return jsonResponse({ error: "Already clocked in", code: "bad_request" }, 400, corsHeaders);
+    if (kind === "clock_out" && (!ticket.actual_start || ticket.actual_end)) return jsonResponse({ error: "Not clocked in", code: "bad_request" }, 400, corsHeaders);
+  }
+
   const now = new Date().toISOString();
   const { error: pErr } = await admin.from("tto_time_entries").insert({
     agency_id: ticket.agency_id,
