@@ -1,7 +1,11 @@
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useTtoPunch, type TtoTicket } from "@/hooks/tto/use-tto";
+import { type TtoTicket } from "@/hooks/tto/use-tto";
+import { useState } from "react";
+import { capturePunch } from "@/lib/offline/punch-queue";
+import { useOfflinePunches } from "@/hooks/use-offline-punches";
+import { Camera } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, LogIn, LogOut } from "lucide-react";
@@ -19,7 +23,9 @@ function getPosition(): Promise<GeolocationPosition | null> {
 
 export default function WorkerCheckIn() {
   const { siteId } = useParams();
-  const punch = useTtoPunch();
+  const { pending, online } = useOfflinePunches();
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["worker-checkin", siteId],
@@ -34,22 +40,27 @@ export default function WorkerCheckIn() {
 
   const today = new Date().toISOString().slice(0, 10);
   const ticket = data?.tickets.find((t) => t.work_date === today && !t.actual_end) ?? data?.tickets.find((t) => !t.actual_end);
-  const kind: "clock_in" | "clock_out" | null = !ticket ? null : !ticket.actual_start ? "clock_in" : "clock_out";
+  const queued = pending.filter((p) => p.time_ticket_id === ticket?.id && (p.kind === "clock_in" || p.kind === "clock_out"));
+  const lastQueued = queued[queued.length - 1];
+  const clockedIn = lastQueued ? lastQueued.kind === "clock_in" : !!ticket?.actual_start;
+  const done = lastQueued?.kind === "clock_out";
+  const kind: "clock_in" | "clock_out" | null = !ticket || done ? null : !clockedIn ? "clock_in" : "clock_out";
 
   const go = async () => {
     if (!ticket || !kind) return;
+    setBusy(true);
     const pos = await getPosition();
     try {
-      await punch.mutateAsync({
-        time_ticket_id: ticket.id, kind, source: "qr",
+      await capturePunch({
+        time_ticket_id: ticket.id, kind, source: "qr", site_id: siteId,
         latitude: pos?.coords.latitude, longitude: pos?.coords.longitude, accuracy_m: pos?.coords.accuracy,
-        site_id: siteId,
-      } as Any);
-      toast.success(kind === "clock_in" ? "Clocked in" : "Clocked out");
-      refetch();
+        photo: photo ?? undefined,
+      });
+      setPhoto(null);
+      toast.success(`${kind === "clock_in" ? "Clocked in" : "Clocked out"}${navigator.onLine ? "" : " — will sync when back online"}`);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Check-in failed");
-    }
+      toast.error(e instanceof Error ? e.message : "Could not save punch");
+    } finally { setBusy(false); }
   };
 
   return (
@@ -69,10 +80,18 @@ export default function WorkerCheckIn() {
             ) : (
               <>
                 <p className="text-sm text-muted-foreground">
-                  {ticket.actual_start ? `Clocked in at ${new Date(ticket.actual_start).toLocaleTimeString()}` : "Not clocked in yet"}
+                  {done ? "Clocked out — waiting to sync" : lastQueued ? `Clocked in at ${new Date(lastQueued.occurred_at).toLocaleTimeString()} (saved on device)` : ticket.actual_start ? `Clocked in at ${new Date(ticket.actual_start).toLocaleTimeString()}` : "Not clocked in yet"}
                 </p>
-                <Button size="lg" className="w-full h-16 text-lg" variant={kind === "clock_out" ? "destructive" : "default"} onClick={go} disabled={punch.isPending}>
-                  {kind === "clock_in" ? <><LogIn className="mr-2 h-5 w-5" />Clock In</> : <><LogOut className="mr-2 h-5 w-5" />Clock Out</>}
+                {!online && <p className="text-xs text-muted-foreground">You're offline. Your punch will be saved and sent automatically.</p>}
+                {kind && (
+                  <label className="flex items-center justify-center gap-2 text-sm cursor-pointer rounded-md border border-dashed p-3">
+                    <Camera className="h-4 w-4" />
+                    {photo ? `Photo attached: ${photo.name}` : "Add a site photo (optional)"}
+                    <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} />
+                  </label>
+                )}
+                <Button size="lg" className="w-full h-16 text-lg" variant={kind === "clock_out" ? "destructive" : "default"} onClick={go} disabled={busy || !kind}>
+                  {!kind ? "Shift complete" : kind === "clock_in" ? <><LogIn className="mr-2 h-5 w-5" />Clock In</> : <><LogOut className="mr-2 h-5 w-5" />Clock Out</>}
                 </Button>
               </>
             )}
