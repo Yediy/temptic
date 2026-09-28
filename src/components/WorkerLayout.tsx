@@ -3,6 +3,8 @@ import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { HardHat, FileText, Clock, ClipboardCheck, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { OfflineSyncBar } from "@/components/OfflineSyncBar";
+import { useOfflineAutoSync } from "@/hooks/use-offline-punches";
 
 const navItems = [
   { label: "My Tickets", icon: FileText, path: "/worker" },
@@ -13,6 +15,7 @@ const navItems = [
 export function WorkerLayout() {
   const location = useLocation();
   const { signOut } = useAuth();
+  useOfflineAutoSync();
 
   return (
     <div className="min-h-screen bg-background">
@@ -46,6 +49,7 @@ export function WorkerLayout() {
           </Button>
         </div>
       </header>
+      <OfflineSyncBar />
       <main className="mx-auto max-w-4xl p-4 lg:p-8">
         <Outlet />
       </main>
