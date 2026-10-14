@@ -24,6 +24,41 @@ Deno.serve(withSentry("tto-clock", async (req) => {
     .from("tto_time_tickets").select("*").eq("id", time_ticket_id).maybeSingle();
   if (tErr || !ticket) return jsonResponse({ error: "Ticket not found", code: "not_found" }, 404, corsHeaders);
 
+  const offline = body.offline_capture === true;
+  const clientEventId = typeof body.client_event_id === "string" ? body.client_event_id : null;
+  if (clientEventId && !/^[0-9a-f-]{36}$/i.test(clientEventId)) {
+    return jsonResponse({ error: "Invalid client_event_id", code: "bad_request" }, 400, corsHeaders);
+  }
+  // Idempotency: a retried offline punch returns success without duplicating.
+  if (clientEventId) {
+    const { data: dup } = await admin.from("tto_time_entries").select("id,occurred_at")
+      .eq("time_ticket_id", time_ticket_id).eq("metadata->>client_event_id", clientEventId).maybeSingle();
+    if (dup) return jsonResponse({ ok: true, at: dup.occurred_at, duplicate: true }, 200, corsHeaders);
+  }
+
+  // Offline punches keep their device capture time, bounded to sane limits.
+  let occurredAt = new Date();
+  if (offline && typeof body.occurred_at === "string") {
+    const t = new Date(body.occurred_at);
+    const ageMs = Date.now() - t.getTime();
+    if (isNaN(t.getTime()) || ageMs < -5 * 60_000 || ageMs > 7 * 24 * 3600_000) {
+      return jsonResponse({ error: "Capture time is outside the allowed window", code: "bad_request" }, 400, corsHeaders);
+    }
+    occurredAt = t;
+  }
+
+  const photoPath = typeof body.photo_path === "string" ? body.photo_path : null;
+  if (photoPath && !photoPath.startsWith(`${auth.user.id}/${time_ticket_id}/`)) {
+    return jsonResponse({ error: "Invalid photo path", code: "bad_request" }, 400, corsHeaders);
+  }
+
+  if (offline || source === "qr") {
+    const { data: ow } = await admin.from("workers").select("user_id").eq("id", ticket.worker_id).maybeSingle();
+    if (!ow || ow.user_id !== auth.user.id) {
+      return jsonResponse({ error: "This shift isn't assigned to you", code: "forbidden" }, 403, corsHeaders);
+    }
+  }
+
   if (source === "qr") {
     // QR check-in: caller must be the assigned worker and the scanned site must match the ticket's site.
     const { data: w } = await admin.from("workers").select("user_id").eq("id", ticket.worker_id).maybeSingle();
@@ -37,7 +72,7 @@ Deno.serve(withSentry("tto-clock", async (req) => {
     if (kind === "clock_out" && (!ticket.actual_start || ticket.actual_end)) return jsonResponse({ error: "Not clocked in", code: "bad_request" }, 400, corsHeaders);
   }
 
-  const now = new Date().toISOString();
+  const now = occurredAt.toISOString();
   const { error: pErr } = await admin.from("tto_time_entries").insert({
     agency_id: ticket.agency_id,
     time_ticket_id,
@@ -49,7 +84,7 @@ Deno.serve(withSentry("tto-clock", async (req) => {
     longitude: body.longitude ?? null,
     accuracy_m: body.accuracy_m ?? null,
     device_id: body.device_id ?? null,
-    metadata: body.metadata ?? {},
+    metadata: { ...((body.metadata as Record<string, unknown>) ?? {}), client_event_id: clientEventId, photo_path: photoPath, offline, received_at: new Date().toISOString() },
   });
   if (pErr) return jsonResponse({ error: pErr.message, code: "internal" }, 500, corsHeaders);
 
