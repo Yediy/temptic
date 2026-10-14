@@ -6706,6 +6706,75 @@ export type Database = {
           },
         ]
       }
+      tto_approval_links: {
+        Row: {
+          agency_id: string
+          channel: string
+          created_at: string
+          created_by: string | null
+          decision: string | null
+          decision_ip: string | null
+          decision_user_agent: string | null
+          expires_at: string
+          id: string
+          recipient: string
+          revoked_at: string | null
+          signer_id: string | null
+          time_ticket_id: string
+          token_hash: string
+          used_at: string | null
+        }
+        Insert: {
+          agency_id: string
+          channel: string
+          created_at?: string
+          created_by?: string | null
+          decision?: string | null
+          decision_ip?: string | null
+          decision_user_agent?: string | null
+          expires_at: string
+          id?: string
+          recipient: string
+          revoked_at?: string | null
+          signer_id?: string | null
+          time_ticket_id: string
+          token_hash: string
+          used_at?: string | null
+        }
+        Update: {
+          agency_id?: string
+          channel?: string
+          created_at?: string
+          created_by?: string | null
+          decision?: string | null
+          decision_ip?: string | null
+          decision_user_agent?: string | null
+          expires_at?: string
+          id?: string
+          recipient?: string
+          revoked_at?: string | null
+          signer_id?: string | null
+          time_ticket_id?: string
+          token_hash?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tto_approval_links_signer_id_fkey"
+            columns: ["signer_id"]
+            isOneToOne: false
+            referencedRelation: "client_signers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tto_approval_links_time_ticket_id_fkey"
+            columns: ["time_ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tto_time_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tto_audit_events: {
         Row: {
           action: string
