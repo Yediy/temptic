@@ -65,6 +65,7 @@ import Privacy from "@/pages/legal/Privacy";
 import Contact from "@/pages/legal/Contact";
 import NotFound from "./pages/NotFound";
 import Unsubscribe from "@/pages/Unsubscribe";
+import ApproveTicketLink from "@/pages/ApproveTicketLink";
 import OAuthConsent from "@/pages/OAuthConsent";
 import TalentList from "@/pages/talent/TalentList";
 import TalentPassport from "@/pages/talent/TalentPassport";
@@ -396,6 +397,7 @@ const App = () => (
             <Route path="/worker/reset-password" element={<WorkerResetPassword />} />
               <Route path="/passport/share/:token" element={<PassportSharedView />} />
               <Route path="/unsubscribe" element={<Unsubscribe />} />
+              <Route path="/approve/:token" element={<ApproveTicketLink />} />
             <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
 
             {/* Public legal / info routes */}
