@@ -20,3 +20,5 @@ project_id = "nwyjqphqszonzlulezsq"
   [functions.passport-share-view]
     verify_jwt = false
 
+  [functions.tto-approval-link]
+    verify_jwt = false
