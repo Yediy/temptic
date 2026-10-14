@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useTtoTickets, useTtoDecision, useTtoValidate } from "@/hooks/tto/use-tto";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function SupervisorApprovalCenter() {
   const { data: queue, isLoading } = useTtoTickets({ status: "submitted" });
@@ -19,6 +20,19 @@ export default function SupervisorApprovalCenter() {
   const act = async (id: string, decision: "approve"|"reject"|"correction") => {
     try { await decide.mutateAsync({ time_ticket_id: id, decision, comment: comments[id], approver_kind: "agency" }); toast.success(decision); }
     catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); }
+  };
+
+  const sendLink = async (id: string, channels: Array<"email" | "sms">) => {
+    const { data, error } = await supabase.functions.invoke("tto-send-approval-link", { body: { time_ticket_id: id, channels, app_origin: window.location.origin } });
+    if (error) {
+      let msg = error.message;
+      try { msg = (await (error as { context: Response }).context.json()).error ?? msg; } catch { /* ignore */ }
+      return toast.error(msg);
+    }
+    const res = (data?.results ?? []) as Array<{ channel: string; recipient: string; ok: boolean; detail: string }>;
+    const ok = res.filter((r) => r.ok).length;
+    if (ok) toast.success(`Approval link sent to ${ok} recipient${ok > 1 ? "s" : ""}`);
+    res.filter((r) => !r.ok).forEach((r) => toast.error(`${r.channel} to ${r.recipient}: ${r.detail}`));
   };
 
   return (
@@ -50,6 +64,8 @@ export default function SupervisorApprovalCenter() {
             <Button size="sm" onClick={() => act(t.id, "approve")}>Approve</Button>
             <Button size="sm" variant="outline" onClick={() => act(t.id, "correction")}>Request Correction</Button>
             <Button size="sm" variant="destructive" onClick={() => act(t.id, "reject")}>Reject</Button>
+            <Button size="sm" variant="ghost" onClick={() => sendLink(t.id, ["email"])}>Email link</Button>
+            <Button size="sm" variant="ghost" onClick={() => sendLink(t.id, ["sms"])}>Text link</Button>
           </div>
         </Card>
       ))}
