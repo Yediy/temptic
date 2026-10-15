@@ -6873,6 +6873,9 @@ export type Database = {
           client_id: string | null
           created_at: string
           created_by: string | null
+          exported_at: string | null
+          exported_by: string | null
+          file_path: string | null
           id: string
           name: string
           period_end: string
@@ -6887,6 +6890,9 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           created_by?: string | null
+          exported_at?: string | null
+          exported_by?: string | null
+          file_path?: string | null
           id?: string
           name: string
           period_end: string
@@ -6901,6 +6907,9 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           created_by?: string | null
+          exported_at?: string | null
+          exported_by?: string | null
+          file_path?: string | null
           id?: string
           name?: string
           period_end?: string
@@ -7096,6 +7105,9 @@ export type Database = {
           agency_id: string
           created_at: string
           created_by: string | null
+          exported_at: string | null
+          exported_by: string | null
+          file_path: string | null
           id: string
           name: string
           period_end: string
@@ -7109,6 +7121,9 @@ export type Database = {
           agency_id: string
           created_at?: string
           created_by?: string | null
+          exported_at?: string | null
+          exported_by?: string | null
+          file_path?: string | null
           id?: string
           name: string
           period_end: string
@@ -7122,6 +7137,9 @@ export type Database = {
           agency_id?: string
           created_at?: string
           created_by?: string | null
+          exported_at?: string | null
+          exported_by?: string | null
+          file_path?: string | null
           id?: string
           name?: string
           period_end?: string
@@ -10795,6 +10813,7 @@ export type Database = {
         Returns: boolean
       }
       next_ticket_number: { Args: { _agency_id: string }; Returns: string }
+      tto_rollup_ticket: { Args: { _ticket_id: string }; Returns: undefined }
       woic_graph_communities: {
         Args: {
           _agency_id: string
