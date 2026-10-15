@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, LogIn, LogOut } from "lucide-react";
 import { toast } from "sonner";
+import { TicketEvidencePanel } from "@/components/tto/TicketEvidencePanel";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Any = any;
@@ -93,6 +94,7 @@ export default function WorkerCheckIn() {
                 <Button size="lg" className="w-full h-16 text-lg" variant={kind === "clock_out" ? "destructive" : "default"} onClick={go} disabled={busy || !kind}>
                   {!kind ? "Shift complete" : kind === "clock_in" ? <><LogIn className="mr-2 h-5 w-5" />Clock In</> : <><LogOut className="mr-2 h-5 w-5" />Clock Out</>}
                 </Button>
+                {online && <div className="text-left"><TicketEvidencePanel ticketId={ticket.id} mode="worker" /></div>}
               </>
             )}
           </>

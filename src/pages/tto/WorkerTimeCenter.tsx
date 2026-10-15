@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useTtoTickets, useTtoPunch, useTtoSubmit } from "@/hooks/tto/use-tto";
 import { toast } from "sonner";
+import { TicketEvidencePanel } from "@/components/tto/TicketEvidencePanel";
 
 export default function WorkerTimeCenter() {
   const { data: mine, isLoading } = useTtoTickets({ status: ["open", "in_progress", "submitted", "rejected"] });
@@ -44,6 +45,7 @@ export default function WorkerTimeCenter() {
             <Button size="sm" variant="outline" onClick={() => doPunch(t.id, "break_end")}>Break End</Button>
             <Button size="sm" variant="destructive" onClick={() => doPunch(t.id, "clock_out")} disabled={!t.actual_start || !!t.actual_end}>Clock Out</Button>
           </div>
+          <TicketEvidencePanel ticketId={t.id} mode="worker" />
           {t.status !== "submitted" && (
             <div className="space-y-2">
               <Textarea placeholder="Notes for supervisor…" value={notes[t.id] ?? ""} onChange={(e) => setNotes({ ...notes, [t.id]: e.target.value })} rows={2} />

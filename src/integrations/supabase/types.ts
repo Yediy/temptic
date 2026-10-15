@@ -7274,6 +7274,93 @@ export type Database = {
           },
         ]
       }
+      tto_ticket_evidence: {
+        Row: {
+          accuracy_m: number | null
+          agency_id: string
+          amount: number | null
+          captured_at: string
+          category: string | null
+          created_at: string
+          created_by: string
+          id: string
+          kind: string
+          latitude: number | null
+          longitude: number | null
+          mileage_total: number | null
+          miles: number | null
+          note: string | null
+          photo_path: string | null
+          rate_per_mile: number | null
+          status: string
+          time_entry_id: string | null
+          time_ticket_id: string
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          accuracy_m?: number | null
+          agency_id: string
+          amount?: number | null
+          captured_at?: string
+          category?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          kind: string
+          latitude?: number | null
+          longitude?: number | null
+          mileage_total?: number | null
+          miles?: number | null
+          note?: string | null
+          photo_path?: string | null
+          rate_per_mile?: number | null
+          status?: string
+          time_entry_id?: string | null
+          time_ticket_id: string
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          accuracy_m?: number | null
+          agency_id?: string
+          amount?: number | null
+          captured_at?: string
+          category?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          kind?: string
+          latitude?: number | null
+          longitude?: number | null
+          mileage_total?: number | null
+          miles?: number | null
+          note?: string | null
+          photo_path?: string | null
+          rate_per_mile?: number | null
+          status?: string
+          time_entry_id?: string | null
+          time_ticket_id?: string
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tto_ticket_evidence_time_entry_id_fkey"
+            columns: ["time_entry_id"]
+            isOneToOne: false
+            referencedRelation: "tto_time_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tto_ticket_evidence_time_ticket_id_fkey"
+            columns: ["time_ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tto_time_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tto_time_entries: {
         Row: {
           accuracy_m: number | null

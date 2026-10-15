@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useTtoTickets, useTtoDecision, useTtoValidate } from "@/hooks/tto/use-tto";
 import { toast } from "sonner";
+import { TicketEvidencePanel } from "@/components/tto/TicketEvidencePanel";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function SupervisorApprovalCenter() {
@@ -59,6 +60,7 @@ export default function SupervisorApprovalCenter() {
             </div>
             <Badge>{t.status}</Badge>
           </div>
+          <TicketEvidencePanel ticketId={t.id} mode="reviewer" />
           <Textarea placeholder="Comment (optional)" rows={2} value={comments[t.id] ?? ""} onChange={(e) => setComments({ ...comments, [t.id]: e.target.value })} />
           <div className="flex gap-2">
             <Button size="sm" onClick={() => act(t.id, "approve")}>Approve</Button>
