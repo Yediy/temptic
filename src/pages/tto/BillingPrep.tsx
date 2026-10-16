@@ -3,10 +3,10 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/lib/auth";
 import { useTtoBillingBatches, useTtoPrepareBilling } from "@/hooks/tto/use-tto";
 import { toast } from "sonner";
+import { BatchList } from "@/components/tto/BatchList";
 
 export default function BillingPrep() {
   const { agencyId } = useAuth();
@@ -33,16 +33,9 @@ export default function BillingPrep() {
         <Button onClick={run} disabled={prep.isPending}>Prepare</Button>
       </Card>
       <div className="space-y-2">
-        <h3 className="font-medium text-sm">Recent Batches</h3>
-        {(batches ?? []).map((b: Record<string, unknown>) => (
-          <Card key={String(b.id)} className="p-3 flex items-center justify-between">
-            <div>
-              <div className="font-medium">{String(b.name)}</div>
-              <div className="text-xs text-muted-foreground">{String(b.period_start)} – {String(b.period_end)}</div>
-            </div>
-            <Badge variant="secondary">{String(b.status)}</Badge>
-          </Card>
-        ))}
+        <h3 className="font-medium text-sm">Weekly Batches</h3>
+        <p className="text-xs text-muted-foreground">Approved tickets roll into each week's batch automatically. Generate an export to lock the batch and download the file.</p>
+        <BatchList kind="billing" batches={(batches ?? []) as never} />
       </div>
     </div>
   );
