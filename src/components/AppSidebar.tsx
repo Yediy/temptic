@@ -5,7 +5,7 @@ import { useAllClientInvites } from "@/hooks/use-client-invites";
 import { isPast } from "date-fns";
 import {
   FileText, Plus, LogOut, Search, AlertTriangle, Shield, Mail, Gauge, Briefcase, Sparkles, Brain, Users2, MessageSquare, Activity, History, BookOpen,
-  FlaskConical, Bot, Boxes, Cpu, Radar, Layers, Scale} from "lucide-react";
+  FlaskConical, Bot, Boxes, Cpu, Radar, Layers, Scale, DollarSign} from "lucide-react";
 import { AGENCY_MODULES, GROUP_LABELS, type ModuleDef } from "@/lib/modules";
 import { useAccessibleModules } from "@/lib/permissions";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +30,7 @@ export function AppSidebar() {
   const location = useLocation();
   const { signOut, user, roles } = useAuth();
   const isSuperAdmin = roles.includes("super_admin");
+  const canViewPayroll = roles.some((r) => ["super_admin", "agency_admin", "dispatcher", "payroll", "viewer"].includes(r));
   const { accessibleAgencyModules } = useAccessibleModules();
 
   const { data: invites = [] } = useAllClientInvites();
@@ -175,6 +176,20 @@ export function AppSidebar() {
           <MessageSquare className="h-4 w-4" />
           Client Collab
         </Link>
+        {canViewPayroll && (
+          <Link
+            to="/pb"
+            className={cn(
+              "mt-2 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors",
+              isActivePath("/pb")
+                ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+            )}
+          >
+            <DollarSign className="h-4 w-4" />
+            Payroll &amp; Billing
+          </Link>
+        )}
         <Link
           to="/simulation"
           className={cn(
