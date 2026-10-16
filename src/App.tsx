@@ -272,6 +272,20 @@ import TwinTimeline from "@/pages/twin/TwinTimeline";
 import TwinKnowledgeGraph from "@/pages/twin/TwinKnowledgeGraph";
 import TwinOrganization from "@/pages/twin/TwinOrganization";
 import TtoLayout from "@/pages/tto/TtoLayout";
+import PbLayout from "@/pages/pb/PbLayout";
+import PayrollCommandCenter from "@/pages/pb/PayrollCommandCenter";
+import PayrollRuns from "@/pages/pb/PayrollRuns";
+import PayrollExceptionCenter from "@/pages/pb/PayrollExceptionCenter";
+import Invoices from "@/pages/pb/Invoices";
+import PaymentCenter from "@/pages/pb/PaymentCenter";
+import RateBook from "@/pages/pb/RateBook";
+import CommissionCenter from "@/pages/pb/CommissionCenter";
+import MarginIntelligence from "@/pages/pb/MarginIntelligence";
+import FinancialForecast from "@/pages/pb/FinancialForecast";
+import ExecutiveDashboard from "@/pages/pb/ExecutiveDashboard";
+import PbAnalytics from "@/pages/pb/PbAnalytics";
+import PbCompliance from "@/pages/pb/PbCompliance";
+import PbIntegrations from "@/pages/pb/PbIntegrations";
 import ClientWorkspaceLayout from "@/pages/cc/ClientWorkspaceLayout";
 import CcCommandCenter from "@/pages/cc/CommandCenter";
 import CcJobOrders from "@/pages/cc/JobOrderCenter";
@@ -474,6 +488,22 @@ const App = () => (
                   <Route path="analytics" element={<LaborAnalytics />} />
                   <Route path="audit" element={<AuditCenter />} />
                   <Route path="worker" element={<WorkerTimeCenter />} />
+                </Route>
+                {/* Payroll & Billing OS (IWOS 4.6) */}
+                <Route path="/pb" element={<PbLayout />}>
+                  <Route index element={<PayrollCommandCenter />} />
+                  <Route path="payroll" element={<PayrollRuns />} />
+                  <Route path="exceptions" element={<PayrollExceptionCenter />} />
+                  <Route path="invoices" element={<Invoices />} />
+                  <Route path="payments" element={<PaymentCenter />} />
+                  <Route path="rates" element={<RateBook />} />
+                  <Route path="commissions" element={<CommissionCenter />} />
+                  <Route path="margin" element={<MarginIntelligence />} />
+                  <Route path="forecast" element={<FinancialForecast />} />
+                  <Route path="executive" element={<ExecutiveDashboard />} />
+                  <Route path="analytics" element={<PbAnalytics />} />
+                  <Route path="compliance" element={<PbCompliance />} />
+                  <Route path="integrations" element={<PbIntegrations />} />
                 </Route>
                 {/* Automation Studio (IWOS 4.8) */}
                 <Route path="/automation" element={<AutomationLayout />}>
