@@ -4090,6 +4090,57 @@ export type Database = {
           },
         ]
       }
+      pb_audit_events: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_roles: string[]
+          agency_id: string | null
+          created_at: string
+          decision: string
+          function_name: string
+          id: string
+          ip_address: string | null
+          metadata: Json
+          reason: string | null
+          subject_id: string | null
+          subject_type: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_roles?: string[]
+          agency_id?: string | null
+          created_at?: string
+          decision: string
+          function_name: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json
+          reason?: string | null
+          subject_id?: string | null
+          subject_type?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_roles?: string[]
+          agency_id?: string | null
+          created_at?: string
+          decision?: string
+          function_name?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json
+          reason?: string | null
+          subject_id?: string | null
+          subject_type?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       pb_client_bill_rates: {
         Row: {
           agency_id: string
