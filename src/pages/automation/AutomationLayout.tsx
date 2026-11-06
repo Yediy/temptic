@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import {
   Activity, Bot, CheckSquare, FileCode, Filter, Gauge, LayoutDashboard, Library,
   ListChecks, Settings, Skull, Sparkles, Workflow, Zap,
+  History,
 } from "lucide-react";
 
 const tabs = [
