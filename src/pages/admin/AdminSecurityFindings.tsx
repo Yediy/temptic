@@ -16,7 +16,7 @@ type Finding = {
 type Run = { scanner: string; scanned_at: string | null; completion_status: string | null; finding_count: number };
 
 const fmt = (s: string | null) => (s ? new Date(s).toLocaleString() : "—");
-const levelVariant = (l: string) => (l === "error" ? "destructive" : l === "warn" ? "default" : "secondary") as const;
+const levelVariant = (l: string): "destructive" | "default" | "secondary" => (l === "error" ? "destructive" : l === "warn" ? "default" : "secondary");
 const statusClass: Record<string, string> = {
   remaining: "bg-destructive/15 text-destructive",
   ignored: "bg-muted text-muted-foreground",
