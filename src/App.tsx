@@ -327,6 +327,7 @@ import ConditionsCatalog from "@/pages/automation/ConditionsCatalog";
 import ApprovalsCenter from "@/pages/automation/ApprovalsCenter";
 import WorkflowTesting from "@/pages/automation/WorkflowTesting";
 import AutomationSettings from "@/pages/automation/AutomationSettings";
+import VersionHistory from "@/pages/automation/VersionHistory";
 // Operational Intelligence Center (IWOS 4.9)
 import ActivityLayout from "@/pages/activity/ActivityLayout";
 import ActivityLiveEvents from "@/pages/activity/LiveEvents";
@@ -522,6 +523,7 @@ const App = () => (
                   <Route path="conditions" element={<ConditionsCatalog />} />
                   <Route path="approvals" element={<ApprovalsCenter />} />
                   <Route path="testing" element={<WorkflowTesting />} />
+                  <Route path="versions" element={<VersionHistory />} />
                   <Route path="settings" element={<AutomationSettings />} />
                 </Route>
                 {/* System Activity Center — Universal Event Fabric (IWOS 5.1B) */}

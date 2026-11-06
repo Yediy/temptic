@@ -18,6 +18,7 @@ const tabs = [
   { to: "/automation/approvals", label: "Approvals", icon: CheckSquare },
   { to: "/automation/agents", label: "AI Automation", icon: Bot },
   { to: "/automation/testing", label: "Testing", icon: CheckSquare },
+  { to: "/automation/versions", label: "Version History", icon: History },
   { to: "/automation/analytics", label: "Analytics", icon: Gauge },
   { to: "/automation/dead-letter", label: "Dead Letter", icon: Skull },
   { to: "/automation/settings", label: "Settings", icon: Settings },
