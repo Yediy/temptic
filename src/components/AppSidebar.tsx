@@ -5,7 +5,7 @@ import { useAllClientInvites } from "@/hooks/use-client-invites";
 import { isPast } from "date-fns";
 import {
   FileText, Plus, LogOut, Search, AlertTriangle, Shield, Mail, Gauge, Briefcase, Sparkles, Brain, Users2, MessageSquare, Activity, History, BookOpen,
-  FlaskConical, Bot, Boxes, Cpu, Radar, Layers, Scale, DollarSign} from "lucide-react";
+  FlaskConical, Bot, Boxes, Cpu, Radar, Layers, Scale, DollarSign, ShieldCheck} from "lucide-react";
 import { AGENCY_MODULES, GROUP_LABELS, type ModuleDef } from "@/lib/modules";
 import { useAccessibleModules } from "@/lib/permissions";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ const adminItems = [
   { label: "Ticket Search", icon: Search, path: "/admin/tickets" },
   { label: "Notifications", icon: AlertTriangle, path: "/admin/notifications" },
   { label: "Rate Limits", icon: Gauge, path: "/admin/rate-limits" },
+  { label: "Security Findings", icon: ShieldCheck, path: "/admin/security" },
   { label: "Automation Studio", icon: Sparkles, path: "/automation" },
   { label: "WOIC Admin", icon: Brain, path: "/woic" },
   { label: "Worker Twins", icon: Users2, path: "/twin" },

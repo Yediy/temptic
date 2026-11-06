@@ -7762,6 +7762,45 @@ export type Database = {
           },
         ]
       }
+      ttos_automation_versions: {
+        Row: {
+          agency_id: string
+          automation_id: string
+          change_kind: string
+          changed_by: string | null
+          created_at: string
+          id: string
+          note: string | null
+          rolled_back_to: number | null
+          snapshot: Json
+          version: number
+        }
+        Insert: {
+          agency_id: string
+          automation_id: string
+          change_kind: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          rolled_back_to?: number | null
+          snapshot: Json
+          version: number
+        }
+        Update: {
+          agency_id?: string
+          automation_id?: string
+          change_kind?: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          rolled_back_to?: number | null
+          snapshot?: Json
+          version?: number
+        }
+        Relationships: []
+      }
       ttos_automations: {
         Row: {
           actions: Json
@@ -10933,6 +10972,10 @@ export type Database = {
         Returns: boolean
       }
       next_ticket_number: { Args: { _agency_id: string }; Returns: string }
+      rollback_automation: {
+        Args: { _automation_id: string; _target_version: number }
+        Returns: number
+      }
       tto_rollup_ticket: { Args: { _ticket_id: string }; Returns: undefined }
       woic_graph_communities: {
         Args: {

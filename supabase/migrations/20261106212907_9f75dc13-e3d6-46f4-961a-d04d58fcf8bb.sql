@@ -1,0 +1,1 @@
+ALTER FUNCTION public.rollback_automation(uuid, integer) SECURITY INVOKER;
