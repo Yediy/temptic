@@ -3,6 +3,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { withSentry } from "../_shared/sentry.ts";
 import { requireUser, jsonResponse } from "../_shared/auth.ts";
+import { requirePbAccess } from "../_shared/pb_access.ts";
 
 Deno.serve(withSentry("pb-compute-commissions", async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -16,6 +17,8 @@ Deno.serve(withSentry("pb-compute-commissions", async (req) => {
   if (!agency_id) return jsonResponse({ error: "agency_id required", code: "bad_request" }, 400, corsHeaders);
 
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const access = await requirePbAccess({ admin, req, user: auth.user, functionName: "pb-compute-commissions", action: "commission.compute", agencyId: agency_id, subjectType: "agency", subjectId: agency_id, corsHeaders });
+  if (access instanceof Response) return access;
 
   const { data: rules } = await admin.from("pb_commission_rules")
     .select("*").eq("agency_id", agency_id).eq("active", true);

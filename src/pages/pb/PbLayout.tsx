@@ -1,5 +1,7 @@
-import { NavLink, Outlet } from "react-router-dom";
-import { DollarSign } from "lucide-react";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { DollarSign, ShieldAlert } from "lucide-react";
+import { useAuth } from "@/lib/auth";
+import { canAccessPbPage } from "@/lib/pb/permissions";
 
 const tabs = [
   { to: "/pb", label: "Command Center", end: true },
@@ -18,6 +20,12 @@ const tabs = [
 ];
 
 export default function PbLayout() {
+  const { roles } = useAuth();
+  const { pathname } = useLocation();
+  const userRoles = (roles ?? []) as string[];
+  const visible = tabs.filter((t) => canAccessPbPage(t.to, userRoles));
+  const allowed = canAccessPbPage(pathname, userRoles);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
@@ -25,7 +33,7 @@ export default function PbLayout() {
         <h1 className="text-2xl font-bold">Payroll &amp; Billing OS</h1>
       </div>
       <nav className="flex flex-wrap gap-1 border-b overflow-x-auto">
-        {tabs.map((t) => (
+        {visible.map((t) => (
           <NavLink
             key={t.to}
             to={t.to}
@@ -38,7 +46,17 @@ export default function PbLayout() {
           </NavLink>
         ))}
       </nav>
-      <div><Outlet /></div>
+      <div>
+        {allowed ? (
+          <Outlet />
+        ) : (
+          <div className="flex flex-col items-center gap-2 rounded-md border p-10 text-center">
+            <ShieldAlert className="h-8 w-8 text-destructive" />
+            <p className="font-semibold">You don't have access to this page</p>
+            <p className="text-sm text-muted-foreground">Ask an agency admin for payroll or billing permissions.</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

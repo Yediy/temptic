@@ -3,6 +3,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { withSentry } from "../_shared/sentry.ts";
 import { requireUser, jsonResponse } from "../_shared/auth.ts";
+import { requirePbAccess } from "../_shared/pb_access.ts";
 
 Deno.serve(withSentry("pb-compliance-scan", async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -17,6 +18,8 @@ Deno.serve(withSentry("pb-compliance-scan", async (req) => {
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   const { data: run } = await admin.from("pb_payroll_runs").select("*").eq("id", run_id).maybeSingle();
   if (!run) return jsonResponse({ error: "Run not found", code: "not_found" }, 404, corsHeaders);
+  const access = await requirePbAccess({ admin, req, user: auth.user, functionName: "pb-compliance-scan", action: "payroll.compliance_scan", agencyId: run.agency_id, subjectType: "pb_payroll_run", subjectId: run_id, corsHeaders });
+  if (access instanceof Response) return access;
 
   const { data: items } = await admin.from("pb_payroll_items").select("*").eq("run_id", run_id);
   const findings: Array<{ category: string; severity: string; message: string; item_id: string }> = [];
