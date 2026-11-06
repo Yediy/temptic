@@ -3,6 +3,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { withSentry } from "../_shared/sentry.ts";
 import { requireUser, jsonResponse } from "../_shared/auth.ts";
+import { requirePbAccess } from "../_shared/pb_access.ts";
 
 Deno.serve(withSentry("pb-forecast", async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -15,6 +16,8 @@ Deno.serve(withSentry("pb-forecast", async (req) => {
   if (!agency_id) return jsonResponse({ error: "agency_id required", code: "bad_request" }, 400, corsHeaders);
 
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const access = await requirePbAccess({ admin, req, user: auth.user, functionName: "pb-forecast", action: "forecast.generate", agencyId: agency_id, subjectType: "agency", subjectId: agency_id, corsHeaders });
+  if (access instanceof Response) return access;
   const today = new Date();
   const start = new Date(today); start.setDate(start.getDate() - 90);
   const horizonEnd = new Date(today); horizonEnd.setDate(horizonEnd.getDate() + 30);

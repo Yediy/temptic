@@ -3,6 +3,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { withSentry } from "../_shared/sentry.ts";
 import { requireUser, jsonResponse } from "../_shared/auth.ts";
+import { requirePbAccess } from "../_shared/pb_access.ts";
 
 Deno.serve(withSentry("pb-record-payment", async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -21,6 +22,8 @@ Deno.serve(withSentry("pb-record-payment", async (req) => {
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   const { data: inv, error } = await admin.from("pb_invoices").select("*").eq("id", invoice_id).maybeSingle();
   if (error || !inv) return jsonResponse({ error: "Invoice not found", code: "not_found" }, 404, corsHeaders);
+  const access = await requirePbAccess({ admin, req, user: auth.user, functionName: "pb-record-payment", action: "payment.record", agencyId: inv.agency_id, subjectType: "pb_invoice", subjectId: invoice_id, corsHeaders });
+  if (access instanceof Response) return access;
 
   await admin.from("pb_invoice_payments").insert({
     invoice_id, agency_id: inv.agency_id, amount, method, reference,
