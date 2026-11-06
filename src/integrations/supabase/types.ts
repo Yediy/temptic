@@ -5809,6 +5809,75 @@ export type Database = {
         }
         Relationships: []
       }
+      security_findings: {
+        Row: {
+          category: string | null
+          description: string | null
+          first_seen_at: string | null
+          fixed_at: string | null
+          internal_id: string
+          last_seen_at: string | null
+          level: string
+          name: string
+          scanner: string
+          status: string
+          subject: string | null
+          synced_at: string
+        }
+        Insert: {
+          category?: string | null
+          description?: string | null
+          first_seen_at?: string | null
+          fixed_at?: string | null
+          internal_id: string
+          last_seen_at?: string | null
+          level: string
+          name: string
+          scanner: string
+          status: string
+          subject?: string | null
+          synced_at?: string
+        }
+        Update: {
+          category?: string | null
+          description?: string | null
+          first_seen_at?: string | null
+          fixed_at?: string | null
+          internal_id?: string
+          last_seen_at?: string | null
+          level?: string
+          name?: string
+          scanner?: string
+          status?: string
+          subject?: string | null
+          synced_at?: string
+        }
+        Relationships: []
+      }
+      security_scan_runs: {
+        Row: {
+          completion_status: string | null
+          finding_count: number
+          scanned_at: string | null
+          scanner: string
+          synced_at: string
+        }
+        Insert: {
+          completion_status?: string | null
+          finding_count?: number
+          scanned_at?: string | null
+          scanner: string
+          synced_at?: string
+        }
+        Update: {
+          completion_status?: string | null
+          finding_count?: number
+          scanned_at?: string | null
+          scanner?: string
+          synced_at?: string
+        }
+        Relationships: []
+      }
       shifts: {
         Row: {
           agency_id: string
