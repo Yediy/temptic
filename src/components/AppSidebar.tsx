@@ -17,6 +17,7 @@ const adminItems = [
   { label: "Ticket Search", icon: Search, path: "/admin/tickets" },
   { label: "Notifications", icon: AlertTriangle, path: "/admin/notifications" },
   { label: "Rate Limits", icon: Gauge, path: "/admin/rate-limits" },
+  { label: "Security Findings", icon: ShieldCheck, path: "/admin/security" },
   { label: "Automation Studio", icon: Sparkles, path: "/automation" },
   { label: "WOIC Admin", icon: Brain, path: "/woic" },
   { label: "Worker Twins", icon: Users2, path: "/twin" },
