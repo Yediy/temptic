@@ -106,23 +106,29 @@ SELECT pg_temp.act_as('u_admin_b');    SELECT pg_temp.check_all('agency B admin'
 
 -- Workers cannot write any screening data.
 SELECT pg_temp.act_as('u_worker_a1');
-DO $$ DECLARE n int; BEGIN
-  UPDATE public.screening_reports SET result = 'tampered' WHERE order_id = pg_temp.id('o_a1');
-  GET DIAGNOSTICS n = ROW_COUNT; IF n > 0 THEN RAISE EXCEPTION 'FAIL worker updated own report'; END IF;
-  UPDATE public.screening_orders SET status = 'completed' WHERE id = pg_temp.id('o_a1');
-  GET DIAGNOSTICS n = ROW_COUNT; IF n > 0 THEN RAISE EXCEPTION 'FAIL worker updated own order'; END IF;
-  DELETE FROM public.screening_consents WHERE worker_id = pg_temp.id('w_a1');
-  GET DIAGNOSTICS n = ROW_COUNT; IF n > 0 THEN RAISE EXCEPTION 'FAIL worker deleted own consent'; END IF;
+CREATE FUNCTION pg_temp.expect_no_write(_label text, _sql text) RETURNS void LANGUAGE plpgsql AS $$
+DECLARE n int;
+BEGIN
   BEGIN
-    INSERT INTO public.screening_reports (order_id, result) VALUES (pg_temp.id('o_a1'), 'forged');
-    RAISE EXCEPTION 'FAIL worker inserted report';
-  EXCEPTION WHEN insufficient_privilege THEN NULL; END;
-  BEGIN
-    INSERT INTO public.screening_orders (agency_id, worker_id) VALUES (pg_temp.id('agency_a'), pg_temp.id('w_a1'));
-    RAISE EXCEPTION 'FAIL worker inserted order';
-  EXCEPTION WHEN insufficient_privilege THEN NULL; END;
-  RAISE NOTICE 'ok   [worker A1] cannot write screening data';
+    EXECUTE _sql;
+    GET DIAGNOSTICS n = ROW_COUNT;
+    IF n > 0 THEN RAISE EXCEPTION 'FAIL worker could %', _label; END IF;
+  EXCEPTION WHEN insufficient_privilege THEN NULL;  -- blocked by grants/RLS: good
+  END;
+  RAISE NOTICE 'ok   [worker A1] cannot %', _label;
 END $$;
+SELECT pg_temp.expect_no_write('update own report',
+  format('UPDATE public.screening_reports SET result = %L WHERE order_id = %L', 'tampered', pg_temp.id('o_a1')));
+SELECT pg_temp.expect_no_write('update own order',
+  format('UPDATE public.screening_orders SET status = %L WHERE id = %L', 'completed', pg_temp.id('o_a1')));
+SELECT pg_temp.expect_no_write('delete own consent',
+  format('DELETE FROM public.screening_consents WHERE worker_id = %L', pg_temp.id('w_a1')));
+SELECT pg_temp.expect_no_write('insert report',
+  format('INSERT INTO public.screening_reports (order_id, result) VALUES (%L, %L)', pg_temp.id('o_a1'), 'forged'));
+SELECT pg_temp.expect_no_write('insert order',
+  format('INSERT INTO public.screening_orders (agency_id, worker_id) VALUES (%L, %L)', pg_temp.id('agency_a'), pg_temp.id('w_a1')));
+SELECT pg_temp.expect_no_write('read another worker report via delete',
+  format('DELETE FROM public.screening_reports WHERE order_id = %L', pg_temp.id('o_a2')));
 
 -- Anonymous visitors see nothing.
 RESET ROLE;
