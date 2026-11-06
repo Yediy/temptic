@@ -5502,6 +5502,54 @@ export type Database = {
           },
         ]
       }
+      screening_access_log: {
+        Row: {
+          action: string
+          actor_roles: string[]
+          actor_user_id: string | null
+          agency_id: string | null
+          context: string | null
+          created_at: string
+          id: string
+          ip_address: string | null
+          order_id: string | null
+          record_id: string
+          record_type: string
+          user_agent: string | null
+          worker_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_roles?: string[]
+          actor_user_id?: string | null
+          agency_id?: string | null
+          context?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          order_id?: string | null
+          record_id: string
+          record_type: string
+          user_agent?: string | null
+          worker_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_roles?: string[]
+          actor_user_id?: string | null
+          agency_id?: string | null
+          context?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          order_id?: string | null
+          record_id?: string
+          record_type?: string
+          user_agent?: string | null
+          worker_id?: string | null
+        }
+        Relationships: []
+      }
       screening_consents: {
         Row: {
           consent_type: string
@@ -10967,15 +11015,24 @@ export type Database = {
         Args: { _key: string; _max_requests: number; _window_seconds: number }
         Returns: boolean
       }
+      get_screening_document: {
+        Args: { _record_id: string; _record_type: string }
+        Returns: string
+      }
       has_module_access: {
         Args: { _module: string; _user_id: string }
         Returns: boolean
+      }
+      log_screening_access: {
+        Args: { _context?: string; _record_ids: string[]; _record_type: string }
+        Returns: number
       }
       next_ticket_number: { Args: { _agency_id: string }; Returns: string }
       rollback_automation: {
         Args: { _automation_id: string; _target_version: number }
         Returns: number
       }
+      sign_screening_consent: { Args: { _consent_id: string }; Returns: string }
       tto_rollup_ticket: { Args: { _ticket_id: string }; Returns: undefined }
       woic_graph_communities: {
         Args: {
