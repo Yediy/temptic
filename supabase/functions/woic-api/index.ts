@@ -5,7 +5,8 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { withSentry } from "../_shared/sentry.ts";
 import { jsonResponse, requireUser } from "../_shared/auth.ts";
-import { isUuid, requireAgencyMember } from "../_shared/woic.ts";
+import { admin, isUuid } from "../_shared/woic.ts";
+import { callerModule, requireWoicAccess } from "../_shared/woic-access.ts";
 
 type Body = {
   service?: string;
@@ -20,7 +21,7 @@ Deno.serve(withSentry("woic-api", async (req) => {
 
   const auth = await requireUser(req, corsHeaders);
   if (auth instanceof Response) return auth;
-  const { userClient } = auth;
+  const { userClient, user } = auth;
 
   const body = (await req.json().catch(() => null)) as Body | null;
   if (!body || typeof body.service !== "string" || typeof body.action !== "string") {
@@ -29,8 +30,11 @@ Deno.serve(withSentry("woic-api", async (req) => {
   if (!isUuid(body.agency_id)) {
     return jsonResponse({ error: "agency_id must be a uuid", code: "bad_request" }, 400, corsHeaders);
   }
-  const forbidden = await requireAgencyMember(userClient, body.agency_id, corsHeaders);
-  if (forbidden) return forbidden;
+  const guard = await requireWoicAccess({
+    admin: admin(), req, user, functionName: "woic-api", operation: `${body.service}.${body.action}`,
+    agencyId: body.agency_id, params: body.params ?? {}, module: callerModule(req, body), corsHeaders,
+  });
+  if (guard instanceof Response) return guard;
 
   const key = `${body.service}.${body.action}`;
   const p = body.params ?? {};

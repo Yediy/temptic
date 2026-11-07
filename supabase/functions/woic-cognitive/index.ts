@@ -23,7 +23,8 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { withSentry } from "../_shared/sentry.ts";
 import { jsonResponse, requireUser } from "../_shared/auth.ts";
-import { admin, isUuid, requireAgencyMember } from "../_shared/woic.ts";
+import { admin, isUuid } from "../_shared/woic.ts";
+import { callerModule, requireWoicAccess } from "../_shared/woic-access.ts";
 import {
   cacheGet,
   cacheKey,
@@ -83,10 +84,12 @@ Deno.serve(withSentry("woic-cognitive", async (req) => {
   if (!OPERATIONS.has(operation)) {
     return jsonResponse({ error: `unknown operation: ${operation}`, code: "not_found" }, 404, corsHeaders);
   }
-  const forbidden = await requireAgencyMember(userClient, agencyId, corsHeaders);
-  if (forbidden) return forbidden;
-
   const db = admin();
+  const guard = await requireWoicAccess({
+    admin: db, req, user, functionName: "woic-cognitive", operation, agencyId, params: p,
+    module: callerModule(req, body), corsHeaders,
+  });
+  if (guard instanceof Response) return guard;
   const started = Date.now();
 
   if ((body as { stream?: unknown })?.stream === true && STREAMABLE.has(operation)) {

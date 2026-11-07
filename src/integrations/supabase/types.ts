@@ -9025,6 +9025,57 @@ export type Database = {
         }
         Relationships: []
       }
+      woic_access_audit: {
+        Row: {
+          access: string | null
+          actor_id: string | null
+          actor_roles: string[]
+          agency_id: string | null
+          created_at: string
+          decision: string
+          function_name: string
+          id: string
+          ip_address: string | null
+          module: string | null
+          operation: string
+          reason: string | null
+          resource: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          access?: string | null
+          actor_id?: string | null
+          actor_roles?: string[]
+          agency_id?: string | null
+          created_at?: string
+          decision: string
+          function_name: string
+          id?: string
+          ip_address?: string | null
+          module?: string | null
+          operation: string
+          reason?: string | null
+          resource?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          access?: string | null
+          actor_id?: string | null
+          actor_roles?: string[]
+          agency_id?: string | null
+          created_at?: string
+          decision?: string
+          function_name?: string
+          id?: string
+          ip_address?: string | null
+          module?: string | null
+          operation?: string
+          reason?: string | null
+          resource?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       woic_api_registry: {
         Row: {
           action: string

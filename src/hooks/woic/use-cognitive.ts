@@ -17,9 +17,10 @@ export async function cognitive<T = unknown>(
   agencyId: string,
   operation: CognitiveOperation,
   params: Record<string, unknown> = {},
+  module = "console",
 ): Promise<T> {
   const { data, error } = await supabase.functions.invoke("woic-cognitive", {
-    body: { agency_id: agencyId, operation, params },
+    body: { agency_id: agencyId, operation, params, module },
   });
   if (error) throw error;
   if (data && typeof data === "object" && "error" in data && (data as { error?: string }).error) {
