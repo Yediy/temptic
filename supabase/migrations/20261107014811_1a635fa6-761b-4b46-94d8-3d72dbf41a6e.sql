@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX ttos_action_ledger_conflict_uniq ON public.ttos_action_ledger(correlation_id, conflict_key) WHERE conflict_key IS NOT NULL;
