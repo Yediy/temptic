@@ -203,7 +203,7 @@ function serviceOf(op: string): string {
 }
 
 // deno-lint-ignore no-explicit-any
-async function dispatch(op: string, db: any, agencyId: string, userId: string, p: Params) {
+async function dispatch(op: string, db: any, agencyId: string, userId: string, p: Params, emit?: Emit) {
   switch (op) {
     case "snapshot": return await buildOrgSnapshot(db, agencyId);
     case "retrieve_knowledge": return await opRetrieveKnowledge(db, agencyId, p);
