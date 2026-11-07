@@ -89,6 +89,10 @@ Deno.serve(withSentry("woic-cognitive", async (req) => {
   const db = admin();
   const started = Date.now();
 
+  if ((body as { stream?: unknown })?.stream === true && STREAMABLE.has(operation)) {
+    return streamOperation(operation, db, agencyId, user.id, p, started);
+  }
+
   try {
     const result = await dispatch(operation, db, agencyId, user.id, p);
     await logCognitiveRequest({
@@ -123,6 +127,62 @@ Deno.serve(withSentry("woic-cognitive", async (req) => {
     );
   }
 }));
+
+// ---------- Streaming (Reason / Explain / GenerateReport) ----------
+// SSE events: status {stage}, delta {text}, done {data}, error {error, code}.
+// Persistence, caching and audit logging are identical to the non-streaming path.
+
+const STREAMABLE = new Set(["reason", "explain", "generate_report"]);
+
+export interface Emit {
+  status: (stage: string) => void;
+  delta: (text: string) => void;
+}
+
+// deno-lint-ignore no-explicit-any
+function streamOperation(operation: string, db: any, agencyId: string, userId: string, p: Params, started: number) {
+  const enc = new TextEncoder();
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      let closed = false;
+      const send = (event: string, data: unknown) => {
+        if (closed) return;
+        try {
+          controller.enqueue(enc.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
+        } catch { closed = true; }
+      };
+      const emit: Emit = {
+        status: (stage) => send("status", { stage }),
+        delta: (text) => send("delta", { text }),
+      };
+      const ping = setInterval(() => { if (!closed) { try { controller.enqueue(enc.encode(": ping\n\n")); } catch { closed = true; } } }, 15_000);
+      try {
+        emit.status("started");
+        const result = await dispatch(operation, db, agencyId, userId, p, emit);
+        await logCognitiveRequest({
+          agency_id: agencyId, user_id: userId, service: serviceOf(operation), operation,
+          input: { ...p, stream: true }, output: result, latency_ms: Date.now() - started,
+          cached: Boolean((result as { cached?: boolean })?.cached), model: COGNITIVE_MODEL,
+        });
+        send("done", { data: result });
+      } catch (e) {
+        const status = e instanceof GatewayError ? e.status : 500;
+        const message = e instanceof Error ? e.message : String(e);
+        await logCognitiveRequest({
+          agency_id: agencyId, user_id: userId, service: serviceOf(operation), operation,
+          input: { ...p, stream: true }, status: "error", error: message, latency_ms: Date.now() - started,
+        });
+        send("error", { error: message, code: status === 429 ? "rate_limited" : status === 402 ? "payment_required" : "internal", status });
+      } finally {
+        clearInterval(ping);
+        if (!closed) { closed = true; try { controller.close(); } catch { /* already closed */ } }
+      }
+    },
+  });
+  return new Response(stream, {
+    headers: { ...corsHeaders, "Content-Type": "text/event-stream", "Cache-Control": "no-cache", "X-Accel-Buffering": "no" },
+  });
+}
 
 function serviceOf(op: string): string {
   switch (op) {
