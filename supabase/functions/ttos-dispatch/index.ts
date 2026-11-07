@@ -5,6 +5,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { withSentry } from "../_shared/sentry.ts";
 import { jsonResponse } from "../_shared/auth.ts";
+import { contextFromEvent, evaluateConditions } from "../_shared/automation-sim.ts";
 
 type TtosEvent = {
   id: string;
@@ -74,7 +75,11 @@ async function runAutomations(admin: ReturnType<typeof createClient>, evt: TtosE
     .or(`trigger_event.eq.${evt.name},trigger_event.eq.*`)
     .order("priority");
 
+  const simCtx = contextFromEvent(evt);
   for (const a of autos ?? []) {
+    // Same condition logic as the Studio's simulation mode.
+    const cond = evaluateConditions((a as { conditions?: unknown }).conditions, simCtx);
+    if (!cond.passed) continue;
     const actions = Array.isArray((a as { actions: unknown }).actions) ? (a as { actions: Array<Record<string, unknown>> }).actions : [];
     let status: "succeeded" | "failed" = "succeeded";
     let error: string | null = null;
