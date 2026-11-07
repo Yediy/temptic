@@ -8,13 +8,30 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import {
   useCognitiveRequests,
-  useGenerateReport,
+  useCognitiveStream,
   useOrgSnapshot,
-  useReason,
   useReasoningTraces,
   useSecurityScan,
   useSimulate,
 } from "@/hooks/woic/use-cognitive";
+import { extractPartialReasoning, extractPartialReport } from "@/lib/woic/stream";
+
+const REASON_KEYS = [["woic", "reasoning"]];
+const BRIEF_KEYS = [["woic", "briefs"]];
+const STAGES: Record<string, string> = {
+  connecting: "Connecting…", started: "Starting…", gathering_context: "Gathering organizational context…",
+  cache_hit: "Using cached result…", generating: "Thinking…", saving: "Saving results…",
+};
+
+function StageBadge({ stage, streaming }: { stage: string; streaming: boolean }) {
+  if (!streaming) return null;
+  return (
+    <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+      <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+      {STAGES[stage] ?? stage}
+    </span>
+  );
+}
 
 function Pct({ v }: { v: unknown }) {
   const n = typeof v === "number" ? v : Number(v);
@@ -28,17 +45,24 @@ export default function WoicCognitive() {
   const snapshot = useOrgSnapshot(agencyId ?? undefined);
   const traces = useReasoningTraces(agencyId ?? undefined, 20);
   const requests = useCognitiveRequests(agencyId ?? undefined, 25);
-  const reason = useReason();
+  const reason = useCognitiveStream("reason", REASON_KEYS);
   const simulate = useSimulate();
-  const brief = useGenerateReport();
+  const brief = useCognitiveStream("generate_report", BRIEF_KEYS);
+  const explain = useCognitiveStream("explain");
+  const [explainId, setExplainId] = useState<string | null>(null);
   const scan = useSecurityScan();
 
   const fail = (e: unknown) =>
     toast({ title: "Cognitive core error", description: e instanceof Error ? e.message : String(e), variant: "destructive" });
 
-  const result = reason.data as
+  const final = reason.data as
     | { conclusion?: string; confidence?: number; explanation?: string; steps?: Array<{ kind: string; content: string }>; risk?: { level?: string } }
     | undefined;
+  const partial = extractPartialReasoning(reason.text);
+  const result = final ?? (reason.isStreaming || reason.text ? { ...partial, confidence: undefined, risk: undefined } : undefined);
+  const briefFinal = brief.data as { title?: string; summary?: string; sections?: Array<{ heading: string; body: string }> } | undefined;
+  const briefView = briefFinal ?? (brief.text ? extractPartialReport(brief.text) : undefined);
+  const explainText = (explain.data as { explanation?: string } | undefined)?.explanation ?? explain.text;
 
   return (
     <div className="space-y-4">
@@ -79,22 +103,23 @@ export default function WoicCognitive() {
                 placeholder="e.g. Which clients are most at risk of churn next quarter and why?"
                 rows={3}
               />
-              <Button
-                disabled={!agencyId || !question.trim() || reason.isPending}
-                onClick={() =>
-                  reason.mutate(
-                    { agency_id: agencyId!, question, domain: "cross_domain" },
-                    { onError: fail },
-                  )}
-              >
-                {reason.isPending ? "Reasoning…" : "Run WOIC reasoning"}
-              </Button>
+              <div className="flex items-center gap-3">
+                <Button
+                  disabled={!agencyId || !question.trim() || reason.isStreaming}
+                  onClick={() => reason.start(agencyId!, { question, domain: "cross_domain" }).catch(fail)}
+                >
+                  {reason.isStreaming ? "Reasoning…" : "Run WOIC reasoning"}
+                </Button>
+                {reason.isStreaming && <Button variant="ghost" size="sm" onClick={reason.cancel}>Stop</Button>}
+                <StageBadge stage={reason.stage} streaming={reason.isStreaming} />
+              </div>
 
               {result && (
                 <div className="space-y-2 rounded-lg border p-4">
                   <div className="flex items-center gap-2">
-                    <Badge>Confidence <Pct v={result.confidence} /></Badge>
+                    {result.confidence !== undefined && <Badge>Confidence <Pct v={result.confidence} /></Badge>}
                     {result.risk?.level && <Badge variant="secondary">Risk: {result.risk.level}</Badge>}
+                    {reason.isStreaming && <Badge variant="outline">Live</Badge>}
                   </div>
                   <p className="font-medium">{result.conclusion}</p>
                   <ol className="list-decimal pl-5 text-sm text-muted-foreground space-y-1">
@@ -105,6 +130,9 @@ export default function WoicCognitive() {
                   <p className="text-sm">{result.explanation}</p>
                 </div>
               )}
+              {reason.isStreaming && reason.text && !partial.steps.length && (
+                <pre className="max-h-40 overflow-auto rounded bg-muted p-2 text-xs font-mono whitespace-pre-wrap">{reason.text}</pre>
+              )}
             </CardContent>
           </Card>
 
@@ -114,9 +142,29 @@ export default function WoicCognitive() {
               {(traces.data ?? []).map((t) => (
                 <div key={String(t.id)} className="rounded border p-2">
                   <p className="font-medium">{String(t.question)}</p>
-                  <p className="text-muted-foreground text-xs">
-                    {String(t.domain)} · <Pct v={t.confidence} /> · {new Date(String(t.created_at)).toLocaleString()}
-                  </p>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-muted-foreground text-xs">
+                      {String(t.domain)} · <Pct v={t.confidence} /> · {new Date(String(t.created_at)).toLocaleString()}
+                    </p>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={explain.isStreaming}
+                      onClick={() => {
+                        setExplainId(String(t.id));
+                        explain.start(agencyId!, { target_kind: "reasoning", target_id: t.id }).catch(fail);
+                      }}
+                    >
+                      Explain
+                    </Button>
+                  </div>
+                  {explainId === String(t.id) && (explainText || explain.isStreaming) && (
+                    <div className="mt-2 rounded bg-muted p-2 text-sm whitespace-pre-wrap">
+                      <StageBadge stage={explain.stage} streaming={explain.isStreaming} />
+                      {explainText}
+                      {explain.isStreaming && <span className="ml-0.5 animate-pulse">▍</span>}
+                    </div>
+                  )}
                 </div>
               ))}
               {!traces.isLoading && !(traces.data ?? []).length && (
@@ -157,14 +205,13 @@ export default function WoicCognitive() {
             <CardContent className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
-                disabled={!agencyId || brief.isPending}
+                disabled={!agencyId || brief.isStreaming}
                 onClick={() =>
-                  brief.mutate({ agency_id: agencyId!, kind: "morning" }, {
-                    onError: fail,
-                    onSuccess: () => toast({ title: "Morning brief generated" }),
-                  })}
+                  brief.start(agencyId!, { kind: "morning" })
+                    .then((d) => d && toast({ title: "Morning brief generated" }))
+                    .catch(fail)}
               >
-                {brief.isPending ? "Generating…" : "Generate morning brief"}
+                {brief.isStreaming ? "Generating…" : "Generate morning brief"}
               </Button>
               <Button
                 variant="outline"
@@ -177,8 +224,29 @@ export default function WoicCognitive() {
               >
                 {scan.isPending ? "Scanning…" : "Run security intelligence scan"}
               </Button>
+              <StageBadge stage={brief.stage} streaming={brief.isStreaming} />
             </CardContent>
           </Card>
+
+          {briefView && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  {briefView.title || "Morning brief"}
+                  {brief.isStreaming && <Badge variant="outline">Live</Badge>}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                {briefView.summary && <p>{briefView.summary}</p>}
+                {(briefView.sections ?? []).map((sec, i) => (
+                  <div key={i}>
+                    <p className="font-medium">{sec.heading}</p>
+                    <p className="text-muted-foreground whitespace-pre-wrap">{sec.body}</p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader><CardTitle className="text-base">Cognitive request log</CardTitle></CardHeader>
