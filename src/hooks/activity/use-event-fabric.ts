@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import type { FabricEvent } from "@/lib/activity/events";
+import { flush, receive, refreshPinned, type LiveBuffer } from "@/lib/activity/live-buffer";
+export { refreshPinned };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const sb = supabase as any;
@@ -25,14 +27,22 @@ export interface EventFilters {
   sort?: "newest" | "oldest";
 }
 
-/** Live stream with realtime insert subscription + polling fallback. */
+/** Live stream: realtime inserts/updates + polling fallback, with pause/hold buffering. */
 export function useLiveEvents(limit = 150) {
   const { agencyId } = useAuth();
-  const [events, setEvents] = useState<FabricEvent[]>([]);
+  const [buf, setBuf] = useState<LiveBuffer>({ events: [], pending: [] });
   const [connected, setConnected] = useState(false);
-  const [paused, setPaused] = useState(false);
-  const pausedRef = useRef(paused);
-  pausedRef.current = paused;
+  const [paused, setPausedState] = useState(false);
+  const [held, setHeld] = useState(false);
+  const holdRef = useRef(false);
+  holdRef.current = paused || held;
+
+  const applyUpdate = useCallback((row: FabricEvent) => {
+    setBuf((b) => ({
+      events: b.events.map((e) => (e.id === row.id ? row : e)),
+      pending: b.pending.map((e) => (e.id === row.id ? row : e)),
+    }));
+  }, []);
 
   const refresh = useCallback(async () => {
     if (!agencyId) return;
@@ -42,35 +52,52 @@ export function useLiveEvents(limit = 150) {
       .eq("agency_id", agencyId)
       .order("created_at", { ascending: false })
       .limit(limit);
-    setEvents((data ?? []) as FabricEvent[]);
-  }, [agencyId, limit]);
+    const rows = (data ?? []) as FabricEvent[];
+    rows.forEach(applyUpdate);
+    setBuf((b) => receive(b, rows, holdRef.current, limit));
+  }, [agencyId, limit, applyUpdate]);
 
   useEffect(() => {
+    setBuf({ events: [], pending: [] });
     void refresh();
     if (!agencyId) return;
     const channel = supabase
-      .channel(`fabric-events-${agencyId}`)
+      .channel(`fabric-events-${agencyId}-${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "ttos_events", filter: `agency_id=eq.${agencyId}` },
-        (payload) => {
-          if (pausedRef.current) return;
-          setEvents((prev) => [payload.new as FabricEvent, ...prev].slice(0, limit));
-        },
+        (payload) => setBuf((b) => receive(b, [payload.new as FabricEvent], holdRef.current, limit)),
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "ttos_events", filter: `agency_id=eq.${agencyId}` },
+        (payload) => applyUpdate(payload.new as FabricEvent),
       )
       .subscribe((status) => setConnected(status === "SUBSCRIBED"));
 
-    const poll = setInterval(() => {
-      if (!pausedRef.current) void refresh();
-    }, 20_000);
+    // Fallback/backfill: slower when realtime is healthy.
+    const poll = setInterval(() => void refresh(), 20_000);
 
     return () => {
       supabase.removeChannel(channel);
       clearInterval(poll);
     };
-  }, [agencyId, limit, refresh]);
+  }, [agencyId, limit, refresh, applyUpdate]);
 
-  return { events, connected, paused, setPaused, refresh };
+  const release = useCallback(() => setBuf((b) => flush(b, limit)), [limit]);
+  const setPaused = useCallback((p: boolean) => {
+    setPausedState(p);
+    if (!p && !holdRef.current) setBuf((b) => flush(b, limit));
+  }, [limit]);
+  /** Hold incoming events (e.g. user scrolled away from the top). Releasing flushes them. */
+  const setHold = useCallback((h: boolean) => {
+    setHeld(h);
+    if (!h && !paused) setBuf((b) => flush(b, limit));
+  }, [limit, paused]);
+
+  return {
+    events: buf.events, pending: buf.pending.length, connected, paused, setPaused, held, setHold, release, refresh,
+  };
 }
 
 /** Advanced query for the Event Explorer. */
