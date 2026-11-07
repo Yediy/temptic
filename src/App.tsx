@@ -82,6 +82,7 @@ import JobBoard from "@/pages/jobs/JobBoard";
 import JobDetail from "@/pages/jobs/JobDetail";
 import BlindReview from "@/pages/talent/BlindReview";
 import ScreeningList from "@/pages/screening/ScreeningList";
+import ScreeningAccessLog from "@/pages/screening/ScreeningAccessLog";
 import Scheduling from "@/pages/scheduling/Scheduling";
 import Timecards from "@/pages/timecards/Timecards";
 import Reports from "@/pages/reports/Reports";
@@ -447,6 +448,7 @@ const App = () => (
                 <Route path="/jobs/:id" element={<JobDetail />} />
                 <Route path="/candidates" element={<BlindReview />} />
                 <Route path="/screening" element={<ScreeningList />} />
+                <Route path="/screening/access-log" element={<ScreeningAccessLog />} />
                 <Route path="/onboarding" element={<OnboardingKanban />} />
                 <Route path="/compliance" element={<ModulePlaceholder moduleKey="compliance" />} />
                 <Route path="/training" element={<TrainingCatalog />} />

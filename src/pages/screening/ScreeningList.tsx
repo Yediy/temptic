@@ -3,7 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ShieldCheck, AlertTriangle } from "lucide-react";
+import { ShieldCheck, AlertTriangle, History } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { logScreeningRead } from "@/lib/screening/audit";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Row = any;
@@ -21,17 +24,23 @@ export default function ScreeningList() {
         .order("created_at", { ascending: false })
         .limit(200);
       if (error) throw error;
+      void logScreeningRead("order", (data ?? []).map((o: Row) => o.id), "screening list");
       return data ?? [];
     },
   });
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <ShieldCheck className="h-5 w-5" /> Screening
-        </h1>
-        <p className="text-sm text-muted-foreground">Background check orders and adverse action tracking.</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5" /> Screening
+          </h1>
+          <p className="text-sm text-muted-foreground">Background check orders and adverse action tracking.</p>
+        </div>
+        <Button asChild variant="outline" size="sm">
+          <Link to="/screening/access-log"><History className="h-4 w-4 mr-1" />Access trail</Link>
+        </Button>
       </div>
 
       <Card className="p-3 border-yellow-500/40 bg-yellow-500/5 flex items-start gap-2 text-sm">
