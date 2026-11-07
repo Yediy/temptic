@@ -37,14 +37,16 @@ function gatewayHeaders(): Record<string, string> {
 export async function cognitiveText(
   system: string,
   user: string,
-  opts: { model?: string; temperature?: number } = {},
+  opts: { model?: string; temperature?: number; onDelta?: (text: string) => void } = {},
 ): Promise<string> {
+  const streaming = typeof opts.onDelta === "function";
   const res = await fetch(`${GATEWAY}/chat/completions`, {
     method: "POST",
     headers: gatewayHeaders(),
     body: JSON.stringify({
       model: opts.model ?? COGNITIVE_MODEL,
       reasoning_effort: "none",
+      ...(streaming ? { stream: true } : {}),
       messages: [
         { role: "system", content: system },
         { role: "user", content: user },
@@ -54,6 +56,10 @@ export async function cognitiveText(
   if (res.status === 429) throw new GatewayError(429, "Rate limit exceeded. Try again shortly.");
   if (res.status === 402) throw new GatewayError(402, "AI credits exhausted. Add credits to continue.");
   if (!res.ok) throw new GatewayError(502, `AI gateway error (${res.status}).`);
+  if (streaming) {
+    if (!res.body) throw new GatewayError(502, "AI gateway stream failed.");
+    return await readChatStream(res.body, opts.onDelta!);
+  }
   const json = await res.json() as { choices?: Array<{ message?: { content?: string } }> };
   return json?.choices?.[0]?.message?.content ?? "";
 }
@@ -66,7 +72,7 @@ export async function cognitiveJson<T = Record<string, unknown>>(
   system: string,
   user: string,
   shapeHint: string,
-  opts: { model?: string } = {},
+  opts: { model?: string; onDelta?: (text: string) => void } = {},
 ): Promise<T> {
   const text = await cognitiveText(
     `${system}\n\nRespond with a single valid JSON object and nothing else. Shape:\n${shapeHint}`,
@@ -90,6 +96,38 @@ export function parseJsonLoose<T>(text: string): T {
     }
     throw new GatewayError(502, "AI returned malformed output.");
   }
+}
+
+/** Reads an OpenAI-style SSE body, forwarding each token and returning the full text. */
+export async function readChatStream(
+  body: ReadableStream<Uint8Array>,
+  onDelta: (text: string) => void,
+): Promise<string> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buf = "";
+  let full = "";
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    let nl: number;
+    while ((nl = buf.indexOf("\n")) >= 0) {
+      const line = buf.slice(0, nl).replace(/\r$/, "");
+      buf = buf.slice(nl + 1);
+      if (!line.startsWith("data:")) continue;
+      const payload = line.slice(5).trim();
+      if (!payload || payload === "[DONE]") continue;
+      try {
+        const piece = JSON.parse(payload)?.choices?.[0]?.delta?.content;
+        if (typeof piece === "string" && piece) {
+          full += piece;
+          onDelta(piece);
+        }
+      } catch { /* partial line — ignore */ }
+    }
+  }
+  return full;
 }
 
 /** Streaming chat completion — returns an SSE Response for the browser. */
