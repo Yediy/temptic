@@ -38,7 +38,7 @@ export default function RuleSimulationPanel({ rule, allRules, sampleJson, setSam
     },
   });
 
-  function useTemplate() {
+  function applyTemplate() {
     setSampleJson(JSON.stringify({ event: { name: rule.trigger_event === "*" ? "manual.run" : rule.trigger_event, entity_type: null, entity_id: null }, payload: { status: "" }, actor: { id: null } }, null, 2));
   }
 
@@ -59,7 +59,7 @@ export default function RuleSimulationPanel({ rule, allRules, sampleJson, setSam
       <CardContent className="space-y-3 text-xs">
         <p className="text-muted-foreground">Uses the same trigger, condition and action logic as the live engine. Nothing is saved or sent.</p>
         <div className="flex flex-wrap gap-2">
-          <Button size="sm" variant="outline" onClick={useTemplate}>Rule trigger template</Button>
+          <Button size="sm" variant="outline" onClick={applyTemplate}>Rule trigger template</Button>
           <Select onValueChange={(id) => { const e = recent.data?.find((x) => x.id === id); if (e) setSampleJson(JSON.stringify(contextFromEvent(e), null, 2)); }}>
             <SelectTrigger className="h-8 w-56"><SelectValue placeholder={recent.data?.length ? "Load a recent real event" : "No recent matching events"} /></SelectTrigger>
             <SelectContent>
