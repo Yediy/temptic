@@ -2640,6 +2640,66 @@ export type Database = {
           },
         ]
       }
+      event_replay_runs: {
+        Row: {
+          actor_id: string
+          actor_roles: string[]
+          agency_id: string
+          confirmed: boolean
+          created_at: string
+          dry_run: boolean
+          error: string | null
+          event_ids: string[]
+          id: string
+          impact: Json
+          ip_address: string | null
+          mode: string
+          plan_hash: string | null
+          replayed_event_ids: string[]
+          selector: Json
+          status: string
+          user_agent: string | null
+        }
+        Insert: {
+          actor_id: string
+          actor_roles?: string[]
+          agency_id: string
+          confirmed?: boolean
+          created_at?: string
+          dry_run: boolean
+          error?: string | null
+          event_ids?: string[]
+          id?: string
+          impact?: Json
+          ip_address?: string | null
+          mode: string
+          plan_hash?: string | null
+          replayed_event_ids?: string[]
+          selector?: Json
+          status: string
+          user_agent?: string | null
+        }
+        Update: {
+          actor_id?: string
+          actor_roles?: string[]
+          agency_id?: string
+          confirmed?: boolean
+          created_at?: string
+          dry_run?: boolean
+          error?: string | null
+          event_ids?: string[]
+          id?: string
+          impact?: Json
+          ip_address?: string | null
+          mode?: string
+          plan_hash?: string | null
+          replayed_event_ids?: string[]
+          selector?: Json
+          status?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       growth_plans: {
         Row: {
           agency_id: string
