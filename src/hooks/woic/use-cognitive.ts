@@ -4,6 +4,8 @@
 // GenerateCommunication, Simulate.
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { streamCognitive, type StreamableOperation } from "@/lib/woic/stream";
 
 export type CognitiveOperation =
   | "reason" | "predict" | "recommend" | "explain" | "learn"
@@ -48,6 +50,46 @@ export const useGenerateReport = () => useCognitiveMutation<Record<string, unkno
 export const useGenerateCommunication = () => useCognitiveMutation<Record<string, unknown>>("generate_communication", [["woic", "communications"]]);
 export const useSimulate = () => useCognitiveMutation<Record<string, unknown>>("simulate", [["woic", "simulations"]]);
 export const useSecurityScan = () => useCognitiveMutation<Record<string, unknown>>("security_scan", [["woic", "security_signals"]]);
+// ---- Streaming Reason / Explain / GenerateReport ----
+export function useCognitiveStream<T = Record<string, unknown>>(operation: StreamableOperation, invalidate: string[][] = []) {
+  const qc = useQueryClient();
+  const [state, setState] = useState<{ stage: string; text: string; isStreaming: boolean; data?: T; error?: string }>({
+    stage: "", text: "", isStreaming: false,
+  });
+  const abortRef = useRef<AbortController | null>(null);
+
+  const start = useCallback(async (agencyId: string, params: Record<string, unknown>) => {
+    abortRef.current?.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    setState({ stage: "connecting", text: "", isStreaming: true });
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Please sign in again.");
+      const data = await streamCognitive<T>({
+        url: `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/woic-cognitive`,
+        accessToken: session.access_token,
+        apiKey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        agencyId, operation, params, signal: ctrl.signal,
+        onStatus: (stage) => setState((s) => ({ ...s, stage })),
+        onDelta: (_t, full) => setState((s) => ({ ...s, text: full, stage: "generating" })),
+      });
+      setState((s) => ({ ...s, data, stage: "done", isStreaming: false }));
+      invalidate.forEach((key) => qc.invalidateQueries({ queryKey: key }));
+      return data;
+    } catch (e) {
+      if (ctrl.signal.aborted) { setState((s) => ({ ...s, stage: "cancelled", isStreaming: false })); return undefined; }
+      const error = e instanceof Error ? e.message : String(e);
+      setState((s) => ({ ...s, error, stage: "error", isStreaming: false }));
+      throw e;
+    }
+  }, [operation, qc, invalidate]);
+
+  const cancel = useCallback(() => abortRef.current?.abort(), []);
+  useEffect(() => () => abortRef.current?.abort(), []);
+  return { ...state, start, cancel };
+}
+
 export const useIngestEvents = () =>
   useMutation({
     mutationFn: async (vars: { agency_id: string; limit?: number }) => {
