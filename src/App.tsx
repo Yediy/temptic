@@ -101,6 +101,7 @@ import WoicLearning from "@/pages/woic/WoicLearning";
 import WoicCompliance from "@/pages/woic/WoicCompliance";
 import WoicContext from "@/pages/woic/WoicContext";
 import WoicRegistry from "@/pages/woic/WoicRegistry";
+import WoicAuditTrail from "@/pages/woic/WoicAuditTrail";
 import GraphLayout from "@/pages/graph/GraphLayout";
 import GraphExplorer from "@/pages/graph/GraphExplorer";
 import GraphIntelligence from "@/pages/graph/GraphIntelligence";
@@ -674,6 +675,7 @@ const App = () => (
                   <Route path="compliance" element={<WoicCompliance />} />
                   <Route path="context" element={<WoicContext />} />
                   <Route path="registry" element={<WoicRegistry />} />
+                  <Route path="audit" element={<WoicAuditTrail />} />
                 </Route>
               </Route>
             </Route>
