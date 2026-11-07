@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import type { FabricEvent } from "@/lib/activity/events";
+import { queryToLogic, type ExplorerQuery, type SortKey } from "@/lib/activity/explorer-query";
 import { flush, receive, refreshPinned, type LiveBuffer } from "@/lib/activity/live-buffer";
 export { refreshPinned };
 
@@ -453,4 +454,47 @@ export function useEventCounts(events: FabricEvent[]) {
     for (const e of events) byModule.set(e.module, (byModule.get(e.module) ?? 0) + 1);
     return Array.from(byModule.entries()).sort((a, b) => b[1] - a[1]);
   }, [events]);
+}
+
+// ---------- Event Explorer: unlimited combined rules ----------
+const EXPLORER_SORTABLE = new Set(["created_at", "processed_at", "name", "module", "status", "entity_type", "correlation_id", "actor_id", "entity_id"]);
+
+function explorerBase(agencyId: string, logic: string | null, primary: SortKey | undefined) {
+  let q = sb.from("ttos_events").select(EVENT_COLS).eq("agency_id", agencyId);
+  if (logic) q = q.or(logic);
+  const field = primary && EXPLORER_SORTABLE.has(primary.field) ? primary.field : "created_at";
+  q = q.order(field, { ascending: primary?.dir === "asc", nullsFirst: false });
+  if (field !== "created_at") q = q.order("created_at", { ascending: false });
+  return q;
+}
+
+/** Runs an Explorer query in the database; sorting by the first key happens server-side. */
+export function useExplorerQuery(query: ExplorerQuery, sort: SortKey[], limit: number) {
+  const { agencyId } = useAuth();
+  const logic = queryToLogic(query);
+  return useQuery({
+    queryKey: ["fabric", "explorer", agencyId, logic, sort[0], limit],
+    enabled: !!agencyId,
+    queryFn: async (): Promise<FabricEvent[]> => {
+      const { data, error } = await explorerBase(agencyId!, logic, sort[0]).limit(limit);
+      if (error) throw error;
+      return (data ?? []) as FabricEvent[];
+    },
+  });
+}
+
+/** Fetches every matching event (paged 1,000 at a time, capped) for export. */
+export async function fetchAllExplorerEvents(
+  agencyId: string, query: ExplorerQuery, sort: SortKey[], cap = 50_000, onProgress?: (n: number) => void,
+): Promise<{ events: FabricEvent[]; truncated: boolean }> {
+  const logic = queryToLogic(query);
+  const out: FabricEvent[] = [];
+  for (let from = 0; from < cap; from += 1000) {
+    const { data, error } = await explorerBase(agencyId, logic, sort[0]).range(from, Math.min(from + 999, cap - 1));
+    if (error) throw error;
+    out.push(...((data ?? []) as FabricEvent[]));
+    onProgress?.(out.length);
+    if (!data || data.length < 1000) return { events: out, truncated: false };
+  }
+  return { events: out, truncated: true };
 }
