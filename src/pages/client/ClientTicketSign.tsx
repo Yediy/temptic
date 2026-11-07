@@ -124,6 +124,10 @@ export default function ClientTicketSign() {
     if (!signerName.trim()) { toast.error("Enter your name"); return; }
     if (!signerInitials.trim()) { toast.error("Enter your initials"); return; }
     if (!hasSignature) { toast.error("Please sign on the pad"); return; }
+    if (woicReview && woicReview.recommendation !== "sign" &&
+      !window.confirm(woicReview.recommendation === "reject"
+        ? "WOIC recommended rejecting this ticket. Sign it anyway?"
+        : "WOIC flagged this ticket for review. Sign it anyway?")) return;
 
     const signatureImage = canvasRef.current?.toDataURL("image/png") || "";
 
