@@ -27,7 +27,8 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { withSentry } from "../_shared/sentry.ts";
 import { jsonResponse, requireUser } from "../_shared/auth.ts";
-import { admin, isUuid, requireAgencyMember } from "../_shared/woic.ts";
+import { admin, isUuid } from "../_shared/woic.ts";
+import { callerModule, requireWoicAccess } from "../_shared/woic-access.ts";
 import { logCognitiveRequest } from "../_shared/woic-cognitive.ts";
 import { syncAgencyGraph, withGraphCache } from "../_shared/woic-graph.ts";
 
@@ -526,8 +527,11 @@ Deno.serve(withSentry("woic-graph", async (req) => {
     return jsonResponse({ error: "Unsupported graph operation.", code: "bad_request" }, 400, corsHeaders);
   }
 
-  const forbidden = await requireAgencyMember(userClient, agencyId, corsHeaders);
-  if (forbidden) return forbidden;
+  const guard = await requireWoicAccess({
+    admin: admin(), req, user, functionName: "woic-graph", operation, agencyId, params,
+    module: callerModule(req, body), corsHeaders,
+  });
+  if (guard instanceof Response) return guard;
 
   const started = Date.now();
   try {

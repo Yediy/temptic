@@ -4,7 +4,8 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { withSentry } from "../_shared/sentry.ts";
 import { jsonResponse, requireUser } from "../_shared/auth.ts";
-import { admin, isUuid, requireAgencyMember } from "../_shared/woic.ts";
+import { admin, isUuid } from "../_shared/woic.ts";
+import { callerModule, requireWoicAccess } from "../_shared/woic-access.ts";
 
 type Body = {
   agency_id?: string;
@@ -28,8 +29,11 @@ Deno.serve(withSentry("woic-recommend", async (req) => {
   if (kind !== "worker_for_job" && kind !== "job_for_worker") {
     return jsonResponse({ error: "invalid kind", code: "bad_request" }, 400, corsHeaders);
   }
-  const forbidden = await requireAgencyMember(auth.userClient, body.agency_id!, corsHeaders);
-  if (forbidden) return forbidden;
+  const guard = await requireWoicAccess({
+    admin: admin(), req, user: auth.user, functionName: "woic-recommend", operation: body.kind ?? "worker_for_job",
+    agencyId: body.agency_id, module: callerModule(req, body), corsHeaders,
+  });
+  if (guard instanceof Response) return guard;
 
   const limit = Math.min(Math.max(Number(body.limit ?? 10) | 0, 1), 50);
   const db = admin();

@@ -4,7 +4,8 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { withSentry } from "../_shared/sentry.ts";
 import { jsonResponse, requireUser } from "../_shared/auth.ts";
-import { admin, isUuid, lovableAiText, requireAgencyMember } from "../_shared/woic.ts";
+import { admin, isUuid, lovableAiText } from "../_shared/woic.ts";
+import { callerModule, requireWoicAccess } from "../_shared/woic-access.ts";
 
 type Body = { agency_id?: string; conversation_id?: string; max_messages?: number };
 
@@ -19,8 +20,11 @@ Deno.serve(withSentry("woic-conversation-summarize", async (req) => {
   if (!body || !isUuid(body.agency_id) || !isUuid(body.conversation_id)) {
     return jsonResponse({ error: "agency_id and conversation_id required (uuid)", code: "bad_request" }, 400, corsHeaders);
   }
-  const forbidden = await requireAgencyMember(auth.userClient, body.agency_id!, corsHeaders);
-  if (forbidden) return forbidden;
+  const guard = await requireWoicAccess({
+    admin: admin(), req, user: auth.user, functionName: "woic-conversation-summarize", operation: "summarize",
+    agencyId: body.agency_id, module: callerModule(req, body), corsHeaders,
+  });
+  if (guard instanceof Response) return guard;
 
   const maxMessages = Math.min(Math.max(Number(body.max_messages ?? 50) | 0, 1), 200);
 
