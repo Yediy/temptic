@@ -10,6 +10,7 @@ import { StatusBadge, type TicketStatus } from "@/components/StatusBadge";
 import { useSignTicket, useRejectTicket } from "@/hooks/use-ticket-actions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import WoicTicketReview, { type TicketReview } from "@/components/tickets/WoicTicketReview";
 
 export default function ClientTicketSign() {
   const { id } = useParams<{ id: string }>();
@@ -23,6 +24,7 @@ export default function ClientTicketSign() {
   const [signerEmail, setSignerEmail] = useState("");
   const [rejectMode, setRejectMode] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
+  const [woicReview, setWoicReview] = useState<TicketReview | null>(null);
 
   // Signature pad
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -122,6 +124,10 @@ export default function ClientTicketSign() {
     if (!signerName.trim()) { toast.error("Enter your name"); return; }
     if (!signerInitials.trim()) { toast.error("Enter your initials"); return; }
     if (!hasSignature) { toast.error("Please sign on the pad"); return; }
+    if (woicReview && woicReview.recommendation !== "sign" &&
+      !window.confirm(woicReview.recommendation === "reject"
+        ? "WOIC recommended rejecting this ticket. Sign it anyway?"
+        : "WOIC flagged this ticket for review. Sign it anyway?")) return;
 
     const signatureImage = canvasRef.current?.toDataURL("image/png") || "";
 
@@ -144,6 +150,8 @@ export default function ClientTicketSign() {
 
   const handleReject = async () => {
     if (!rejectReason.trim()) { toast.error("Please provide a reason"); return; }
+    if (woicReview?.recommendation === "sign" &&
+      !window.confirm("WOIC recommended signing this ticket. Reject it anyway?")) return;
     try {
       await rejectTicket.mutateAsync({ ticket_id: ticket.id, rejection_reason: rejectReason.trim() });
       toast.success("Ticket rejected");
@@ -222,6 +230,13 @@ export default function ClientTicketSign() {
           </div>
         </div>
       )}
+
+      <WoicTicketReview
+        ticketId={ticket.id}
+        canAct={!!canSign}
+        onReview={setWoicReview}
+        onUseReason={(r) => { setRejectReason(r); setRejectMode(true); }}
+      />
 
       {/* Sign or Reject */}
       {canSign && !rejectMode && (
