@@ -7792,6 +7792,42 @@ export type Database = {
         }
         Relationships: []
       }
+      ttos_action_ledger: {
+        Row: {
+          agency_id: string
+          automation_id: string | null
+          conflict_key: string | null
+          correlation_id: string
+          created_at: string
+          event_id: string | null
+          fingerprint: string
+          id: string
+          priority: number | null
+        }
+        Insert: {
+          agency_id: string
+          automation_id?: string | null
+          conflict_key?: string | null
+          correlation_id: string
+          created_at?: string
+          event_id?: string | null
+          fingerprint: string
+          id?: string
+          priority?: number | null
+        }
+        Update: {
+          agency_id?: string
+          automation_id?: string | null
+          conflict_key?: string | null
+          correlation_id?: string
+          created_at?: string
+          event_id?: string | null
+          fingerprint?: string
+          id?: string
+          priority?: number | null
+        }
+        Relationships: []
+      }
       ttos_ai_decisions: {
         Row: {
           agency_id: string
