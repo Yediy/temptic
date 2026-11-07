@@ -6242,6 +6242,86 @@ export type Database = {
           },
         ]
       }
+      ticket_ai_reviews: {
+        Row: {
+          agency_id: string
+          alternatives: Json
+          checks: Json
+          confidence: number
+          created_at: string
+          decided_at: string | null
+          decision_id: string | null
+          evidence: Json
+          final_decision: string | null
+          followed: boolean | null
+          id: string
+          model: string | null
+          reasoning_steps: Json
+          reasoning_trace_id: string | null
+          recommendation: string
+          requested_by: string | null
+          risks: Json
+          suggested_rejection_reason: string | null
+          summary: string
+          ticket_id: string
+          ticket_version: number
+        }
+        Insert: {
+          agency_id: string
+          alternatives?: Json
+          checks?: Json
+          confidence?: number
+          created_at?: string
+          decided_at?: string | null
+          decision_id?: string | null
+          evidence?: Json
+          final_decision?: string | null
+          followed?: boolean | null
+          id?: string
+          model?: string | null
+          reasoning_steps?: Json
+          reasoning_trace_id?: string | null
+          recommendation: string
+          requested_by?: string | null
+          risks?: Json
+          suggested_rejection_reason?: string | null
+          summary?: string
+          ticket_id: string
+          ticket_version?: number
+        }
+        Update: {
+          agency_id?: string
+          alternatives?: Json
+          checks?: Json
+          confidence?: number
+          created_at?: string
+          decided_at?: string | null
+          decision_id?: string | null
+          evidence?: Json
+          final_decision?: string | null
+          followed?: boolean | null
+          id?: string
+          model?: string | null
+          reasoning_steps?: Json
+          reasoning_trace_id?: string | null
+          recommendation?: string
+          requested_by?: string | null
+          risks?: Json
+          suggested_rejection_reason?: string | null
+          summary?: string
+          ticket_id?: string
+          ticket_version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_ai_reviews_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ticket_counters: {
         Row: {
           agency_id: string
