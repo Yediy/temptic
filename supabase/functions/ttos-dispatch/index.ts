@@ -63,6 +63,8 @@ Deno.serve(withSentry("ttos-dispatch", async (req) => {
 
 // ---- handlers ------------------------------------------------------------
 
+const SENSITIVE_ACTIONS = new Set(["launch_drug_test", "generate_payroll", "escalate_issue"]);
+
 async function runAutomations(admin: ReturnType<typeof createClient>, evt: TtosEvent) {
   const { data: autos } = await admin
     .from("ttos_automations")
@@ -80,7 +82,26 @@ async function runAutomations(admin: ReturnType<typeof createClient>, evt: TtosE
     try {
       for (const act of actions) {
         const type = String(act.type ?? "");
-        if (type === "notify") {
+        if (SENSITIVE_ACTIONS.has(type)) {
+          // Never executed by the engine — queued for a role-checked human decision.
+          const { data: appr, error: aErr } = await admin.from("automation_action_approvals").insert({
+            agency_id: evt.agency_id,
+            automation_id: (a as { id: string }).id,
+            event_id: evt.id,
+            action_type: type,
+            action_payload: act,
+            context: {
+              event_name: evt.name,
+              entity_type: evt.entity_type,
+              entity_id: evt.entity_id,
+              worker_id: (evt.metadata?.worker_id as string) ?? (evt.entity_type === "workers" ? evt.entity_id : null),
+              automation_name: (a as { name?: string }).name ?? null,
+            },
+            required_roles: [], // filled server-side
+          }).select("id").single();
+          if (aErr) throw aErr;
+          output.push({ type, ok: true, awaiting_approval: (appr as { id: string }).id });
+        } else if (type === "notify") {
           const { error: nErr } = await admin.from("ttos_notifications").insert({
             agency_id: evt.agency_id,
             recipient_id: (act.recipient_id as string) ?? evt.actor_id,
