@@ -39,6 +39,7 @@ export async function graph<T = unknown>(
 ): Promise<T> {
   const { data, error } = await supabase.functions.invoke("woic-graph", {
     body: { agency_id: agencyId, operation, params },
+    headers: { "x-woic-module": "graph" },
   });
   if (error) throw error;
   if (data && typeof data === "object" && "error" in data && (data as { error?: string }).error) {
