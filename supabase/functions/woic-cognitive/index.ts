@@ -208,13 +208,13 @@ async function dispatch(op: string, db: any, agencyId: string, userId: string, p
     case "snapshot": return await buildOrgSnapshot(db, agencyId);
     case "retrieve_knowledge": return await opRetrieveKnowledge(db, agencyId, p);
     case "store_knowledge": return await opStoreKnowledge(db, agencyId, userId, p);
-    case "reason": return await opReason(db, agencyId, userId, p);
+    case "reason": return await opReason(db, agencyId, userId, p, emit);
     case "predict": return await opPredict(db, agencyId, p);
     case "recommend": return await opRecommend(db, agencyId, p);
-    case "explain": return await opExplain(db, agencyId, p);
+    case "explain": return await opExplain(db, agencyId, p, emit);
     case "learn": return await opLearn(db, agencyId, userId, p);
     case "evaluate_compliance": return await opEvaluateCompliance(db, agencyId, p);
-    case "generate_report": return await opGenerateReport(db, agencyId, userId, p);
+    case "generate_report": return await opGenerateReport(db, agencyId, userId, p, emit);
     case "generate_communication": return await opGenerateCommunication(db, agencyId, userId, p);
     case "simulate": return await opSimulate(db, agencyId, userId, p);
     case "security_scan": return await opSecurityScan(db, agencyId);
@@ -298,7 +298,7 @@ const REASONING_DOMAINS = [
 ];
 
 // deno-lint-ignore no-explicit-any
-async function opReason(db: any, agencyId: string, userId: string, p: Params) {
+async function opReason(db: any, agencyId: string, userId: string, p: Params, emit?: Emit) {
   const question = str(p.question, 4000);
   if (!question) throw new GatewayError(400, "question is required.");
   const domain = REASONING_DOMAINS.includes(str(p.domain, 40)) ? str(p.domain, 40) : "cross_domain";
@@ -306,9 +306,10 @@ async function opReason(db: any, agencyId: string, userId: string, p: Params) {
   const key = cacheKey("reason", { question, domain });
   if (p.no_cache !== true) {
     const hit = await cacheGet(db, agencyId, key);
-    if (hit) return { ...(hit as Record<string, unknown>), cached: true };
+    if (hit) { emit?.status("cache_hit"); return { ...(hit as Record<string, unknown>), cached: true }; }
   }
 
+  emit?.status("gathering_context");
   const [snapshot, memories, prefs] = await Promise.all([
     buildOrgSnapshot(db, agencyId),
     retrieveMemory(db, agencyId, question, 8),
@@ -330,7 +331,9 @@ Produce 3-6 reasoning steps (kinds: observation, hypothesis, analysis, check, co
 Always include at least one alternative line of reasoning and an explicit risk assessment.`,
     JSON.stringify({ question, domain, snapshot, memories, preferences: prefs }),
     '{"steps":[{"kind":"","content":"","confidence":0}],"conclusion":"","confidence":0,"evidence":[{"source":"","detail":""}],"alternatives":[{"option":"","rationale":"","confidence":0}],"risk":{"level":"low|medium|high","factors":[""],"mitigation":""},"explanation":""}',
+    { onDelta: emit ? (t) => emit.delta(t) : undefined },
   );
+  emit?.status("saving");
 
   const { data: trace } = await db
     .from("woic_reasoning_traces")
@@ -368,7 +371,7 @@ Always include at least one alternative line of reasoning and an explicit risk a
 }
 
 // deno-lint-ignore no-explicit-any
-async function opExplain(db: any, agencyId: string, p: Params) {
+async function opExplain(db: any, agencyId: string, p: Params, emit?: Emit) {
   const kind = str(p.target_kind, 40);
   const id = p.target_id;
   if (!isUuid(id)) throw new GatewayError(400, "target_id must be a uuid.");
@@ -388,6 +391,7 @@ async function opExplain(db: any, agencyId: string, p: Params) {
   const explanation = await cognitiveText(
     "You are WOIC. Explain the supplied intelligence artifact to an operations leader: what it says, why it was produced, the evidence behind it, the level of confidence, and what to do next. Be concrete, 150-250 words, no markdown headings.",
     JSON.stringify(record),
+    { onDelta: emit ? (t) => emit.delta(t) : undefined },
   );
   return { target_kind: kind, target_id: id, explanation, record };
 }
@@ -636,9 +640,10 @@ async function opEvaluateCompliance(db: any, agencyId: string, p: Params) {
 const BRIEF_KINDS = ["morning", "weekly", "monthly", "quarterly", "annual", "board", "investor", "qa"];
 
 // deno-lint-ignore no-explicit-any
-async function opGenerateReport(db: any, agencyId: string, userId: string, p: Params) {
+async function opGenerateReport(db: any, agencyId: string, userId: string, p: Params, emit?: Emit) {
   const kind = BRIEF_KINDS.includes(str(p.kind, 20)) ? str(p.kind, 20) : "morning";
   const question = str(p.question, 2000);
+  emit?.status("gathering_context");
   const snapshot = await buildOrgSnapshot(db, agencyId);
   const memories = await retrieveMemory(db, agencyId, question || `${kind} executive brief`, 8);
 
@@ -647,6 +652,7 @@ async function opGenerateReport(db: any, agencyId: string, userId: string, p: Pa
     const answer = await cognitiveText(
       "You are WOIC executive intelligence. Answer the executive's question directly using only the supplied organizational data. State figures, then implications, then the recommended next action. If data is missing, say so plainly.",
       JSON.stringify({ question, snapshot, memories }),
+      { onDelta: emit ? (t) => emit.delta(t) : undefined },
     );
     return { kind, question, answer };
   }
@@ -661,7 +667,9 @@ async function opGenerateReport(db: any, agencyId: string, userId: string, p: Pa
 Use 4-7 sections (e.g. Operations, Workforce, Compliance, Financials, Risks, Opportunities, Recommended Actions). Ground every number in the snapshot. No filler.`,
     JSON.stringify({ kind, snapshot, memories, focus: p.focus ?? null }),
     '{"title":"","summary":"","sections":[{"heading":"","body":"","highlights":[""]}],"metrics":{}}',
+    { onDelta: emit ? (t) => emit.delta(t) : undefined },
   );
+  emit?.status("saving");
 
   const { data: brief } = await db.from("woic_executive_briefs").insert({
     agency_id: agencyId,
