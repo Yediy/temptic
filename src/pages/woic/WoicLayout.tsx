@@ -14,6 +14,7 @@ const tabs = [
   { to: "/woic/compliance", label: "Compliance" },
   { to: "/woic/context", label: "Context Monitor" },
   { to: "/woic/registry", label: "Service Registry" },
+  { to: "/woic/audit", label: "Audit Trail" },
 ];
 
 export default function WoicLayout() {
