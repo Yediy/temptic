@@ -32,6 +32,14 @@ export default {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
         },
+        cat: {
+          workforce: "hsl(var(--cat-workforce))",
+          operations: "hsl(var(--cat-operations))",
+          finance: "hsl(var(--cat-finance))",
+          compliance: "hsl(var(--cat-compliance))",
+          intelligence: "hsl(var(--cat-intelligence))",
+          system: "hsl(var(--cat-system))",
+        },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
