@@ -8,6 +8,7 @@ import { toast } from "@/hooks/use-toast";
 import { useAutomationRules, useSuggestAutomation, type AutomationRule } from "@/hooks/automation/use-automation";
 import { EMPTY_GRAPH, estimatePerformance, isGraph, simulatePath, validateGraph } from "@/lib/automation/graph";
 import RuleSimulationPanel from "@/components/automation/RuleSimulationPanel";
+import ConflictsPanel from "@/components/automation/ConflictsPanel";
 
 const SAMPLE = JSON.stringify(
   { payload: { status: "approved", agency_id: "demo", compliance_status: "clear" }, actor: { role: "agency_admin" }, ai: { confidence: 0.91, recommendation: "approve" } },
@@ -82,6 +83,8 @@ export default function WorkflowTesting() {
             {steps && <p className="pt-2 text-[11px] text-muted-foreground">Rollback preview: no side effects were committed — this run never reached the engine.</p>}
           </CardContent>
         </Card>
+
+        <ConflictsPanel rules={(rules.data ?? []) as never} focusId={ruleId || undefined} />
 
         {rule && <RuleSimulationPanel rule={rule} allRules={rules.data ?? []} sampleJson={sampleJson} setSampleJson={setSampleJson} />}
 

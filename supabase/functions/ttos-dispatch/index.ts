@@ -5,7 +5,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { withSentry } from "../_shared/sentry.ts";
 import { jsonResponse } from "../_shared/auth.ts";
-import { contextFromEvent, evaluateConditions } from "../_shared/automation-sim.ts";
+import { actionConflict, actionFingerprint, contextFromEvent, evaluateConditions, MAX_CHAIN_DEPTH } from "../_shared/automation-sim.ts";
 
 type TtosEvent = {
   id: string;
@@ -17,6 +17,7 @@ type TtosEvent = {
   entity_id: string | null;
   metadata: Record<string, unknown>;
   processed_at: string | null;
+  correlation_id?: string | null;
 };
 
 Deno.serve(withSentry("ttos-dispatch", async (req) => {
@@ -42,6 +43,13 @@ Deno.serve(withSentry("ttos-dispatch", async (req) => {
 
   let processed = 0;
   for (const evt of events) {
+    // Atomic claim so two concurrent dispatchers never process the same event.
+    const staleBefore = new Date(Date.now() - 10 * 60_000).toISOString();
+    const { data: claimed } = await admin.from("ttos_events").update({ status: "processing" })
+      .eq("id", evt.id).is("processed_at", null)
+      .or(`status.is.null,status.neq.processing,created_at.lt.${staleBefore}`)
+      .select("id");
+    if (!claimed?.length) continue;
     try {
       await runAutomations(admin, evt);
       await reindexEntity(admin, evt);
@@ -76,6 +84,38 @@ async function runAutomations(admin: ReturnType<typeof createClient>, evt: TtosE
     .order("priority");
 
   const simCtx = contextFromEvent(evt);
+  const correlationId = evt.correlation_id ?? evt.id;
+  const depth = Number(evt.metadata?.chain_depth ?? 0);
+  if (depth >= MAX_CHAIN_DEPTH) {
+    for (const a of autos ?? []) {
+      await admin.from("ttos_automation_runs").insert({
+        automation_id: (a as { id: string }).id, event_id: evt.id, agency_id: evt.agency_id, status: "failed",
+        error: `loop_guard: event chain reached depth ${depth}`, output: [{ suppressed: "loop_guard", correlation_id: correlationId }],
+      });
+    }
+    return;
+  }
+
+  // Reserve an action in the correlation ledger. Unique indexes make this race-safe:
+  // first (highest-priority) writer wins; duplicates and contradictions are suppressed.
+  async function reserve(act: Record<string, unknown>, automationId: string, priority: number):
+    Promise<{ ok: true } | { ok: false; reason: "duplicate" | "contradiction"; winner: string | null }> {
+    const fingerprint = actionFingerprint(act, simCtx);
+    const conflict = actionConflict(act, simCtx);
+    const { error } = await admin.from("ttos_action_ledger").insert({
+      agency_id: evt.agency_id, correlation_id: correlationId, fingerprint,
+      conflict_key: conflict?.key ?? null, automation_id: automationId, event_id: evt.id, priority,
+    });
+    if (!error) return { ok: true };
+    if ((error as { code?: string }).code !== "23505") throw error;
+    const { data: dup } = await admin.from("ttos_action_ledger").select("automation_id")
+      .eq("correlation_id", correlationId).eq("fingerprint", fingerprint).maybeSingle();
+    if (dup) return { ok: false, reason: "duplicate", winner: (dup as { automation_id: string | null }).automation_id };
+    const { data: other } = await admin.from("ttos_action_ledger").select("automation_id")
+      .eq("correlation_id", correlationId).eq("conflict_key", conflict?.key ?? "").maybeSingle();
+    return { ok: false, reason: "contradiction", winner: (other as { automation_id: string | null } | null)?.automation_id ?? null };
+  }
+
   for (const a of autos ?? []) {
     // Same condition logic as the Studio's simulation mode.
     const cond = evaluateConditions((a as { conditions?: unknown }).conditions, simCtx);
@@ -87,6 +127,13 @@ async function runAutomations(admin: ReturnType<typeof createClient>, evt: TtosE
     try {
       for (const act of actions) {
         const type = String(act.type ?? "");
+        if (["notify", "create_task", "emit_event"].includes(type) || SENSITIVE_ACTIONS.has(type)) {
+          const r = await reserve(act, (a as { id: string }).id, Number((a as { priority?: number }).priority ?? 100));
+          if (!r.ok) {
+            output.push({ type, ok: false, suppressed: r.reason, winner_automation_id: r.winner, correlation_id: correlationId });
+            continue;
+          }
+        }
         if (SENSITIVE_ACTIONS.has(type)) {
           // Never executed by the engine — queued for a role-checked human decision.
           const { data: appr, error: aErr } = await admin.from("automation_action_approvals").insert({
@@ -137,8 +184,8 @@ async function runAutomations(admin: ReturnType<typeof createClient>, evt: TtosE
             name: String(act.name ?? "automation.emitted"),
             entity_type: evt.entity_type,
             entity_id: evt.entity_id,
-            correlation_id: evt.id,
-            metadata: (act.metadata as Record<string, unknown>) ?? {},
+            correlation_id: correlationId,
+            metadata: { ...((act.metadata as Record<string, unknown>) ?? {}), chain_depth: depth + 1, caused_by_event: evt.id },
           });
           output.push({ type, ok: true });
         } else {

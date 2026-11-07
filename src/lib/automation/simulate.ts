@@ -135,3 +135,34 @@ export function contextFromEvent(evt: { name: string; module?: string; entity_ty
     actor: { id: evt.actor_id ?? null },
   };
 }
+
+// ---- Conflict primitives (shared with the engine) -------------------------
+
+const OPPOSITES: [string, string][] = [
+  ["approve", "reject"], ["approved", "rejected"], ["start", "stop"], ["started", "stopped"],
+  ["enable", "disable"], ["enabled", "disabled"], ["open", "close"], ["opened", "closed"],
+  ["activate", "deactivate"], ["activated", "deactivated"], ["accept", "decline"], ["accepted", "declined"],
+  ["pass", "fail"], ["passed", "failed"], ["hire", "reject"], ["hold", "release"],
+];
+const SIDE = new Map<string, string>();
+OPPOSITES.forEach(([a, b], i) => { SIDE.set(a, `${i}:a`); SIDE.set(b, `${i}:b`); });
+
+/** Identity of an action's effect within one event chain. Same fingerprint = duplicate. */
+export function actionFingerprint(action: Record<string, unknown>, ctx: SimContext): string {
+  const type = String(action.type ?? "");
+  const target = String(action.name ?? action.title ?? action.recipient_id ?? action.owner_id ?? "");
+  return [type, target.trim().toLowerCase(), ctx.event.entity_id ?? ""].join("|");
+}
+
+/** For emit_event names ending in an opposable verb, returns {key, side}. Same key + different side = contradiction. */
+export function actionConflict(action: Record<string, unknown>, ctx: SimContext): { key: string; side: string } | null {
+  if (String(action.type) !== "emit_event") return null;
+  const parts = String(action.name ?? "").toLowerCase().split(".");
+  const verb = parts[parts.length - 1];
+  const side = SIDE.get(verb);
+  if (!side) return null;
+  const pair = side.split(":")[0];
+  return { key: `${parts.slice(0, -1).join(".")}.#${pair}|${ctx.event.entity_id ?? ""}`, side };
+}
+
+export const MAX_CHAIN_DEPTH = 5;
