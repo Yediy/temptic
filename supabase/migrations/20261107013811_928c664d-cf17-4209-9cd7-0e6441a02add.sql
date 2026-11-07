@@ -1,0 +1,1 @@
+ALTER FUNCTION private.automation_action_roles(text) SET search_path = public;
