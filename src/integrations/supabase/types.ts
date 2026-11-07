@@ -644,6 +644,63 @@ export type Database = {
           },
         ]
       }
+      automation_action_approvals: {
+        Row: {
+          action_payload: Json
+          action_type: string
+          agency_id: string
+          automation_id: string | null
+          context: Json
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_reason: string | null
+          event_id: string | null
+          executed_at: string | null
+          expires_at: string
+          id: string
+          required_roles: string[]
+          result: Json | null
+          status: string
+        }
+        Insert: {
+          action_payload?: Json
+          action_type: string
+          agency_id: string
+          automation_id?: string | null
+          context?: Json
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_reason?: string | null
+          event_id?: string | null
+          executed_at?: string | null
+          expires_at?: string
+          id?: string
+          required_roles: string[]
+          result?: Json | null
+          status?: string
+        }
+        Update: {
+          action_payload?: Json
+          action_type?: string
+          agency_id?: string
+          automation_id?: string | null
+          context?: Json
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_reason?: string | null
+          event_id?: string | null
+          executed_at?: string | null
+          expires_at?: string
+          id?: string
+          required_roles?: string[]
+          result?: Json | null
+          status?: string
+        }
+        Relationships: []
+      }
       automation_agent_runs: {
         Row: {
           agency_id: string
@@ -745,6 +802,48 @@ export type Database = {
           system_prompt?: string
           tools?: Json
           updated_at?: string
+        }
+        Relationships: []
+      }
+      automation_approval_audit: {
+        Row: {
+          action_type: string
+          actor_roles: string[]
+          actor_user_id: string | null
+          agency_id: string
+          approval_id: string
+          created_at: string
+          event: string
+          id: string
+          ip_address: string | null
+          reason: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action_type: string
+          actor_roles?: string[]
+          actor_user_id?: string | null
+          agency_id: string
+          approval_id: string
+          created_at?: string
+          event: string
+          id?: string
+          ip_address?: string | null
+          reason?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action_type?: string
+          actor_roles?: string[]
+          actor_user_id?: string | null
+          agency_id?: string
+          approval_id?: string
+          created_at?: string
+          event?: string
+          id?: string
+          ip_address?: string | null
+          reason?: string | null
+          user_agent?: string | null
         }
         Relationships: []
       }
@@ -11014,6 +11113,10 @@ export type Database = {
       check_rate_limit: {
         Args: { _key: string; _max_requests: number; _window_seconds: number }
         Returns: boolean
+      }
+      decide_automation_action: {
+        Args: { _approval_id: string; _approve: boolean; _reason?: string }
+        Returns: Json
       }
       get_screening_document: {
         Args: { _record_id: string; _record_type: string }
