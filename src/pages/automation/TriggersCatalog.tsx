@@ -43,7 +43,9 @@ export default function TriggersCatalog() {
         })}
       </div>
       <p className="text-xs text-muted-foreground">
-        Triggers are published by the Universal Event Fabric; the Automation Intelligence Engine matches them to workflows server-side.
+        Workers, Candidates, Clients, Assignments, Scheduling, Payroll and Documents publish these automatically whenever a record is
+        added, changes status, or is removed. A status change always fires <code>&lt;type&gt;.&lt;new status&gt;</code> (e.g.{" "}
+        <code>payroll.approved</code>), so any status your team uses can be a trigger.
       </p>
     </div>
   );
