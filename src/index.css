@@ -28,6 +28,12 @@
     --accent-foreground: 215 25% 12%;
 
     --destructive: 0 72% 51%;
+    --cat-workforce: 215 60% 45%;
+    --cat-operations: 190 60% 38%;
+    --cat-finance: 150 45% 36%;
+    --cat-compliance: 0 72% 51%;
+    --cat-intelligence: 265 45% 52%;
+    --cat-system: 215 15% 55%;
     --destructive-foreground: 210 40% 98%;
 
     --success: 142 60% 40%;
@@ -78,6 +84,12 @@
     --accent: 35 95% 55%;
     --accent-foreground: 215 25% 12%;
     --destructive: 0 72% 51%;
+    --cat-workforce: 215 70% 62%;
+    --cat-operations: 190 60% 52%;
+    --cat-finance: 150 45% 50%;
+    --cat-compliance: 0 72% 60%;
+    --cat-intelligence: 265 60% 70%;
+    --cat-system: 215 15% 62%;
     --destructive-foreground: 210 40% 98%;
     --border: 215 25% 18%;
     --input: 215 25% 18%;
