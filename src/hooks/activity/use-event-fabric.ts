@@ -399,32 +399,41 @@ export function useEntityActivity(entityType: string | null, entityId: string | 
 }
 
 /** Replay: re-dispatch existing events through the TTOS dispatcher. Dry-run is client-side only. */
-export function useEventReplay() {
-  const [running, setRunning] = useState(false);
-  const [log, setLog] = useState<Array<{ id: string; ok: boolean; message: string; at: string }>>([]);
+export type ReplayMode = "single" | "range" | "workflow";
+export interface ReplayRequest {
+  mode: ReplayMode;
+  event_id?: string;
+  correlation_id?: string;
+  range?: { from: string; to: string; names?: string[]; modules?: string[]; statuses?: string[] };
+}
 
-  const replay = useCallback(async (ids: string[], opts: { dryRun: boolean }) => {
-    setRunning(true);
-    const results: Array<{ id: string; ok: boolean; message: string; at: string }> = [];
-    for (const id of ids) {
-      if (opts.dryRun) {
-        results.push({ id, ok: true, message: "Dry run — dispatcher not invoked", at: new Date().toISOString() });
-        continue;
-      }
-      const { error } = await supabase.functions.invoke("ttos-dispatch", { body: { event_id: id, replay: true } });
-      results.push({
-        id,
-        ok: !error,
-        message: error ? error.message : "Re-dispatched to subscribers",
-        at: new Date().toISOString(),
-      });
-    }
-    setLog((prev) => [...results, ...prev].slice(0, 200));
-    setRunning(false);
-    return results;
-  }, []);
+/** Calls the admin-only event-replay service (preview first, then confirmed execution). */
+export async function callEventReplay(agencyId: string, req: ReplayRequest & { dry_run: boolean; plan_hash?: string; confirm?: boolean }) {
+  const { data, error } = await supabase.functions.invoke("event-replay", { body: { agency_id: agencyId, ...req } });
+  if (error) {
+    // supabase-js wraps non-2xx; surface the server's message + code.
+    const ctx = (error as { context?: Response }).context;
+    let payload: { error?: string; code?: string; data?: unknown } = {};
+    try { payload = ctx ? await ctx.json() : {}; } catch { /* not json */ }
+    const err = new Error(payload.error ?? error.message) as Error & { code?: string; data?: unknown };
+    err.code = payload.code; err.data = payload.data;
+    throw err;
+  }
+  return (data as { data: Record<string, unknown> }).data;
+}
 
-  return { replay, running, log };
+export function useReplayRuns() {
+  const { agencyId } = useAuth();
+  return useQuery({
+    queryKey: ["fabric", "replay-runs", agencyId],
+    enabled: !!agencyId,
+    queryFn: async () => {
+      const { data, error } = await sb.from("event_replay_runs").select("*").eq("agency_id", agencyId)
+        .order("created_at", { ascending: false }).limit(50);
+      if (error) throw error;
+      return (data ?? []) as Array<Record<string, unknown>>;
+    },
+  });
 }
 
 /** Local persisted preferences (saved views, pinned events, layout). */
