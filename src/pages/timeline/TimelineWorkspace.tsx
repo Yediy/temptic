@@ -22,7 +22,8 @@ import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { EventRow } from "@/components/activity/EventRow";
 import { EventInspector } from "@/components/activity/EventInspector";
-import { useActivitySubjects, useEventReplay } from "@/hooks/activity/use-event-fabric";
+import { useActivitySubjects } from "@/hooks/activity/use-event-fabric";
+import { useNavigate } from "react-router-dom";
 import {
   EMPTY_FILTERS,
   exportTimelineCsv,
@@ -71,7 +72,7 @@ export default function TimelineWorkspace({ scopeKey }: { scopeKey: TimelineScop
   const { recent, push } = useRecentSearches();
   const { data: subjects } = useActivitySubjects();
   const ai = useTimelineAi();
-  const { replay, running } = useEventReplay();
+  const navigate = useNavigate();
 
   const pinnedEvents = useMemo(() => events.filter((e) => pinned.includes(e.id)), [events, pinned]);
 
@@ -104,11 +105,8 @@ export default function TimelineWorkspace({ scopeKey }: { scopeKey: TimelineScop
     toast({ title: "View saved", description: name });
   };
 
-  const replaySequence = async () => {
-    const ids = (pinnedEvents.length ? pinnedEvents : events.slice(0, 25)).map((e) => e.id);
-    const res = await replay(ids, { dryRun: true });
-    toast({ title: "Replay simulated", description: `${res.length} events walked through the engine (dry run).` });
-  };
+  // Replays go through the admin-only Event Replay page (preview, confirmation, audit).
+  const replaySequence = () => navigate("/activity/replay");
 
   return (
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
@@ -134,7 +132,7 @@ export default function TimelineWorkspace({ scopeKey }: { scopeKey: TimelineScop
                 >
                   <Download className="mr-1.5 h-3.5 w-3.5" /> Export
                 </Button>
-                <Button size="sm" variant="outline" disabled={running} onClick={replaySequence}>
+                <Button size="sm" variant="outline" onClick={replaySequence}>
                   <Repeat className="mr-1.5 h-3.5 w-3.5" /> Replay
                 </Button>
                 <Button size="sm" variant="outline" disabled={isFetching} onClick={() => refetch()}>
