@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   ListControls, MetadataBlock, Pager, Panel, RecordTable, usePagedRows,
@@ -6,32 +6,29 @@ import {
 import {
   CapabilityState, FreshnessBadge, PrivacyNotice, RestrictedNotice, ScoreMeter, SeverityBadge,
 } from "@/components/perception/PerceptionBits";
-import {
-  usePerceptionCapability, usePerceptionList, usePerceptionSettings, usePinnedObservations, useRowFilter,
-} from "@/hooks/perception/use-perception";
-import { FRESHNESS_STATES, asArray, formatTime, str } from "@/lib/perception/platform";
+import { usePerceptionSettings } from "@/hooks/perception/use-perception";
+import { useObservationPins, useObservationSources, useObservationStream } from "@/hooks/perception/use-observation-stream";
+import { toObservation, type Freshness } from "@/lib/perception/observation-stream";
+import { asArray, formatTime, str } from "@/lib/perception/platform";
+
+const FRESHNESS: Freshness[] = ["CURRENT", "AGING", "STALE", "EXPIRED"];
 
 export default function LiveObservations() {
-  const [settings, setSettings] = usePerceptionSettings();
+  const [settings] = usePerceptionSettings();
   const [query, setQuery] = useState("");
-  const [freshness, setFreshness] = useState("");
+  const [freshness, setFreshness] = useState<Freshness | "">("");
+  const [source, setSource] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
-  const { pins, toggle } = usePinnedObservations();
+  const stream = useObservationStream({ search: query, freshness, source });
+  const { data: sources = [] } = useObservationSources();
+  const { ids: pins, events: pinnedEvents, toggle } = useObservationPins();
+  const paused = stream.paused;
 
-  const paused = settings.streamPaused;
-  const list = usePerceptionList(
-    "observations.list",
-    freshness ? { freshness } : {},
-    { refetchInterval: paused ? false : settings.refreshMs },
-  );
-  const filtered = useRowFilter(list.rows, query);
+  const filtered = useMemo(() => stream.events.map((e) => toObservation(e)), [stream.events]);
   const { paged, page, setPage } = usePagedRows(filtered, settings.pageSize);
-
-  const detail = usePerceptionCapability<Record<string, unknown>>(
-    "observations.get", { observation_id: openId }, { enabled: !!openId },
-  );
-  const record = detail.data ?? {};
-  const pinnedRows = filtered.filter((r) => pins.includes(str(r.id)));
+  const pinnedRows = useMemo(() => pinnedEvents.map((e) => toObservation(e)), [pinnedEvents]);
+  const record = [...filtered, ...pinnedRows].find((r) => r.id === openId) ?? {};
+  const status = stream.loading && !filtered.length ? "loading" : stream.error ? "error" : "ok";
 
   const columns = [
     { key: "occurred_at", label: "Time", render: (r: Record<string, unknown>) => formatTime(r.occurred_at ?? r.time ?? r.created_at) },
@@ -66,34 +63,39 @@ export default function LiveObservations() {
     <div className="space-y-4">
       <Panel
         title="Live Observations"
-        description="Everything WOIC observed, with provenance. Ordering and scoring come from 6.1A."
+        description="Live observations from the Event Fabric. Search and filters run on the server; pins are saved to your account."
         actions={
           <div className="flex items-center gap-2">
             <span className="text-[11px] text-muted-foreground">
-              {paused ? "stream paused" : list.isFetching ? "refreshing…" : "streaming"}
+              {paused ? `paused · ${stream.pending} new held` : stream.connected ? "streaming live" : "polling"}
             </span>
             <Button
               type="button"
               size="sm"
               variant="outline"
-              onClick={() => setSettings({ ...settings, streamPaused: !paused })}
+              onClick={() => stream.setPaused(!paused)}
             >
               {paused ? "Resume" : "Pause"}
             </Button>
-            <Button type="button" size="sm" variant="ghost" onClick={list.refetch}>Refresh</Button>
+            <Button type="button" size="sm" variant="ghost" onClick={() => void stream.refresh()}>Refresh</Button>
           </div>
         }
       >
-        <CapabilityState status={list.status} message={list.message} label="the observation stream">
+        <CapabilityState status={status} message={stream.error} label="the observation stream">
           <ListControls query={query} onQuery={setQuery} count={filtered.length} placeholder="Search observations…">
             <select
               value={freshness}
-              onChange={(e) => setFreshness(e.target.value)}
+              onChange={(e) => setFreshness(e.target.value as Freshness | "")}
               aria-label="Filter by freshness"
               className="h-8 rounded-md border bg-background px-2 text-sm"
             >
               <option value="">All freshness</option>
-              {FRESHNESS_STATES.map((f) => <option key={f} value={f}>{f}</option>)}
+              {FRESHNESS.map((f) => <option key={f} value={f}>{f}</option>)}
+            </select>
+            <select value={source} onChange={(e) => setSource(e.target.value)} aria-label="Filter by source"
+              className="h-8 rounded-md border bg-background px-2 text-sm">
+              <option value="">All sources</option>
+              {sources.map((m) => <option key={m} value={m}>{m}</option>)}
             </select>
           </ListControls>
           <RecordTable rows={paged} columns={columns} />
@@ -113,9 +115,7 @@ export default function LiveObservations() {
           description="Provenance and operational metadata for the selected observation."
           actions={<Button type="button" size="sm" variant="ghost" onClick={() => setOpenId(null)}>Close</Button>}
         >
-          <CapabilityState status={detail.status} message={detail.message} label="this observation">
-            <MetadataBlock value={record} />
-          </CapabilityState>
+          <MetadataBlock value={record} />
         </Panel>
       )}
 
