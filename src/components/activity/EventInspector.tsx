@@ -17,6 +17,21 @@ import {
   type FabricEvent,
 } from "@/lib/activity/events";
 import { useRelatedEvents, useSubscribers } from "@/hooks/activity/use-event-fabric";
+import { useAuth } from "@/lib/auth";
+import { buildEventGraph, canSee, redact, splitMetadata, type InspectorSection } from "@/lib/activity/inspector-access";
+import { EventRelationshipGraph } from "@/components/activity/EventRelationshipGraph";
+import { Lock } from "lucide-react";
+
+function Restricted({ title }: { title: string }) {
+  return (
+    <section className="space-y-1">
+      <h3 className="text-sm font-semibold">{title}</h3>
+      <p className="flex items-center gap-1.5 rounded-md border border-dashed px-3 py-2 text-xs text-muted-foreground">
+        <Lock className="h-3 w-3" /> Your role does not permit viewing this section.
+      </p>
+    </section>
+  );
+}
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -51,6 +66,10 @@ export function EventInspector({ event, open, onOpenChange, onReplay, onSelectRe
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const meta = (event?.metadata ?? {}) as Record<string, any>;
   const woic = meta.woic ?? meta.interpretation ?? null;
+  const { roles = [] } = useAuth();
+  const can = (k: InspectorSection) => canSee(roles as string[], k);
+  const { payload, processing } = splitMetadata(meta);
+  const graph = event ? buildEventGraph(event, related, matching, can("affected")) : null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -110,28 +129,48 @@ export function EventInspector({ event, open, onOpenChange, onReplay, onSelectRe
                 </div>
               </section>
 
-              <section className="space-y-2">
-                <h3 className="text-sm font-semibold">Affected objects</h3>
-                <pre className="max-h-40 overflow-auto rounded-md bg-muted p-3 font-mono text-[11px]">
-                  {JSON.stringify(event.related_objects ?? [], null, 2)}
-                </pre>
-              </section>
+              {graph && (can("graph") ? (
+                <section className="space-y-2">
+                  <h3 className="text-sm font-semibold">Relationship graph</h3>
+                  <EventRelationshipGraph nodes={graph.nodes} edges={graph.edges} onSelect={onSelectRelated} />
+                </section>
+              ) : <Restricted title="Relationship graph" />)}
 
-              <section className="space-y-2">
-                <h3 className="text-sm font-semibold">Payload / metadata</h3>
-                <pre className="max-h-72 overflow-auto rounded-md bg-muted p-3 font-mono text-[11px]">
-                  {JSON.stringify(event.metadata ?? {}, null, 2)}
-                </pre>
-              </section>
+              {can("affected") ? (
+                <section className="space-y-2">
+                  <h3 className="text-sm font-semibold">Affected objects</h3>
+                  <pre className="max-h-40 overflow-auto rounded-md bg-muted p-3 font-mono text-[11px]">
+                    {JSON.stringify(redact(event.related_objects ?? [], roles as string[]), null, 2)}
+                  </pre>
+                </section>
+              ) : <Restricted title="Affected objects" />}
 
-              {woic && (
+              {can("payload") ? (
+                <section className="space-y-2">
+                  <h3 className="text-sm font-semibold">Payload</h3>
+                  <pre className="max-h-72 overflow-auto rounded-md bg-muted p-3 font-mono text-[11px]">
+                    {JSON.stringify(redact(payload, roles as string[]), null, 2)}
+                  </pre>
+                </section>
+              ) : <Restricted title="Payload" />}
+
+              {can("metadata") ? (
+                <section className="space-y-2">
+                  <h3 className="text-sm font-semibold">Processing metadata</h3>
+                  <pre className="max-h-52 overflow-auto rounded-md bg-muted p-3 font-mono text-[11px]">
+                    {JSON.stringify(redact({ ...processing, woic: undefined, interpretation: undefined }, roles as string[]), null, 2)}
+                  </pre>
+                </section>
+              ) : <Restricted title="Processing metadata" />}
+
+              {woic && (can("woic") ? (
                 <section className="space-y-2">
                   <h3 className="text-sm font-semibold">WOIC interpretation</h3>
                   <pre className="max-h-52 overflow-auto rounded-md border border-primary/30 bg-primary/5 p-3 font-mono text-[11px]">
-                    {typeof woic === "string" ? woic : JSON.stringify(woic, null, 2)}
+                    {typeof woic === "string" ? woic : JSON.stringify(redact(woic, roles as string[]), null, 2)}
                   </pre>
                 </section>
-              )}
+              ) : <Restricted title="WOIC interpretation" />)}
 
               <section className="space-y-2">
                 <h3 className="text-sm font-semibold">Related events ({related.length})</h3>
