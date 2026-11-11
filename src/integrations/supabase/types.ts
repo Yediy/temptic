@@ -4980,6 +4980,30 @@ export type Database = {
           },
         ]
       }
+      perception_observation_pins: {
+        Row: {
+          agency_id: string
+          created_at: string
+          id: string
+          observation_id: string
+          user_id: string
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          id?: string
+          observation_id: string
+          user_id?: string
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          id?: string
+          observation_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       placements: {
         Row: {
           agency_id: string
