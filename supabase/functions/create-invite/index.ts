@@ -93,6 +93,13 @@ serve(withSentry("create-invite", async (req) => {
       return jsonResponse({ error: "Invalid email format" }, 400);
     }
 
+    // Client and signer must belong to the caller's agency, and the signer to that client.
+    const { data: clientRow } = await supabase.from("clients").select("id, agency_id").eq("id", client_id).maybeSingle();
+    const { data: signerRow } = await supabase.from("client_signers").select("id, client_id").eq("id", client_signer_id).maybeSingle();
+    if (!clientRow || clientRow.agency_id !== agencyId || !signerRow || signerRow.client_id !== client_id) {
+      return jsonResponse({ error: "You do not have permission to perform this action.", code: "forbidden" }, 403);
+    }
+
     // If resending, revoke the old invite first
     if (old_invite_id) {
       await supabase
