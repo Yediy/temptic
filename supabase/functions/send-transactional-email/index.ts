@@ -40,9 +40,7 @@ async function sha256Hex(input: string): Promise<string> {
     .join('')
 }
 
-// Auth note: this function uses verify_jwt = true in config.toml, so Supabase's
-// gateway validates the caller's JWT (anon or service_role) before the request
-// reaches this code. No in-function auth check is needed.
+// Auth note: service-role callers only (enforced below).
 
 Deno.serve(withSentry("send-transactional-email", async (req) => {
   // Handle CORS preflight
@@ -75,26 +73,14 @@ Deno.serve(withSentry("send-transactional-email", async (req) => {
       { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     )
   }
-  // Service role bypasses JWT decoding
+  // Internal-only: only server-side callers holding the service role (e.g. create-invite)
+  // may send. Signed-in browser users can never choose recipients or rotate unsubscribe tokens.
   if (token !== supabaseServiceKey) {
-    try {
-      const [, payloadB64] = token.split('.')
-      const padded = payloadB64 + '='.repeat((4 - payloadB64.length % 4) % 4)
-      const claims = JSON.parse(atob(padded.replace(/-/g, '+').replace(/_/g, '/')))
-      if (!claims?.sub || claims?.role === 'anon') {
-        return new Response(
-          JSON.stringify({ error: 'Authentication required.', code: 'unauthenticated' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-        )
-      }
-    } catch {
-      return new Response(
-        JSON.stringify({ error: 'Invalid token.', code: 'invalid_token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      )
-    }
+    return new Response(
+      JSON.stringify({ error: 'Forbidden.', code: 'forbidden' }),
+      { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+    )
   }
-
 
   // Parse request body
   let templateName: string
