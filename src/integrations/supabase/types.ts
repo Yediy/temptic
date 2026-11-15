@@ -4022,6 +4022,53 @@ export type Database = {
           },
         ]
       }
+      passport_share_notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          kind: string
+          link_id: string
+          metadata: Json
+          passport_id: string
+          read_at: string | null
+          recipient_id: string
+          title: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          kind: string
+          link_id: string
+          metadata?: Json
+          passport_id: string
+          read_at?: string | null
+          recipient_id: string
+          title: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          link_id?: string
+          metadata?: Json
+          passport_id?: string
+          read_at?: string | null
+          recipient_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "passport_share_notifications_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "passport_sharing"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       passport_sharing: {
         Row: {
           created_at: string
