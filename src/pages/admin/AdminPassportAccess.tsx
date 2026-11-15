@@ -59,7 +59,7 @@ export default function AdminPassportAccess() {
     <div className="space-y-4 p-6">
       <div>
         <h1 className="flex items-center gap-2 text-xl font-semibold"><KeyRound className="h-5 w-5" /> Passport Access Log</h1>
-        <p className="text-sm text-muted-foreground">Every share-link creation, open, denial and revocation. Platform admins see all passports; owners see only their own.</p>
+        <p className="text-sm text-muted-foreground">Every share-link creation, open, denial and revocation. Visible to platform admins only.</p>
       </div>
 
       <Card>
