@@ -233,15 +233,9 @@ serve(withSentry("send-ticket", async (req) => {
 
     if (ticketErr || !ticket) throw new Error("Ticket not found");
 
-    // The signer must be an active signer of this ticket's client (same agency) — never an arbitrary address.
-    if (ticket.client_signer_id) {
-      const { data: signer } = await supabase.from("client_signers")
-        .select("id, client_id, is_active").eq("id", ticket.client_signer_id).maybeSingle();
-      const { data: client } = await supabase.from("clients").select("agency_id").eq("id", ticket.client_id).maybeSingle();
-      if (!signer || signer.client_id !== ticket.client_id || signer.is_active === false || client?.agency_id !== ticket.agency_id) {
-        throw new Error("Ticket signer is not an active contact for this client");
-      }
-    }
+    // The ticket's client must belong to this agency, so emails only go to that client's own signers.
+    const { data: client } = await supabase.from("clients").select("agency_id").eq("id", ticket.client_id).maybeSingle();
+    if (!client || client.agency_id !== ticket.agency_id) throw new Error("Ticket client is not part of this agency");
 
     if (!["draft", "corrected"].includes(ticket.status)) {
       throw new Error(`Ticket cannot be sent from "${ticket.status}" status. Only draft or corrected tickets can be sent.`);

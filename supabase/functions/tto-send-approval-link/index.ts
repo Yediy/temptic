@@ -53,12 +53,16 @@ Deno.serve(withSentry("tto-send-approval-link", async (req) => {
   if (!ticket) return jsonResponse({ error: "Ticket not found", code: "not_found" }, 404, corsHeaders);
 
   const { data: member } = await admin.from("agency_members").select("id").eq("agency_id", ticket.agency_id)
-    .eq("user_id", auth.user.id).eq("is_active", true).maybeSingle();
-  if (!member) return jsonResponse({ error: "Not a member of this agency", code: "forbidden" }, 403, corsHeaders);
+    .eq("user_id", auth.user.id).eq("is_active", true)
+    .in("role", ["agency_owner", "agency_admin", "dispatcher", "scheduler", "account_manager"]).limit(1).maybeSingle();
+  if (!member) return jsonResponse({ error: "Not allowed to send approvals for this agency", code: "forbidden" }, 403, corsHeaders);
   if (ticket.status !== "submitted") return jsonResponse({ error: "Only submitted tickets can be sent for approval", code: "bad_request" }, 400, corsHeaders);
   if (!ticket.client_id) return jsonResponse({ error: "Ticket has no client", code: "bad_request" }, 400, corsHeaders);
 
-  let q = admin.from("client_signers").select("id,first_name,email,phone,site_id").eq("client_id", ticket.client_id).eq("is_active", true);
+  const { data: tClient } = await admin.from("clients").select("agency_id").eq("id", ticket.client_id).maybeSingle();
+  if (!tClient || tClient.agency_id !== ticket.agency_id) return jsonResponse({ error: "Ticket client is not part of this agency", code: "forbidden" }, 403, corsHeaders);
+
+  let q = admin.from("client_signers").select("id,first_name,email,phone,site_id,user_id").eq("client_id", ticket.client_id).eq("is_active", true);
   if (ticket.site_id) q = q.or(`site_id.eq.${ticket.site_id},site_id.is.null`);
   const { data: signers } = await q;
   if (!signers?.length) return jsonResponse({ error: "No active client supervisors for this ticket", code: "bad_request" }, 400, corsHeaders);
@@ -75,6 +79,8 @@ Deno.serve(withSentry("tto-send-approval-link", async (req) => {
   const results: Array<{ channel: string; recipient: string; ok: boolean; detail: string }> = [];
   for (const s of signers) {
     for (const ch of channels) {
+      // SMS only goes to supervisors who have activated their own account (verified contact).
+      if (ch === "sms" && !s.user_id) continue;
       const recipient = ch === "email" ? s.email : s.phone;
       if (!recipient) continue;
       const t = token();
