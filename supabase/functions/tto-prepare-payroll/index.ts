@@ -3,6 +3,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { withSentry } from "../_shared/sentry.ts";
 import { requireUser, jsonResponse } from "../_shared/auth.ts";
+import { hasAgencyRole, TTO_PAYROLL } from "../_shared/tto_access.ts";
 
 Deno.serve(withSentry("tto-prepare-payroll", async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -19,6 +20,8 @@ Deno.serve(withSentry("tto-prepare-payroll", async (req) => {
     return jsonResponse({ error: "agency_id, period_start, period_end required", code: "bad_request" }, 400, corsHeaders);
 
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  if (!(await hasAgencyRole(admin, auth.user.id, agency_id, TTO_PAYROLL))) return jsonResponse({ error: "Forbidden", code: "forbidden" }, 403, corsHeaders);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(period_start) || !/^\d{4}-\d{2}-\d{2}$/.test(period_end)) return jsonResponse({ error: "Invalid period", code: "bad_request" }, 400, corsHeaders);
   const { data: tickets } = await admin.from("tto_time_tickets")
     .select("*").eq("agency_id", agency_id).eq("status", "approved")
     .gte("work_date", period_start).lte("work_date", period_end);
@@ -43,7 +46,7 @@ Deno.serve(withSentry("tto-prepare-payroll", async (req) => {
     totalReg += Number(t.regular_hours ?? 0);
     totalOt += Number(t.overtime_hours ?? 0);
     totalDt += Number(t.double_time_hours ?? 0);
-    await admin.from("tto_time_tickets").update({ status: "payroll_ready" }).eq("id", t.id);
+    await admin.from("tto_time_tickets").update({ status: "payroll_ready" }).eq("id", t.id).eq("agency_id", agency_id);
   }
 
   const { data: batch } = await admin.from("tto_payroll_batches").insert({

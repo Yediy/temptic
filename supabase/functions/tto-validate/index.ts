@@ -3,6 +3,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { withSentry } from "../_shared/sentry.ts";
 import { requireUser, jsonResponse } from "../_shared/auth.ts";
+import { agenciesWithRole, TTO_STAFF } from "../_shared/tto_access.ts";
 
 Deno.serve(withSentry("tto-validate", async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -14,7 +15,10 @@ Deno.serve(withSentry("tto-validate", async (req) => {
   const time_ticket_id = body.time_ticket_id ? String(body.time_ticket_id) : null;
 
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const scope = await agenciesWithRole(admin, auth.user.id, TTO_STAFF);
+  if (scope && scope.length === 0) return jsonResponse({ error: "Forbidden", code: "forbidden" }, 403, corsHeaders);
   const q = admin.from("tto_time_tickets").select("*").in("status", ["submitted", "in_progress"]);
+  if (scope) q.in("agency_id", scope);
   if (time_ticket_id) q.eq("id", time_ticket_id);
   const { data: tickets } = await q.limit(200);
 

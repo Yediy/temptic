@@ -3,6 +3,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { withSentry } from "../_shared/sentry.ts";
 import { requireUser, jsonResponse } from "../_shared/auth.ts";
+import { isAnyAgencyMember } from "../_shared/tto_access.ts";
 
 Deno.serve(withSentry("tto-live-labor", async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -14,6 +15,7 @@ Deno.serve(withSentry("tto-live-labor", async (req) => {
   if (!agency_id) return jsonResponse({ error: "agency_id required", code: "bad_request" }, 400, corsHeaders);
 
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  if (!(await isAnyAgencyMember(admin, auth.user.id, agency_id))) return jsonResponse({ error: "Forbidden", code: "forbidden" }, 403, corsHeaders);
   const today = new Date().toISOString().slice(0, 10);
   const { data: today_tickets } = await admin.from("tto_time_tickets")
     .select("id,worker_id,status,regular_hours,overtime_hours,double_time_hours,actual_start,actual_end,scheduled_start")

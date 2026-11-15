@@ -3,6 +3,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { withSentry } from "../_shared/sentry.ts";
 import { requireUser, jsonResponse } from "../_shared/auth.ts";
+import { hasAgencyRole, isAssignedWorker, TTO_STAFF } from "../_shared/tto_access.ts";
 
 Deno.serve(withSentry("tto-clock", async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -23,6 +24,10 @@ Deno.serve(withSentry("tto-clock", async (req) => {
   const { data: ticket, error: tErr } = await admin
     .from("tto_time_tickets").select("*").eq("id", time_ticket_id).maybeSingle();
   if (tErr || !ticket) return jsonResponse({ error: "Ticket not found", code: "not_found" }, 404, corsHeaders);
+  const callerIsWorker = await isAssignedWorker(admin, auth.user.id, ticket.worker_id);
+  if (!callerIsWorker && !(await hasAgencyRole(admin, auth.user.id, ticket.agency_id, TTO_STAFF))) {
+    return jsonResponse({ error: "This shift isn't assigned to you", code: "forbidden" }, 403, corsHeaders);
+  }
 
   const offline = body.offline_capture === true;
   const clientEventId = typeof body.client_event_id === "string" ? body.client_event_id : null;
