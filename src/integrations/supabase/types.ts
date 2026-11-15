@@ -5740,6 +5740,7 @@ export type Database = {
           agency_id: string | null
           context: string | null
           created_at: string
+          document_version: number | null
           id: string
           ip_address: string | null
           order_id: string | null
@@ -5755,6 +5756,7 @@ export type Database = {
           agency_id?: string | null
           context?: string | null
           created_at?: string
+          document_version?: number | null
           id?: string
           ip_address?: string | null
           order_id?: string | null
@@ -5770,6 +5772,7 @@ export type Database = {
           agency_id?: string | null
           context?: string | null
           created_at?: string
+          document_version?: number | null
           id?: string
           ip_address?: string | null
           order_id?: string | null
@@ -5782,9 +5785,11 @@ export type Database = {
       }
       screening_consents: {
         Row: {
+          consent_text: string | null
           consent_type: string
           created_at: string
           document_url: string | null
+          document_version: number
           id: string
           ip_address: unknown
           order_id: string | null
@@ -5793,9 +5798,11 @@ export type Database = {
           worker_id: string
         }
         Insert: {
+          consent_text?: string | null
           consent_type: string
           created_at?: string
           document_url?: string | null
+          document_version?: number
           id?: string
           ip_address?: unknown
           order_id?: string | null
@@ -5804,9 +5811,11 @@ export type Database = {
           worker_id: string
         }
         Update: {
+          consent_text?: string | null
           consent_type?: string
           created_at?: string
           document_url?: string | null
+          document_version?: number
           id?: string
           ip_address?: unknown
           order_id?: string | null
@@ -6022,6 +6031,7 @@ export type Database = {
       screening_reports: {
         Row: {
           document_url: string | null
+          document_version: number
           id: string
           order_id: string
           received_at: string
@@ -6030,6 +6040,7 @@ export type Database = {
         }
         Insert: {
           document_url?: string | null
+          document_version?: number
           id?: string
           order_id: string
           received_at?: string
@@ -6038,6 +6049,7 @@ export type Database = {
         }
         Update: {
           document_url?: string | null
+          document_version?: number
           id?: string
           order_id?: string
           received_at?: string
@@ -11416,6 +11428,14 @@ export type Database = {
         Args: { _approval_id: string; _approve: boolean; _reason?: string }
         Returns: Json
       }
+      download_worker_screening: {
+        Args: {
+          _expected_version: number
+          _record_id: string
+          _record_type: string
+        }
+        Returns: Json
+      }
       get_screening_document: {
         Args: { _record_id: string; _record_type: string }
         Returns: string
@@ -11429,11 +11449,19 @@ export type Database = {
         Returns: number
       }
       next_ticket_number: { Args: { _agency_id: string }; Returns: string }
+      read_worker_screening: {
+        Args: { _record_id?: string; _record_type: string }
+        Returns: Json
+      }
       rollback_automation: {
         Args: { _automation_id: string; _target_version: number }
         Returns: number
       }
       sign_screening_consent: { Args: { _consent_id: string }; Returns: string }
+      sign_screening_consent_version: {
+        Args: { _consent_id: string; _expected_version: number }
+        Returns: string
+      }
       tto_rollup_ticket: { Args: { _ticket_id: string }; Returns: undefined }
       woic_graph_communities: {
         Args: {

@@ -1,0 +1,9 @@
+ALTER FUNCTION public.read_worker_screening(text,uuid) SET SCHEMA private;
+ALTER FUNCTION public.sign_screening_consent_version(uuid,integer) SET SCHEMA private;
+ALTER FUNCTION public.download_worker_screening(text,uuid,integer) SET SCHEMA private;
+CREATE FUNCTION public.read_worker_screening(_record_type text,_record_id uuid DEFAULT NULL) RETURNS jsonb LANGUAGE sql SECURITY INVOKER SET search_path=public AS $$ SELECT private.read_worker_screening(_record_type,_record_id) $$;
+CREATE FUNCTION public.sign_screening_consent_version(_consent_id uuid,_expected_version integer) RETURNS timestamptz LANGUAGE sql SECURITY INVOKER SET search_path=public AS $$ SELECT private.sign_screening_consent_version(_consent_id,_expected_version) $$;
+CREATE FUNCTION public.download_worker_screening(_record_type text,_record_id uuid,_expected_version integer) RETURNS jsonb LANGUAGE sql SECURITY INVOKER SET search_path=public AS $$ SELECT private.download_worker_screening(_record_type,_record_id,_expected_version) $$;
+REVOKE ALL ON FUNCTION public.read_worker_screening(text,uuid),public.sign_screening_consent_version(uuid,integer),public.download_worker_screening(text,uuid,integer),private.read_worker_screening(text,uuid),private.sign_screening_consent_version(uuid,integer),private.download_worker_screening(text,uuid,integer) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.read_worker_screening(text,uuid),public.sign_screening_consent_version(uuid,integer),public.download_worker_screening(text,uuid,integer),private.read_worker_screening(text,uuid),private.sign_screening_consent_version(uuid,integer),private.download_worker_screening(text,uuid,integer) TO authenticated;
+NOTIFY pgrst,'reload schema';

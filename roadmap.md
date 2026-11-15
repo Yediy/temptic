@@ -6,3 +6,5 @@
 - [ ] Verify signed-in reasoning detail flows — blocked: external Supabase session unavailable
 - [x] Move vector out of the public schema; verify placement, operator results and memory search configuration
 - [ ] Enable leaked-password protection — blocked: owner must enable external Supabase authentication setting (Pro or higher)
+- [x] Build worker screening report/consent pages with audited versioned reads, signing and downloads; seven UI/logic checks pass
+- [ ] Run screening document SQL lifecycle test and signed-in download check — blocked: external session unavailable and no screening records exist

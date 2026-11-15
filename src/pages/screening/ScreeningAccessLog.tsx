@@ -81,7 +81,7 @@ export default function ScreeningAccessLog() {
             <thead className="text-left text-muted-foreground border-b">
               <tr>
                 <th className="p-2">When</th><th className="p-2">Action</th><th className="p-2">Record</th>
-                <th className="p-2">Who</th><th className="p-2">Roles</th><th className="p-2">Worker</th><th className="p-2">IP / device</th>
+                <th className="p-2">Version</th><th className="p-2">Who</th><th className="p-2">Roles</th><th className="p-2">Worker</th><th className="p-2">IP / device</th>
               </tr>
             </thead>
             <tbody>
@@ -90,6 +90,7 @@ export default function ScreeningAccessLog() {
                   <td className="p-2 whitespace-nowrap">{new Date(r.created_at).toLocaleString()}</td>
                   <td className="p-2"><Badge variant={r.action === "read" ? "secondary" : "default"}>{r.action}</Badge></td>
                   <td className="p-2 font-mono text-xs">{r.record_type} · {String(r.record_id).slice(0, 8)}</td>
+                  <td className="p-2">{r.document_version == null ? "—" : `v${r.document_version}`}</td>
                   <td className="p-2 font-mono text-xs">{r.actor_user_id ? String(r.actor_user_id).slice(0, 8) : "system"}</td>
                   <td className="p-2 text-xs">{(r.actor_roles ?? []).join(", ") || "—"}</td>
                   <td className="p-2 font-mono text-xs">{r.worker_id ? String(r.worker_id).slice(0, 8) : "—"}</td>
