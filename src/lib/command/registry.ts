@@ -81,6 +81,7 @@ export const EXTRA_DESTINATIONS: CommandDef[] = [
   { id: "go.perception.missing", label: "Show Missing Information", group: "Go to", icon: Activity, kind: "navigate", to: "/perception/missing", keywords: ["missing", "gap", "unknown", "blocking"] },
   { id: "go.perception.freshness", label: "Show Stale Context", group: "Go to", icon: Activity, kind: "navigate", to: "/perception/freshness", keywords: ["freshness", "stale", "expired", "aging"] },
   { id: "go.perception.sources", label: "Show Perception Source Health", group: "Go to", icon: Activity, kind: "navigate", to: "/perception/sources", keywords: ["source", "adapter", "ingest", "health"] },
+  { id: "go.memory.home", label: "Open Working Memory Overview", group: "Go to", icon: Boxes, kind: "navigate", to: "/memory", keywords: ["memory", "working memory", "overview", "workspace"] },
   { id: "go.memory", label: "WOIC Working Memory — Show Active Memory Sessions", group: "Go to", icon: Boxes, kind: "navigate", to: "/memory/sessions", keywords: ["working memory", "session", "cognitive memory", "woic"] },
   { id: "go.memory.overview", label: "Show Memory Health", group: "Go to", icon: Boxes, kind: "navigate", to: "/memory/health", keywords: ["memory health", "capacity", "pressure", "conflict"] },
   { id: "go.memory.pressure", label: "Show High Memory Pressure", group: "Go to", icon: Boxes, kind: "navigate", to: "/memory/budgets", keywords: ["memory pressure", "budget", "capacity", "threshold"] },
