@@ -25,7 +25,7 @@ function RecipientLinksCard({ create, shareUrl }: { passportId: string; create: 
 
   const generate = async () => {
     const plan = planRecipientLinks(drafts);
-    if (!plan.ok) { toast({ title: "Check recipients", description: plan.error, variant: "destructive" }); return; }
+    if (plan.ok === false) { toast({ title: "Check recipients", description: plan.error, variant: "destructive" }); return; }
     setBusy(true);
     const out: typeof results = [];
     for (const req of plan.requests) {
