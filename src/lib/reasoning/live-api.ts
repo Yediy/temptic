@@ -10,9 +10,11 @@ async function readRows(table: Table, agencyId: string, id?: string): Promise<Ro
   const rows: Row[] = [];
   const pageSize = 500;
   for (let offset = 0; ; offset += pageSize) {
-    let query = supabase.from(table).select("*").eq("agency_id", agencyId)
+    const source = table === "woic_cognitive_requests"
+      ? supabase.from("woic_cognitive_requests").select("*").eq("service", "reasoning")
+      : supabase.from("woic_reasoning_traces").select("*");
+    let query = source.eq("agency_id", agencyId)
       .order("created_at", { ascending: false }).order("id", { ascending: false });
-    if (table === "woic_cognitive_requests") query = query.eq("service", "reasoning");
     if (id) query = query.eq("id", id);
     const { data, error } = await query.range(offset, offset + pageSize - 1);
     if (error) {
