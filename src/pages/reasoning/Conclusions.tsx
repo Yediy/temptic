@@ -113,6 +113,7 @@ export default function Conclusions() {
                 <EvidencePanel title="Supporting evidence" stance="SUPPORTS" rows={asArray(rec.supporting_evidence)} />
                 <EvidencePanel title="Contradicting evidence" stance="CONTRADICTS" rows={asArray(rec.contradicting_evidence)} />
               </div>
+              <EvidencePanel title="Unclassified evidence" stance="UNCLASSIFIED" rows={asArray(rec.evidence).filter(e => !["SUPPORTS", "CONTRADICTS"].includes(str(e.stance).toUpperCase()))} />
 
               <div className="grid gap-3 md:grid-cols-2">
                 <Block label="Supporting claims" value={rec.supporting_claims ?? rec.claims} />
