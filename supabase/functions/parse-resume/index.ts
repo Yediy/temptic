@@ -33,6 +33,12 @@ Deno.serve(withSentry("parse-resume", async (req) => {
   const { data: worker, error: wErr } = await userClient.from("workers").select("id, first_name, last_name").eq("id", workerId).maybeSingle();
   if (wErr || !worker) return jsonResponse({ error: "forbidden", code: "forbidden" }, 403);
 
+  if (documentId) {
+    if (!/^[0-9a-f-]{36}$/i.test(documentId)) return jsonResponse({ error: "invalid document_id", code: "bad_request" }, 400);
+    const { data: doc } = await admin.from("worker_documents").select("id, worker_id").eq("id", documentId).maybeSingle();
+    if (!doc || doc.worker_id !== workerId) return jsonResponse({ error: "forbidden", code: "forbidden" }, 403);
+  }
+
   const { data: profile } = await admin.from("worker_profiles").select("*").eq("worker_id", workerId).maybeSingle();
 
   const mockSuggestions = {
