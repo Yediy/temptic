@@ -163,7 +163,6 @@ Deno.serve(withSentry("send-transactional-email", async (req) => {
   if (suppressionError) {
     console.error('Suppression check failed — refusing to send', {
       error: suppressionError,
-      effectiveRecipient,
     })
     return new Response(
       JSON.stringify({ error: 'Failed to verify suppression status' }),
@@ -277,7 +276,6 @@ Deno.serve(withSentry("send-transactional-email", async (req) => {
     console.error('Failed to enqueue email', {
       error: enqueueError,
       templateName,
-      effectiveRecipient,
     })
 
     await supabase.from('email_send_log').insert({
