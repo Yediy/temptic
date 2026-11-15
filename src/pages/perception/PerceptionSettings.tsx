@@ -6,6 +6,7 @@ import {
 import {
   usePerceptionCapability, usePerceptionPermissions, usePerceptionSettings, usePinnedObservations,
 } from "@/hooks/perception/use-perception";
+import { PrivacyInspector } from "@/components/perception/PrivacyInspector";
 import { CAPABILITIES, DEFAULT_PERCEPTION_SETTINGS, PERCEPTION_FUNCTION } from "@/lib/perception/platform";
 
 const REFRESH_OPTIONS = [
@@ -20,9 +21,6 @@ export default function PerceptionSettings() {
   const [settings, setSettings] = usePerceptionSettings();
   const { pins, clear } = usePinnedObservations();
   const perms = usePerceptionPermissions();
-  const privacy = usePerceptionCapability<Record<string, unknown>>(
-    "privacy.inspect", {}, { enabled: perms.canPrivacyInspect },
-  );
 
   return (
     <div className="space-y-4">
@@ -83,17 +81,9 @@ export default function PerceptionSettings() {
 
       <Panel
         title="Privacy &amp; Permission Scope"
-        description="Classification, exclusions and purpose limitation reported by the Perception & Context API."
+        description="What you can see depends on your role: classification for all staff, markers and tenant rules for agency admins."
       >
-        {!perms.canPrivacyInspect ? (
-          <p className="text-sm text-muted-foreground">
-            Your role does not include perception privacy inspection.
-          </p>
-        ) : (
-          <CapabilityState status={privacy.status} message={privacy.message} label="the privacy inspector">
-            <MetadataBlock value={privacy.data} />
-          </CapabilityState>
-        )}
+        <PrivacyInspector />
       </Panel>
 
       <Panel title="Capability Registry" description={`Every read routes through the ${PERCEPTION_FUNCTION} organism (Phase 6.1A).`}>
