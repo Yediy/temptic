@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
-import { HardHat, FileText, Clock, ClipboardCheck, LogOut } from "lucide-react";
+import { HardHat, FileText, Clock, ClipboardCheck, LogOut, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OfflineSyncBar } from "@/components/OfflineSyncBar";
 import { useOfflineAutoSync } from "@/hooks/use-offline-punches";
@@ -10,6 +10,7 @@ const navItems = [
   { label: "My Tickets", icon: FileText, path: "/worker" },
   { label: "My Hours", icon: Clock, path: "/worker/hours" },
   { label: "Onboarding", icon: ClipboardCheck, path: "/worker/onboarding" },
+  { label: "Screening", icon: ShieldCheck, path: "/worker/screening" },
 ];
 
 export function WorkerLayout() {
@@ -20,21 +21,21 @@ export function WorkerLayout() {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b bg-card">
-        <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-4">
+        <div className="mx-auto flex min-h-14 max-w-4xl flex-wrap items-center justify-between gap-2 px-4 py-2">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
               <HardHat className="h-4 w-4 text-primary-foreground" />
             </div>
             <span className="font-bold text-sm">Temp Tic <span className="text-muted-foreground font-normal">Worker</span></span>
           </div>
-          <nav className="flex items-center gap-1 overflow-x-auto">
+          <nav className="order-3 flex w-full items-center gap-1 overflow-x-auto sm:order-none sm:w-auto">
             {navItems.map(item => (
               <Link
                 key={item.path}
                 to={item.path}
                 className={cn(
                   "flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs sm:text-sm font-medium transition-colors",
-                  location.pathname === item.path
+                  (location.pathname === item.path || (item.path !== "/worker" && location.pathname.startsWith(`${item.path}/`)))
                     ? "bg-secondary text-foreground"
                     : "text-muted-foreground hover:text-foreground"
                 )}

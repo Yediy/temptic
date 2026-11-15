@@ -52,6 +52,7 @@ import ClientResetPassword from "@/pages/auth/ClientResetPassword";
 
 // Worker pages
 import WorkerTickets from "@/pages/worker/WorkerTickets";
+import WorkerScreening, { WorkerScreeningDocument } from "@/pages/worker/WorkerScreening";
 import WorkerHours from "@/pages/worker/WorkerHours";
 import WorkerCheckIn from "@/pages/worker/WorkerCheckIn";
 import SiteQrCodes from "@/pages/tto/SiteQrCodes";
@@ -916,6 +917,9 @@ const App = () => (
                 <Route path="/worker/hours" element={<WorkerHours />} />
                 <Route path="/worker/checkin/:siteId" element={<WorkerCheckIn />} />
                 <Route path="/worker/onboarding" element={<WorkerOnboarding />} />
+                <Route path="/worker/screening" element={<WorkerScreening />} />
+                <Route path="/worker/screening/report/:id" element={<WorkerScreeningDocument key="report" kind="report" />} />
+                <Route path="/worker/screening/consent/:id" element={<WorkerScreeningDocument key="consent" kind="consent" />} />
               </Route>
             </Route>
 
