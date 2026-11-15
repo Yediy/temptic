@@ -1,3 +1,3 @@
 # Roadmap
-- [ ] Privacy Inspector permission-scoped metadata views
-- [ ] Evidence provenance panel in context pack + contradiction views
+- [x] Privacy Inspector permission-scoped metadata views
+- [x] Evidence provenance panel in context pack + contradiction views
