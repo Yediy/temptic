@@ -2,14 +2,15 @@
 
 Contracts: **PC-6.3B** / **CapSpec-6.3B** / **PDNA-6.3B**
 Architecture: IWOS / WOIC v2.0.0-alpha.4
-Backend dependency: Phase 6.3A Reasoning API (edge function `woic-reasoning`)
+Live read source: WOIC Data API (`woic_cognitive_requests`, `woic_reasoning_traces`).
+Governed action dependency: Phase 6.3A Reasoning API (`woic-reasoning`, currently not deployed).
 
 ## 1. Platform Contract (PC-6.3B)
 
 1. The workspace is a transport and presentation layer only. It performs **no**
    reasoning, conclusion derivation, confidence scoring, evidence weighting,
    contradiction resolution or causal inference in the browser.
-2. Every value displayed originates from a 6.3A capability response. Absent
+2. Every intelligence value displayed originates from persisted WOIC output. Absent
    fields render as `—` / `UNSTATED`, never as a computed substitute.
 3. Private model reasoning (chain-of-thought, scratchpads, raw prompts,
    deliberation traces) is never requested, stored or rendered. `redactPrivate`
@@ -41,10 +42,11 @@ Governed requests (executed by 6.3A): `reasoning.critique.request`,
 `reasoning.alternative.simulate`, `reasoning.alternative.to_decision`,
 `reasoning.alternative.reason_further`, `reasoning.evidence.request`.
 
-Transport: `supabase.functions.invoke("woic-reasoning", { body: { agency_id,
-capability, method, params, contract: "PC-6.3B" } })`. A 404/501 response, an
-undefined function, or codes `not_implemented` / `capability_pending` produce a
-pending state; 403 / `forbidden` produce a forbidden state.
+Requests, conclusions, evidence and overview counts use paged, agency-scoped Data API reads through `live-api.ts` and the presentation adapter `live-data.ts`. Detail lookups also filter by ID. Existing RLS remains the tenant boundary. Evidence stance, freshness, reliability, confidence and conclusion status are never inferred. Overview counts summarize recorded requests/traces; unsupported metrics remain unstated.
+
+Contradictions, critical reviews and model disagreements consume explicitly reported collections in persisted cognitive outputs. An explicit empty collection means no records; an absent field means capability pending, not a fabricated empty result. The deployed reasoning output currently does not include these collections.
+
+Other capabilities and governed actions retain `supabase.functions.invoke("woic-reasoning", { body: { agency_id, capability, method, params, module: "reasoning", contract: "PC-6.3B" } })`. A 404/501 or `not_implemented` / `capability_pending` produces pending; 403 / `forbidden` produces forbidden. Network failures remain errors. No substitute model or unsupported operation is invoked.
 
 ## 3. Platform DNA (PDNA-6.3B)
 
