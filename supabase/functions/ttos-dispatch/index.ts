@@ -29,15 +29,43 @@ Deno.serve(withSentry("ttos-dispatch", async (req) => {
   );
 
   const body = await req.json().catch(() => ({}));
-  const eventId = typeof body.event_id === "string" ? body.event_id : null;
+  const eventId = typeof body.event_id === "string" && /^[0-9a-f-]{36}$/i.test(body.event_id) ? body.event_id : null;
 
-  // Batch mode: drain up to 50 unprocessed events
+  // Caller tiers: service role (internal) > signed-in agency member > anonymous trigger/cron.
+  const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+  const isService = !!token && token === Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  let userId: string | null = null;
+  if (!isService && token) {
+    const { data: u } = await admin.auth.getUser(token);
+    userId = u?.user?.id ?? null;
+  }
+
   let events: TtosEvent[] = [];
   if (eventId) {
     const { data } = await admin.from("ttos_events").select("*").eq("id", eventId).is("processed_at", null).maybeSingle();
-    if (data) events = [data as TtosEvent];
+    if (data) {
+      const evt = data as TtosEvent & { created_at?: string };
+      if (!isService) {
+        if (userId) {
+          const { data: m } = await admin.from("agency_members").select("id").eq("user_id", userId)
+            .eq("agency_id", evt.agency_id).eq("is_active", true).limit(1);
+          if (!m?.length) return jsonResponse({ error: "Forbidden", code: "forbidden" }, 403, corsHeaders);
+        } else {
+          // Anonymous calls only nudge a just-published DB-trigger event (instant dispatch path).
+          const fresh = evt.created_at && Date.now() - new Date(evt.created_at).getTime() < 5 * 60_000;
+          if (!fresh || (evt.metadata as Record<string, unknown>)?.source !== "db_trigger") {
+            return jsonResponse({ error: "Unauthorized", code: "unauthenticated" }, 401, corsHeaders);
+          }
+        }
+      }
+      events = [evt];
+    }
   } else {
-    const { data } = await admin.from("ttos_events").select("*").is("processed_at", null).order("created_at").limit(50);
+    // Batch drain: service role drains everything; anonymous (hourly cron) drains only the stale backlog.
+    if (!isService && userId) return jsonResponse({ error: "Forbidden", code: "forbidden" }, 403, corsHeaders);
+    let q = admin.from("ttos_events").select("*").is("processed_at", null).order("created_at").limit(50);
+    if (!isService) q = q.lt("created_at", new Date(Date.now() - 30 * 60_000).toISOString());
+    const { data } = await q;
     events = (data ?? []) as TtosEvent[];
   }
 
