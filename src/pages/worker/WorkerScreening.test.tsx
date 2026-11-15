@@ -36,7 +36,7 @@ describe("worker consent actions", () => {
     mocks.rpc.mockImplementation(async (name: string) => ({ data: name === "download_worker_screening" ? { record, document_url: null } : [record], error: null }));
     open();
     fireEvent.click(await screen.findByRole("button", { name: "Prepare text copy" }));
-    await screen.findByRole("button", { name: "Download", exact: true });
+    await screen.findByRole("button", { name: /^Download$/ });
     expect(mocks.rpc).toHaveBeenCalledWith("download_worker_screening", { _record_type: "consent", _record_id: "consent-1", _expected_version: 2 });
   });
   it("shows stale-version rejection without claiming the consent was signed", async () => {
