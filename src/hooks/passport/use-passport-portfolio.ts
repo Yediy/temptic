@@ -64,7 +64,7 @@ export function usePortfolioSignedUrls(paths: string[]) {
     queryFn: async () => {
       const { data, error } = await supabase.storage
         .from(PORTFOLIO_BUCKET)
-        .createSignedUrls(paths, 60 * 60);
+        .createSignedUrls(paths, 5 * 60);
       if (error) throw error;
       const map: Record<string, string> = {};
       for (const row of data ?? []) {
