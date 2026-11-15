@@ -39,6 +39,7 @@ import AdminTicketSearch from "@/pages/admin/AdminTicketSearch";
 import AdminNotifications from "@/pages/admin/AdminNotifications";
 import AdminRateLimits from "@/pages/admin/AdminRateLimits";
 import AdminSecurityFindings from "@/pages/admin/AdminSecurityFindings";
+import AdminPassportAccess from "@/pages/admin/AdminPassportAccess";
 
 // Client pages
 import ClientDashboard from "@/pages/client/ClientDashboard";
@@ -893,6 +894,7 @@ const App = () => (
                 <Route path="/admin/notifications" element={<AdminNotifications />} />
                 <Route path="/admin/rate-limits" element={<AdminRateLimits />} />
                 <Route path="/admin/security" element={<AdminSecurityFindings />} />
+                <Route path="/admin/passport-access" element={<AdminPassportAccess />} />
                 <Route path="/handoff" element={<Handoff />} />
               </Route>
             </Route>
