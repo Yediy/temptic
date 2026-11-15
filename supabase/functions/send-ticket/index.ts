@@ -211,13 +211,18 @@ serve(withSentry("send-ticket", async (req) => {
 
     const { data: membership } = await supabase
       .from("agency_members")
-      .select("agency_id")
+      .select("agency_id, role")
       .eq("user_id", user.id)
       .eq("is_active", true)
+      .in("role", ["agency_owner", "agency_admin", "dispatcher", "scheduler", "account_manager"])
       .limit(1)
-      .single();
+      .maybeSingle();
 
-    if (!membership?.agency_id) throw new Error("No agency membership");
+    if (!membership?.agency_id) {
+      return new Response(JSON.stringify({ error: "Forbidden", code: "forbidden" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403,
+      });
+    }
 
     const { data: ticket, error: ticketErr } = await supabase
       .from("tickets")
@@ -227,6 +232,16 @@ serve(withSentry("send-ticket", async (req) => {
       .single();
 
     if (ticketErr || !ticket) throw new Error("Ticket not found");
+
+    // The signer must be an active signer of this ticket's client (same agency) — never an arbitrary address.
+    if (ticket.client_signer_id) {
+      const { data: signer } = await supabase.from("client_signers")
+        .select("id, client_id, is_active").eq("id", ticket.client_signer_id).maybeSingle();
+      const { data: client } = await supabase.from("clients").select("agency_id").eq("id", ticket.client_id).maybeSingle();
+      if (!signer || signer.client_id !== ticket.client_id || signer.is_active === false || client?.agency_id !== ticket.agency_id) {
+        throw new Error("Ticket signer is not an active contact for this client");
+      }
+    }
 
     if (!["draft", "corrected"].includes(ticket.status)) {
       throw new Error(`Ticket cannot be sent from "${ticket.status}" status. Only draft or corrected tickets can be sent.`);
