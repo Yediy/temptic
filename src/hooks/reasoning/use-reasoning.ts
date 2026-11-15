@@ -1,7 +1,7 @@
 // WOIC Reasoning & Evidence client (PC-6.3B).
 //
 // Transport only. Every read and every operator request is a call into the
-// Phase 6.3A Reasoning API (`woic-reasoning`). No reasoning, no conclusion
+// available WOIC storage APIs for reads and `woic-reasoning` for governed actions. No reasoning, no conclusion
 // derivation, no confidence scoring, no evidence weighting and no causal
 // classification happens here. When a 6.3A capability is not deployed the hook
 // reports `pending` and the UI renders BACKEND CAPABILITY PENDING — it never
@@ -11,6 +11,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { readLiveReasoning } from "@/lib/reasoning/live-api";
+import { CapabilityPending, CapabilityForbidden, LIVE_READS } from "@/lib/reasoning/live-data";
 import {
   DEFAULT_REASONING_SETTINGS, REASONING_FUNCTION, REASONING_SETTINGS_KEY,
   asArray, asRecord, capabilityByKey, readJson, redactPrivate, writeJson,
@@ -27,24 +29,22 @@ export interface CapabilityResult<T> {
   isFetching: boolean;
 }
 
-class CapabilityPending extends Error {}
-class CapabilityForbidden extends Error {}
-
 /** Single governed call into the Reasoning API (6.3A). */
 export async function callReasoning<T>(
   agencyId: string,
   capability: ReasoningCapabilityKey,
   params: Record<string, unknown> = {},
 ): Promise<T> {
+  if (LIVE_READS.has(capability)) return await readLiveReasoning(agencyId, capability, params) as T;
   const def = capabilityByKey(capability);
   const { data, error } = await supabase.functions.invoke(REASONING_FUNCTION, {
-    body: { agency_id: agencyId, capability, method: def.method, params, contract: "PC-6.3B" },
+    body: { agency_id: agencyId, capability, method: def.method, params, module: "reasoning", contract: "PC-6.3B" },
   });
 
   if (error) {
     const status = (error as { context?: { status?: number } })?.context?.status;
     if (status === 403) throw new CapabilityForbidden("You are not authorized for this reasoning capability.");
-    if (status === 404 || status === 501 || status === undefined) {
+    if (status === 404 || status === 501) {
       throw new CapabilityPending("The Phase 6.3A Reasoning API is not deployed in this environment.");
     }
     throw new Error(error.message || "The Reasoning API returned an error.");
@@ -71,7 +71,10 @@ export function useReasoningCapability<T = unknown>(
 
   const query = useQuery({
     queryKey: ["woic-reasoning", capability, agencyId, params],
-    queryFn: () => callReasoning<T>(agencyId as string, capability, params),
+    queryFn: () => {
+      if (!agencyId) throw new Error("No organization context available.");
+      return callReasoning<T>(agencyId, capability, params);
+    },
     enabled,
     retry: false,
     refetchInterval: options.refetchInterval,
