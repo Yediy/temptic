@@ -243,7 +243,7 @@ serve(withSentry("send-notification-email", async (req) => {
     const { sendEmail, resendConfigured } = await import("../_shared/resend.ts");
 
     if (!resendConfigured()) {
-      console.log(`[notification-email] No RESEND_API_KEY configured. Would send "${subject}" to ${to}`);
+      console.log(`[notification-email] No RESEND_API_KEY configured. Would send "${subject}" (recipient withheld)`);
       if (notifRow?.id) {
         await supabase.from("notifications").update({ status: "skipped" }).eq("id", notifRow.id);
       }
