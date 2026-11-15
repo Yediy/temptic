@@ -10,7 +10,119 @@ import { useSharingLinks, useCreateSharingLink, useRevokeSharingLink } from "@/h
 import { toast } from "@/hooks/use-toast";
 import { Copy, QrCode, ShieldCheck } from "lucide-react";
 
-const DEFAULT_SCOPES = ["identity", "skills", "credentials", "training", "work_history"];
+import { Checkbox } from "@/components/ui/checkbox";
+import { Plus, Trash2 } from "lucide-react";
+import { SHARE_SECTIONS, newRecipient, planRecipientLinks, type RecipientDraft, type ShareSection } from "@/lib/passport/share-recipients";
+
+type CreateMutation = ReturnType<typeof useCreateSharingLink>;
+
+function RecipientLinksCard({ create, shareUrl }: { passportId: string; create: CreateMutation; shareUrl: (t: string) => string }) {
+  const [drafts, setDrafts] = useState<RecipientDraft[]>([newRecipient(crypto.randomUUID())]);
+  const [results, setResults] = useState<{ label: string; token?: string; error?: string }[]>([]);
+  const [busy, setBusy] = useState(false);
+  const update = (key: string, patch: Partial<RecipientDraft>) =>
+    setDrafts((ds) => ds.map((d) => (d.key === key ? { ...d, ...patch } : d)));
+
+  const generate = async () => {
+    const plan = planRecipientLinks(drafts);
+    if (!plan.ok) { toast({ title: "Check recipients", description: plan.error, variant: "destructive" }); return; }
+    setBusy(true);
+    const out: typeof results = [];
+    for (const req of plan.requests) {
+      try { const { token } = await create.mutateAsync(req); out.push({ label: req.label, token }); }
+      catch (e) { out.push({ label: req.label, error: e instanceof Error ? e.message : "Failed" }); }
+    }
+    setResults(out); setBusy(false);
+    if (out.every((r) => r.token)) setDrafts([newRecipient(crypto.randomUUID())]);
+    toast({ title: `${out.filter((r) => r.token).length} of ${out.length} links created`, description: "Copy them now — each is shown only once." });
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-sm flex items-center gap-2"><ShieldCheck className="h-4 w-4" /> Share With Recipients</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-xs text-muted-foreground">Each recipient gets their own link. All links are view-only; choose full access or only specific sections.</p>
+        {drafts.map((d) => (
+          <div key={d.key} className="space-y-3 rounded-md border p-3">
+            <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto_auto] sm:items-end">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Recipient</Label>
+                <Input placeholder="e.g. Acme Staffing" value={d.name} onChange={(e) => update(d.key, { name: e.target.value })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Access</Label>
+                <select value={d.access} onChange={(e) => update(d.key, { access: e.target.value as RecipientDraft["access"] })}
+                  className="h-10 rounded-md border bg-background px-2 text-sm">
+                  <option value="full">Full (read-only)</option>
+                  <option value="limited">Limited sections</option>
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Expires (hours)</Label>
+                <Input type="number" min="1" max="720" className="w-24" value={d.expiresInHours}
+                  onChange={(e) => update(d.key, { expiresInHours: Number(e.target.value) })} />
+              </div>
+              <Button size="icon" variant="ghost" aria-label="Remove recipient" disabled={drafts.length === 1}
+                onClick={() => setDrafts((ds) => ds.filter((x) => x.key !== d.key))}><Trash2 className="h-4 w-4" /></Button>
+            </div>
+            {d.access === "limited" && (
+              <div className="flex flex-wrap gap-3">
+                {SHARE_SECTIONS.map((s) => (
+                  <label key={s} className="flex items-center gap-1.5 text-xs capitalize">
+                    <Checkbox checked={d.sections.includes(s)} onCheckedChange={(c) => update(d.key, {
+                      sections: c ? [...d.sections, s] : d.sections.filter((x) => x !== s) as ShareSection[],
+                    })} />
+                    {s.replace("_", " ")}
+                  </label>
+                ))}
+              </div>
+            )}
+            <div className="flex flex-wrap items-center gap-4 text-xs">
+              <label className="flex items-center gap-2"><Switch checked={d.oneTime} onCheckedChange={(v) => update(d.key, { oneTime: v })} /> One-time link</label>
+              {!d.oneTime && (
+                <label className="flex items-center gap-2">Max views
+                  <Input type="number" min="2" max="50" className="h-8 w-20" value={d.maxUses} onChange={(e) => update(d.key, { maxUses: Number(e.target.value) })} />
+                </label>
+              )}
+            </div>
+          </div>
+        ))}
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" disabled={drafts.length >= 20} onClick={() => setDrafts((ds) => [...ds, newRecipient(crypto.randomUUID())])}>
+            <Plus className="mr-1 h-4 w-4" /> Add recipient
+          </Button>
+          <Button size="sm" onClick={() => void generate()} disabled={busy}>
+            {busy ? "Creating…" : `Generate ${drafts.length} link${drafts.length === 1 ? "" : "s"}`}
+          </Button>
+        </div>
+
+        {results.length > 0 && (
+          <div className="space-y-3 rounded-md border p-3">
+            <div className="text-xs text-muted-foreground">Save these links now — tokens are hashed on the server and never shown again.</div>
+            {results.map((r) => (
+              <div key={r.label} className="space-y-1.5">
+                <div className="text-xs font-medium">{r.label}</div>
+                {r.token ? (
+                  <div className="flex items-center gap-2">
+                    <Input readOnly value={shareUrl(r.token)} className="font-mono text-xs" />
+                    <Button size="icon" variant="outline" aria-label={`Copy link for ${r.label}`} onClick={() => { navigator.clipboard.writeText(shareUrl(r.token!)); toast({ title: "Copied" }); }}>
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                    <a href={qrUrl(shareUrl(r.token))} target="_blank" rel="noreferrer" aria-label={`QR code for ${r.label}`}>
+                      <Button size="icon" variant="outline" type="button"><QrCode className="h-4 w-4" /></Button>
+                    </a>
+                  </div>
+                ) : <p className="text-xs text-destructive">{r.error}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 function qrUrl(data: string, size = 180) {
   return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(data)}`;
@@ -21,101 +133,12 @@ export default function PassportSharing() {
   const links = useSharingLinks(passportId);
   const create = useCreateSharingLink(passportId!);
   const revoke = useRevokeSharingLink(passportId!);
-  const [label, setLabel] = useState("");
-  const [expiresInHours, setExpiresInHours] = useState("24");
-  const [oneTime, setOneTime] = useState(true);
-  const [maxUses, setMaxUses] = useState("3");
-  const [scopes] = useState<string[]>(DEFAULT_SCOPES);
-  const [lastToken, setLastToken] = useState<string | null>(null);
 
   const shareUrl = (token: string) => `${window.location.origin}/passport/share/${token}`;
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4" /> Create a Share Link
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <Label className="text-xs">Label</Label>
-              <Input placeholder="e.g. Acme Interview" value={label} onChange={(e) => setLabel(e.target.value)} />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">Expires in (hours, max 720)</Label>
-              <Input type="number" min="1" max="720" value={expiresInHours} onChange={(e) => setExpiresInHours(e.target.value)} />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between rounded-md border p-3">
-            <div className="space-y-0.5">
-              <div className="text-sm font-medium">One-time link</div>
-              <div className="text-xs text-muted-foreground">
-                The link self-revokes the moment it is opened once.
-              </div>
-            </div>
-            <Switch checked={oneTime} onCheckedChange={setOneTime} />
-          </div>
-
-          {!oneTime && (
-            <div className="space-y-1.5">
-              <Label className="text-xs">Maximum views (max 50)</Label>
-              <Input type="number" min="2" max="50" value={maxUses} onChange={(e) => setMaxUses(e.target.value)} />
-            </div>
-          )}
-
-          <div className="text-xs text-muted-foreground">Shared scopes: {scopes.join(", ")}</div>
-
-          <Button
-            size="sm"
-            onClick={() => {
-              const hours = Math.min(720, Math.max(1, parseInt(expiresInHours || "24", 10)));
-              const uses = oneTime ? 1 : Math.min(50, Math.max(2, parseInt(maxUses || "3", 10)));
-              create.mutate(
-                { label: label || undefined, scopes, expires_in_hours: hours, max_uses: uses },
-                {
-                  onSuccess: ({ token }) => {
-                    setLastToken(token);
-                    setLabel("");
-                    toast({ title: "Share link created", description: "Copy or scan it now — it is shown only once." });
-                  },
-                  onError: (e: any) => toast({ title: "Failed", description: e.message, variant: "destructive" }),
-                },
-              );
-            }}
-            disabled={create.isPending}
-          >
-            {create.isPending ? "Creating…" : "Generate Link"}
-          </Button>
-
-          {lastToken && (
-            <div className="rounded-md border p-3 space-y-2">
-              <div className="text-xs text-muted-foreground">
-                Save this link now — the token is hashed on the server and never shown again.
-              </div>
-              <div className="flex items-center gap-2">
-                <Input readOnly value={shareUrl(lastToken)} className="font-mono text-xs" />
-                <Button size="icon" variant="outline" onClick={() => {
-                  navigator.clipboard.writeText(shareUrl(lastToken));
-                  toast({ title: "Copied" });
-                }}>
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="flex items-center gap-3">
-                <img src={qrUrl(shareUrl(lastToken))} alt="Passport share QR code" width={180} height={180} className="rounded border" />
-                <div className="text-xs text-muted-foreground flex items-start gap-2">
-                  <QrCode className="h-4 w-4 mt-0.5" />
-                  <span>Every open is verified and logged on the server before any data is returned.</span>
-                </div>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <RecipientLinksCard passportId={passportId!} create={create} shareUrl={shareUrl} />
 
       <Card>
         <CardHeader><CardTitle className="text-sm">Active Share Links</CardTitle></CardHeader>
