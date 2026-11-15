@@ -7,8 +7,12 @@ const NotFound = () => {
   const location = useLocation();
 
   useEffect(() => {
+    // TEMPORARY route-debug logging — remove after diagnosing /memory navigation.
+    console.warn(
+      `[route-debug] CATCH-ALL: no route matched ${location.pathname}${location.search} — this is a MISSING ROUTE MATCH, not a permission deny`
+    );
     console.error("404 Error: User attempted to access non-existent route:", location.pathname);
-  }, [location.pathname]);
+  }, [location.pathname, location.search]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
