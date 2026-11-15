@@ -13,7 +13,7 @@ type View = {
     work_date: string; actual_start: string | null; actual_end: string | null;
     regular_hours: number; overtime_hours: number; double_time_hours: number; break_minutes: number | null;
     worker_notes: string | null; status: string; worker_name: string | null; site_name: string | null;
-  };
+  } | null;
 };
 
 async function call(token: string, action: string, comment?: string) {
@@ -58,7 +58,11 @@ export default function ApproveTicketLink() {
             <p className="font-semibold">Ticket {done}</p>
             <p className="text-sm text-muted-foreground">Thanks — you can close this page.</p>
           </div>
-        ) : view && (
+        ) : view && !view.ticket ? (
+          <p className="text-sm text-muted-foreground py-6 text-center">
+            {view.state === "used" ? `This link was already used${view.decision ? ` (${view.decision})` : ""}.` : view.state === "expired" ? "This link has expired." : "This link has been replaced by a newer one."}
+          </p>
+        ) : view && view.ticket && (
           <>
             <div>
               <h1 className="text-xl font-bold">{view.ticket.worker_name ?? "Worker"}</h1>

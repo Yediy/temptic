@@ -32,6 +32,19 @@ async function handler(req: Request): Promise<Response> {
     admin.from("passport_compliance").select("status, item_key").eq("worker_id", worker_id),
   ]);
   if (!worker) return jsonResponse({ error: "worker not found", code: "not_found" }, 404, corsHeaders);
+  if (client_id != null && !/^[0-9a-f-]{36}$/i.test(String(client_id))) return jsonResponse({ error: "invalid client_id", code: "bad_request" }, 400, corsHeaders);
+  // Only staff of the worker's agency may compute/store readiness.
+  const [{ data: gr }, { data: mem }] = await Promise.all([
+    admin.from("user_roles").select("role").eq("user_id", auth.user.id),
+    admin.from("agency_members").select("role").eq("user_id", auth.user.id).eq("agency_id", worker.agency_id).eq("is_active", true),
+  ]);
+  const staff = (gr ?? []).some((r: any) => r.role === "super_admin") ||
+    (mem ?? []).some((r: any) => !["worker_user", "client_user", "candidate", "viewer"].includes(String(r.role)));
+  if (!staff) return jsonResponse({ error: "forbidden", code: "forbidden" }, 403, corsHeaders);
+  if (client_id) {
+    const { data: c } = await admin.from("clients").select("agency_id").eq("id", client_id).maybeSingle();
+    if (!c || c.agency_id !== worker.agency_id) return jsonResponse({ error: "forbidden", code: "forbidden" }, 403, corsHeaders);
+  }
 
   const doneMap: Record<string, boolean> = {
     identity: (compliance ?? []).some((c: any) => c.item_key === "identity" && c.status === "verified"),
@@ -68,7 +81,7 @@ async function handler(req: Request): Promise<Response> {
     },
     { onConflict: "worker_id,client_id" },
   );
-  if (error) return jsonResponse({ error: error.message, code: "db_error" }, 500, corsHeaders);
+  if (error) { console.error("readiness upsert failed", error); return jsonResponse({ error: "Could not save readiness", code: "db_error" }, 500, corsHeaders); }
 
   return jsonResponse({ score, ready, breakdown, missing }, 200, corsHeaders);
 }

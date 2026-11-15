@@ -28,6 +28,10 @@ Deno.serve(withSentry("twin-recompute", async (req) => {
   const svc = admin();
 
   // ---- Gather signals -----------------------------------------------------
+  const { data: ownerCheck } = await svc.from("workers").select("agency_id").eq("id", body.worker_id).maybeSingle();
+  if (!ownerCheck || ownerCheck.agency_id !== body.agency_id) {
+    return jsonResponse({ error: "worker not found", code: "not_found" }, 404, corsHeaders);
+  }
   const [workerRes, passportRes, skillsRes, trainingRes, credsRes, assignmentsRes] = await Promise.all([
     svc.from("workers").select("id, first_name, last_name, agency_id").eq("id", body.worker_id).maybeSingle(),
     svc.from("workforce_passports").select("id").eq("worker_id", body.worker_id).maybeSingle(),

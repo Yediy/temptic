@@ -1,3 +1,4 @@
+import { csvCell } from "@/lib/csv-safe";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -12,11 +13,7 @@ type Any = any;
 function toCsv(rows: Record<string, unknown>[]): string {
   if (rows.length === 0) return "";
   const cols = Array.from(new Set(rows.flatMap((r) => Object.keys(r))));
-  const escape = (v: unknown) => {
-    if (v == null) return "";
-    const s = String(v);
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
+  const escape = csvCell;
   return [cols.join(","), ...rows.map((r) => cols.map((c) => escape(r[c])).join(","))].join("\n");
 }
 

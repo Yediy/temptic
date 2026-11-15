@@ -3,6 +3,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { withSentry } from "../_shared/sentry.ts";
 import { requireUser, jsonResponse } from "../_shared/auth.ts";
+import { hasAgencyRole, isAssignedWorker, TTO_STAFF } from "../_shared/tto_access.ts";
 
 Deno.serve(withSentry("tto-submit-ticket", async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -17,6 +18,9 @@ Deno.serve(withSentry("tto-submit-ticket", async (req) => {
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   const { data: ticket } = await admin.from("tto_time_tickets").select("*").eq("id", time_ticket_id).maybeSingle();
   if (!ticket) return jsonResponse({ error: "Not found", code: "not_found" }, 404, corsHeaders);
+  const isWorker = await isAssignedWorker(admin, auth.user.id, ticket.worker_id);
+  if (!isWorker && !(await hasAgencyRole(admin, auth.user.id, ticket.agency_id, TTO_STAFF))) return jsonResponse({ error: "Forbidden", code: "forbidden" }, 403, corsHeaders);
+  if (!["open", "in_progress", "rejected", "corrected"].includes(String(ticket.status))) return jsonResponse({ error: "Ticket cannot be submitted in its current status", code: "bad_request" }, 400, corsHeaders);
 
   // Compute totals from punches
   const { data: punches } = await admin.from("tto_time_entries")
@@ -43,11 +47,11 @@ Deno.serve(withSentry("tto-submit-ticket", async (req) => {
     overtime_hours: overtime,
     double_time_hours: doubleTime,
     anomalies,
-    worker_notes: body.notes ?? ticket.worker_notes,
+    worker_notes: typeof body.notes === "string" ? body.notes.slice(0, 2000) : ticket.worker_notes,
   }).eq("id", time_ticket_id);
 
   await admin.from("tto_audit_events").insert({
-    agency_id: ticket.agency_id, time_ticket_id, actor_id: auth.user.id, actor_kind: "worker",
+    agency_id: ticket.agency_id, time_ticket_id, actor_id: auth.user.id, actor_kind: isWorker ? "worker" : "agency",
     action: "ticket.submitted", updated_value: { regular, overtime, doubleTime, anomalies },
   });
 

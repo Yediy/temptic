@@ -28,6 +28,10 @@ Deno.serve(withSentry("tto-approval-link", async (req) => {
   if (!link) return jsonResponse({ error: "This link is invalid", code: "not_found" }, 404, corsHeaders);
 
   const state = link.revoked_at ? "revoked" : link.used_at ? "used" : new Date(link.expires_at) < new Date() ? "expired" : "active";
+  // Revoked/used/expired links never reveal ticket details again.
+  if (state !== "active" && action === "view") {
+    return jsonResponse({ state, decision: state === "used" ? link.decision : null, expires_at: link.expires_at, ticket: null }, 200, corsHeaders);
+  }
   const { data: ticket } = await admin.from("tto_time_tickets")
     .select("id,agency_id,work_date,actual_start,actual_end,regular_hours,overtime_hours,double_time_hours,break_minutes,worker_notes,status,worker_id,site_id")
     .eq("id", link.time_ticket_id).maybeSingle();

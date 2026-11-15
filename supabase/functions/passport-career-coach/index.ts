@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { jsonResponse, requireUser } from "../_shared/auth.ts";
 import { withSentry } from "../_shared/sentry.ts";
+import { canManagePassport } from "../_shared/passport_manage.ts";
 
 Deno.serve(withSentry("passport-career-coach", async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -25,6 +26,9 @@ Deno.serve(withSentry("passport-career-coach", async (req: Request) => {
   if (pe || !passport) return jsonResponse({ error: "not_found", code: "not_found" }, 404, corsHeaders);
 
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  if (!(await canManagePassport(admin as any, auth.user.id, passportId))) {
+    return jsonResponse({ error: "forbidden", code: "forbidden" }, 403, corsHeaders);
+  }
   const workerId = (passport as any).workers.id;
 
   const [skills, creds, empl] = await Promise.all([

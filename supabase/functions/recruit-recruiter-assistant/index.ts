@@ -30,9 +30,16 @@ Deno.serve(withSentry("recruit-recruiter-assistant", async (req) => {
   if (forbidden) return forbidden;
 
   const system = "You are an AI recruiting assistant for a staffing agency. Be concise, cite facts from provided context, never invent qualifications, and never use protected demographic data (race, religion, age, gender, national origin) in ranking or recommendations.";
-  const messages = body.messages ?? [
+  // The system prompt is always server-controlled; callers may only supply user/assistant turns.
+  const history = Array.isArray(body.messages)
+    ? body.messages
+        .filter((m) => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string")
+        .slice(-20)
+        .map((m) => ({ role: m.role, content: m.content.slice(0, 8000) }))
+    : [];
+  const messages = [
     { role: "system" as const, content: system },
-    { role: "user" as const, content: `Task: ${body.task}\nContext: ${JSON.stringify(body.context ?? {})}` },
+    ...(history.length ? history : [{ role: "user" as const, content: `Task: ${body.task}\nContext: ${JSON.stringify(body.context ?? {}).slice(0, 20000)}` }]),
   ];
 
   const res = await fetch(LOVABLE_API, {

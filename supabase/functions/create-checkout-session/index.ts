@@ -39,13 +39,28 @@ serve(withSentry("create-checkout-session", async (req) => {
     // Verify user belongs to agency
     const { data: membership } = await supabase
       .from("agency_members")
-      .select("agency_id")
+      .select("agency_id, role")
       .eq("user_id", user.id)
       .eq("agency_id", agency_id)
       .eq("is_active", true)
-      .single();
+      .in("role", ["agency_owner", "agency_admin"])
+      .limit(1)
+      .maybeSingle();
 
-    if (!membership) throw new Error("Not authorized for this agency");
+    if (!membership || !/^[0-9a-f-]{36}$/i.test(String(agency_id))) {
+      return new Response(JSON.stringify({ error: "Forbidden", code: "forbidden" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403,
+      });
+    }
+
+    // Only redirect back to our own app origins.
+    const ORIGIN_OK = /^(https:\/\/([a-z0-9-]+\.)*(lovable\.app|lovableproject\.com|temptic\.net)|http:\/\/localhost(:\d+)?)$/i;
+    const safeUrl = (u: unknown) => {
+      if (typeof u !== "string") return null;
+      try { const p = new URL(u); return ORIGIN_OK.test(p.origin) ? p.toString() : null; } catch { return null; }
+    };
+    const safeSuccess = safeUrl(success_url);
+    const safeCancel = safeUrl(cancel_url);
 
     if (!stripeKey) {
       return new Response(
@@ -73,7 +88,7 @@ serve(withSentry("create-checkout-session", async (req) => {
 
     // Look up or create Stripe customer
     const customerSearchRes = await fetch("https://api.stripe.com/v1/customers/search?" + new URLSearchParams({
-      query: `email:"${user.email}"`,
+      query: `metadata['agency_id']:'${agency_id}'`,
     }), {
       headers: { Authorization: `Bearer ${stripeKey}` },
     });
@@ -101,9 +116,7 @@ serve(withSentry("create-checkout-session", async (req) => {
     }
 
     // Create Checkout Session
-    const origin = success_url
-      ? new URL(success_url).origin
-      : "https://temptic.lovable.app";
+    const origin = safeSuccess ? new URL(safeSuccess).origin : "https://temptic.lovable.app";
 
     const sessionRes = await fetch("https://api.stripe.com/v1/checkout/sessions", {
       method: "POST",
@@ -116,8 +129,8 @@ serve(withSentry("create-checkout-session", async (req) => {
         mode: "subscription",
         "line_items[0][price]": priceId,
         "line_items[0][quantity]": "1",
-        success_url: success_url || `${origin}/billing?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: cancel_url || `${origin}/billing`,
+        success_url: safeSuccess || `${origin}/billing?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: safeCancel || `${origin}/billing`,
         "metadata[agency_id]": agency_id,
         "metadata[plan]": plan,
         "subscription_data[metadata][agency_id]": agency_id,

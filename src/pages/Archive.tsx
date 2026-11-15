@@ -1,3 +1,4 @@
+import { csvCell } from "@/lib/csv-safe";
 import { useState } from "react";
 import { Archive as ArchiveIcon, Download, Search, FileText, AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -55,7 +56,7 @@ export default function Archive() {
       t.work_date || t.week_start_date || "",
       String(t.total_hours ?? 0),
     ]);
-    const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(",")).join("\n");
+    const csv = [headers, ...rows].map(r => r.map(c => csvCell(c)).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

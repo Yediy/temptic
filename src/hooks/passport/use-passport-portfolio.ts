@@ -60,11 +60,13 @@ export function usePortfolioSignedUrls(paths: string[]) {
   return useQuery({
     queryKey: ["passport-portfolio-urls", key],
     enabled: paths.length > 0,
-    staleTime: 1000 * 60 * 30,
+    // Short-lived links limit access after a viewer's grant is revoked.
+    staleTime: 1000 * 60 * 4,
+    refetchInterval: 1000 * 60 * 4,
     queryFn: async () => {
       const { data, error } = await supabase.storage
         .from(PORTFOLIO_BUCKET)
-        .createSignedUrls(paths, 60 * 60);
+        .createSignedUrls(paths, 5 * 60);
       if (error) throw error;
       const map: Record<string, string> = {};
       for (const row of data ?? []) {
