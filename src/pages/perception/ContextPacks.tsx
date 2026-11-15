@@ -8,6 +8,7 @@ import { usePerceptionSettings, useRowFilter } from "@/hooks/perception/use-perc
 import { useContextPacks } from "@/hooks/perception/use-context-packs";
 import { COVERAGE_FACETS, type ContextPack, type EvidenceItem } from "@/lib/perception/context-pack";
 import { formatTime } from "@/lib/perception/platform";
+import { ProvenancePanel } from "@/components/perception/ProvenancePanel";
 
 const TABS = ["request", "evidence", "references", "coverage", "freshness", "missing", "contradictions"] as const;
 type Tab = (typeof TABS)[number];
@@ -25,6 +26,10 @@ function EvidenceRow({ e, onOpen }: { e: EvidenceItem; onOpen: (e: EvidenceItem)
       </span>
     </button>
   );
+}
+
+function provCtx(pack: ContextPack, e: EvidenceItem) {
+  return { requestId: pack.id, traceId: pack.trace ? String(pack.trace.id) : null, operation: String(pack.request.operation ?? ""), source: e.source, ref: e.ref, observedAt: e.observedAt };
 }
 
 function Inspector({ pack, tab, setTab, onClose }: { pack: ContextPack; tab: Tab; setTab: (t: Tab) => void; onClose: () => void }) {
@@ -62,7 +67,7 @@ function Inspector({ pack, tab, setTab, onClose }: { pack: ContextPack; tab: Tab
         <TabsContent value="evidence" className="space-y-2">
           {pack.evidence.length === 0 && <p className="text-sm text-muted-foreground">No evidence was recorded for this request.</p>}
           {pack.evidence.map((e) => <EvidenceRow key={e.id} e={e} onOpen={setEv} />)}
-          {ev && <div className="rounded-md border p-3"><p className="mb-1 text-[11px] uppercase text-muted-foreground">Evidence detail</p><MetadataBlock value={ev.raw} /></div>}
+          {ev && <ProvenancePanel raw={ev.raw} ctx={provCtx(pack, ev)} />}
         </TabsContent>
 
         <TabsContent value="references">
@@ -104,8 +109,12 @@ function Inspector({ pack, tab, setTab, onClose }: { pack: ContextPack; tab: Tab
             <div key={i} className="space-y-1 rounded-md border p-2">
               <p className="text-[11px] uppercase text-muted-foreground">On {c.topic}</p>
               <div className="grid gap-2 sm:grid-cols-2">
-                <EvidenceRow e={c.a} onOpen={(x) => { setTab("evidence"); setEv(x); }} />
-                <EvidenceRow e={c.b} onOpen={(x) => { setTab("evidence"); setEv(x); }} />
+                {[c.a, c.b].map((x) => (
+                  <div key={x.id} className="space-y-2">
+                    <EvidenceRow e={x} onOpen={(y) => { setTab("evidence"); setEv(y); }} />
+                    <ProvenancePanel raw={x.raw} ctx={provCtx(pack, x)} title="Provenance" />
+                  </div>
+                ))}
               </div>
             </div>
           ))}

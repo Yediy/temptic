@@ -5,6 +5,7 @@ import {
 } from "@/components/perception/PerceptionBits";
 import { usePerceptionList, usePerceptionSettings, useRowFilter } from "@/hooks/perception/use-perception";
 import { asRecord, str } from "@/lib/perception/platform";
+import { ProvenancePanel } from "@/components/perception/ProvenancePanel";
 
 function SourceSide({ side, label }: { side: unknown; label: string }) {
   const rec = asRecord(side);
@@ -23,6 +24,9 @@ function SourceSide({ side, label }: { side: unknown; label: string }) {
             </div>
           </div>
         )}
+      {Object.keys(rec).length > 0 && (
+        <div className="mt-2"><ProvenancePanel raw={rec} ctx={{ source: str(rec.source, "") || null }} title="Provenance" /></div>
+      )}
     </div>
   );
 }
@@ -82,7 +86,9 @@ export default function PerceptionContradictions() {
             </div>
             <div>
               <p className="mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">Evidence</p>
-              <MetadataBlock value={detail.evidence} />
+              {Array.isArray(detail.evidence)
+                ? <div className="space-y-2">{(detail.evidence as Record<string, unknown>[]).map((e, i) => <ProvenancePanel key={i} raw={asRecord(e)} ctx={{}} title={`Evidence ${i + 1} provenance`} />)}</div>
+                : <MetadataBlock value={detail.evidence} />}
             </div>
           </div>
         </Panel>
