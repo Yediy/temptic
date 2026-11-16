@@ -36,7 +36,7 @@ export const AGENCY_MODULES: ModuleDef[] = [
   { key: "candidates",     label: "Blind Review",   path: "/candidates", icon: EyeOff, portal: "agency", permission: "jobs", status: "live", group: "workforce" },
   { key: "screening",      label: "Screening",      path: "/screening", icon: ShieldCheck, portal: "agency", permission: "compliance", status: "live", group: "workforce" },
   { key: "onboarding",     label: "Onboarding",     path: "/onboarding", icon: ClipboardCheck, portal: "agency", permission: "onboarding", status: "phase2", group: "workforce" },
-  { key: "compliance",     label: "Compliance",     path: "/compliance", icon: ShieldCheck, portal: "agency", permission: "compliance", status: "phase2", group: "workforce" },
+  { key: "compliance",     label: "Compliance",     path: "/compliance", icon: ShieldCheck, portal: "agency", permission: "compliance", status: "live", group: "workforce" },
   { key: "training",       label: "Training",       path: "/training", icon: GraduationCap, portal: "agency", permission: "training", status: "phase2", group: "workforce" },
   { key: "scheduling",     label: "Scheduling",     path: "/scheduling", icon: CalendarRange, portal: "agency", permission: "scheduling", status: "live", group: "operations" },
   { key: "tickets",        label: "Tickets",        path: "/tickets", icon: FileText, portal: "agency", permission: "tickets", status: "live", group: "operations", mobilePriority: 3 },
