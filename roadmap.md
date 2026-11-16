@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Add compliance report with audited screening records, access trail and permission-scoped open findings
 - [x] Privacy Inspector permission-scoped metadata views
 - [x] Evidence provenance panel in context pack + contradiction views
 - [x] Connect reasoning requests, conclusions and evidence to available live WOIC reads; regression tests pass
