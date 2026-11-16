@@ -50,4 +50,22 @@ describe("worker consent actions", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Consent changed");
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
+  it("does not show a signature confirmation if the server returns no signing timestamp", async () => {
+    mocks.rpc.mockImplementation(async (name: string) => name === "sign_screening_consent_version"
+      ? { data: null, error: null } : { data: [record], error: null });
+    open();
+    await screen.findByText(record.consent_text);
+    fireEvent.click(screen.getByRole("checkbox"));
+    fireEvent.click(screen.getByRole("button", { name: "Sign consent" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("signature was not confirmed");
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+  it("opens a report through the audited worker read without offering consent signing", async () => {
+    mocks.rpc.mockResolvedValue({ data: [{ id: "report-1", document_version: 3, result: "clear", summary: "Actual provider result" }], error: null });
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(<QueryClientProvider client={client}><MemoryRouter initialEntries={["/worker/screening/report/report-1"]}><Routes><Route path="/worker/screening/report/:id" element={<WorkerScreeningDocument kind="report" />} /></Routes></MemoryRouter></QueryClientProvider>);
+    await screen.findByText("Actual provider result");
+    expect(mocks.rpc).toHaveBeenCalledWith("read_worker_screening", { _record_type: "report", _record_id: "report-1" });
+    expect(screen.queryByRole("button", { name: "Sign consent" })).not.toBeInTheDocument();
+  });
 });
