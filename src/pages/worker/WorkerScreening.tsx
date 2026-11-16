@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Download, FileText, ShieldCheck } from "lucide-react";
@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { canSignConsent, screeningText, downloadScreeningBlob, type ScreeningDocument } from "@/lib/screening/documents";
+import { readAgencyScreening } from "@/lib/screening/read-document";
 
 type Kind = "report" | "consent";
 async function readDocuments(kind: Kind, id?: string): Promise<ScreeningDocument[]> {
@@ -43,26 +44,33 @@ export default function WorkerScreening() {
   </div>;
 }
 
-export function WorkerScreeningDocument({ kind }: { kind: Kind }) {
+export function WorkerScreeningDocument({ kind, mode = "worker" }: { kind: Kind; mode?: "worker" | "agency" }) {
   const { id } = useParams();
-  const { user } = useAuth();
+  const { user, agencyId } = useAuth();
   const qc = useQueryClient();
   const [acknowledged, setAcknowledged] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [prepared, setPrepared] = useState<{ blob: Blob; filename: string } | null>(null);
-  const query = useQuery({ queryKey: ["worker-screening", user?.id, kind, id], enabled: !!user && !!id,
-    queryFn: () => readDocuments(kind, id), retry: false });
+  const query = useQuery({ queryKey: [mode === "worker" ? "worker-screening" : "agency-screening-document", user?.id, agencyId, kind, id], enabled: !!user && !!id && (mode === "worker" || !!agencyId),
+    queryFn: () => {
+      if (mode === "worker") return readDocuments(kind, id);
+      if (!id || !agencyId) throw new Error("No active agency selected.");
+      return readAgencyScreening(kind, id, agencyId);
+    }, retry: false });
   const record = query.data?.[0];
+  useEffect(() => { setAcknowledged(false); setPrepared(null); setError(null); }, [id, kind, record?.document_version]);
 
   async function sign() {
-    if (!record || !canSignConsent(record, acknowledged)) return;
+    if (mode !== "worker" || !record || !canSignConsent(record, acknowledged)) return;
     setBusy(true); setError(null); setPrepared(null);
     try {
-      const { error } = await supabase.rpc("sign_screening_consent_version", { _consent_id: record.id, _expected_version: record.document_version });
+      const { data: signedAt, error } = await supabase.rpc("sign_screening_consent_version", { _consent_id: record.id, _expected_version: record.document_version });
       if (error) throw error;
+      if (typeof signedAt !== "string" || !Number.isFinite(Date.parse(signedAt))) throw new Error("The signature was not confirmed. Reload the consent before trying again.");
       setAcknowledged(false);
       await qc.invalidateQueries({ queryKey: ["worker-screening", user?.id] });
+      await Promise.all([qc.invalidateQueries({ queryKey: ["compliance-trail"] }), qc.invalidateQueries({ queryKey: ["screening-access-log"] }), qc.invalidateQueries({ queryKey: ["compliance-screening"] })]);
     } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
     finally { setBusy(false); }
   }
@@ -94,7 +102,7 @@ export function WorkerScreeningDocument({ kind }: { kind: Kind }) {
   }
 
   return <div className="space-y-5">
-    <Button asChild variant="ghost" size="sm"><Link to="/worker/screening"><ArrowLeft className="mr-2 h-4 w-4" />My Screening</Link></Button>
+    <Button asChild variant="ghost" size="sm"><Link to={mode === "worker" ? "/worker/screening" : "/compliance"}><ArrowLeft className="mr-2 h-4 w-4" />{mode === "worker" ? "My Screening" : "Compliance report"}</Link></Button>
     <h1 className="text-2xl font-bold">{kind === "report" ? "Screening report" : "Consent form"}</h1>
     {query.isLoading && <p>Loading…</p>}
     {query.error && <p role="alert" className="text-destructive">{query.error.message}</p>}
@@ -108,15 +116,15 @@ export function WorkerScreeningDocument({ kind }: { kind: Kind }) {
       </section> : <section className="space-y-4 border-y py-5">
         <p className="whitespace-pre-wrap break-words text-sm">{record.consent_text?.trim() || "Consent wording has not been provided. Contact your agency before signing."}</p>
         {record.signed_at ? <p role="status" className="font-medium">Signed on {new Date(record.signed_at).toLocaleString()} · Version {record.document_version}</p>
-          : <><div className="flex items-start gap-3"><Checkbox id="consent-ack" checked={acknowledged} disabled={!record.consent_text?.trim() || busy}
+          : mode === "agency" ? <p className="text-sm text-muted-foreground">Awaiting the assigned worker’s signature.</p> : <><div className="flex items-start gap-3"><Checkbox id="consent-ack" checked={acknowledged} disabled={!record.consent_text?.trim() || busy}
             onCheckedChange={v => setAcknowledged(v === true)} /><label htmlFor="consent-ack" className="text-sm">I have read this consent and agree to sign version {record.document_version} electronically.</label></div>
             <Button disabled={busy || !canSignConsent(record, acknowledged)} onClick={sign}>{busy ? "Please wait…" : "Sign consent"}</Button></>}
       </section>}
       {error && <p role="alert" className="text-destructive">{error}</p>}
-      <div className="flex flex-wrap gap-3">
+      {mode === "worker" && <div className="flex flex-wrap gap-3">
         <Button variant="outline" disabled={busy} onClick={prepare}><Download className="mr-2 h-4 w-4" />{busy ? "Please wait…" : record.has_document ? "Prepare original download" : "Prepare text copy"}</Button>
         {prepared && <Button onClick={() => downloadScreeningBlob(prepared.blob, prepared.filename)}><Download className="mr-2 h-4 w-4" />Download</Button>}
-      </div>
+      </div>}
     </>}
   </div>;
 }
