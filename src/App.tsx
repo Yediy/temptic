@@ -432,6 +432,8 @@ const App = () => (
             <Route element={<ProtectedRoute allowedRoles={["super_admin", "agency_admin", "agency_owner", "compliance_specialist"]} />}>
               <Route element={<AppLayout />}>
                 <Route path="/compliance" element={<ComplianceReport />} />
+                <Route path="/screening/report/:id" element={<WorkerScreeningDocument kind="report" mode="agency" />} />
+                <Route path="/screening/consent/:id" element={<WorkerScreeningDocument kind="consent" mode="agency" />} />
                 <Route path="/screening/access-log" element={<ScreeningAccessLog />} />
               </Route>
             </Route>
