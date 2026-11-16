@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Connect screening report/consent opening screens to compliance review and confirm worker-only versioned signatures
 - [x] Add compliance report with audited screening records, access trail and permission-scoped open findings; five targeted tests pass
 - [ ] Verify compliance report with live signed-in records — blocked: external Supabase session unavailable
 - [x] Privacy Inspector permission-scoped metadata views
