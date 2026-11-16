@@ -86,6 +86,7 @@ import JobDetail from "@/pages/jobs/JobDetail";
 import BlindReview from "@/pages/talent/BlindReview";
 import ScreeningList from "@/pages/screening/ScreeningList";
 import ScreeningAccessLog from "@/pages/screening/ScreeningAccessLog";
+import ComplianceReport from "@/pages/screening/ComplianceReport";
 import Scheduling from "@/pages/scheduling/Scheduling";
 import Timecards from "@/pages/timecards/Timecards";
 import Reports from "@/pages/reports/Reports";
@@ -428,6 +429,12 @@ const App = () => (
             <Route path="/contact" element={<Contact />} />
 
             {/* Agency portal */}
+            <Route element={<ProtectedRoute allowedRoles={["super_admin", "agency_admin", "agency_owner", "compliance_specialist"]} />}>
+              <Route element={<AppLayout />}>
+                <Route path="/compliance" element={<ComplianceReport />} />
+                <Route path="/screening/access-log" element={<ScreeningAccessLog />} />
+              </Route>
+            </Route>
             <Route element={<ProtectedRoute allowedRoles={["super_admin", "agency_admin", "dispatcher", "payroll", "viewer"]} redirectTo="/login" />}>
               <Route element={<AppLayout />}>
                 <Route path="/" element={<Dashboard />} />
@@ -453,9 +460,7 @@ const App = () => (
                 <Route path="/jobs/:id" element={<JobDetail />} />
                 <Route path="/candidates" element={<BlindReview />} />
                 <Route path="/screening" element={<ScreeningList />} />
-                <Route path="/screening/access-log" element={<ScreeningAccessLog />} />
                 <Route path="/onboarding" element={<OnboardingKanban />} />
-                <Route path="/compliance" element={<ModulePlaceholder moduleKey="compliance" />} />
                 <Route path="/training" element={<TrainingCatalog />} />
                 <Route path="/training/:id" element={<CoursePlayer />} />
                 <Route path="/scheduling" element={<Scheduling />} />

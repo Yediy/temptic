@@ -62,6 +62,11 @@ export function AppSidebar() {
 
       <div className="px-3 pt-4 pb-2">
         <CommandCenterTrigger className="mb-2" />
+        {roles.some(r => ["super_admin", "agency_admin", "agency_owner", "compliance_specialist"].includes(r)) && (
+          <Link to="/compliance" className={cn("mb-2 flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold", isActivePath("/compliance") ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent/50")}>
+            <ShieldCheck className="h-4 w-4" />Compliance report
+          </Link>
+        )}
         <Link
 
           to="/tickets/create"

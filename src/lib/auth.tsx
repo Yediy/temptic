@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { setSentryUser, trackStep } from "@/instrument";
 import type { User, Session } from "@supabase/supabase-js";
 
-export type AppRole = "super_admin" | "agency_admin" | "dispatcher" | "payroll" | "viewer" | "client_user" | "worker_user";
+export type AppRole = "super_admin" | "agency_admin" | "dispatcher" | "payroll" | "viewer" | "client_user" | "worker_user" | "compliance_specialist" | "agency_owner";
 
 export interface AuthState {
   user: User | null;
@@ -52,7 +52,7 @@ async function fetchAgencyId(userId: string): Promise<string | null> {
 }
 
 function derivePortal(roles: AppRole[]): AuthState["portalType"] {
-  if (roles.some(r => ["super_admin", "agency_admin", "dispatcher", "payroll", "viewer"].includes(r))) return "agency";
+  if (roles.some(r => ["super_admin", "agency_admin", "dispatcher", "payroll", "viewer", "compliance_specialist", "agency_owner"].includes(r))) return "agency";
   if (roles.includes("client_user")) return "client";
   if (roles.includes("worker_user")) return "worker";
   return null;
