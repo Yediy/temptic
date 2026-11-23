@@ -26,7 +26,7 @@ export default function Alternatives() {
 
   const run = (m: ReturnType<typeof useReasoningAction>, title: string) =>
     m.mutate({ alternative_id: open }, {
-      onSuccess: () => toast({ title, description: "The handoff was performed by WOIC." }),
+      onSuccess: (data) => toast({ title, description: str(data.message, "The result has been recorded.") }),
       onError: (e) => toast({ title: "Request failed", description: String(e), variant: "destructive" }),
     });
 
@@ -41,7 +41,7 @@ export default function Alternatives() {
             columns={[
               { key: "alternative", label: "Alternative", render: (r) => (
                 <button type="button" className="text-left text-primary hover:underline" onClick={() => setOpen(str(r.id ?? r.alternative_id))}>
-                  {str(r.alternative ?? r.option ?? r.statement ?? r.id, "—")}
+                  {str(r.alternative ?? r.option ?? r.statement ?? r.explanation ?? r.id, "—")}
                 </button>
               ) },
               { key: "selected", label: "Selected", render: (r) => (

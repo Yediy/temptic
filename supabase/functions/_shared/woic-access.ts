@@ -1,6 +1,6 @@
 // WOIC access guard: tenant membership + role matrix + module scope, with every
 // decision written to woic_access_audit. Policy lives in woic-policy.ts.
-import type { SupabaseClient, User } from "npm:@supabase/supabase-js@2";
+import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { jsonResponse } from "./auth.ts";
 import { evaluateWoicAccess, resolveWoicPermission, type WoicPermission } from "./woic-policy.ts";
 
@@ -16,7 +16,7 @@ export function callerModule(req: Request, body: unknown): string {
 export async function requireWoicAccess(a: {
   admin: SupabaseClient;
   req: Request;
-  user: User;
+  user: { id: string };
   functionName: string;
   operation: string;
   agencyId: unknown;

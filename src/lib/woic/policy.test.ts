@@ -39,4 +39,10 @@ describe("WOIC access policy", () => {
     const strip = (s: string) => s.split("\n").slice(2).join("\n");
     expect(strip(readFileSync("src/lib/woic/policy.ts", "utf8"))).toBe(strip(readFileSync("supabase/functions/_shared/woic-policy.ts", "utf8")));
   });
+  it("reasoning service uses the shared tenant, role and operation guards", () => {
+    expect(check("woic-reasoning", "reasoning.critique.request", ["agency_admin"], { module: "reasoning" }).allowed).toBe(true);
+    expect(check("woic-reasoning", "reasoning.critique.request", ["worker_user"], { module: "reasoning" }).allowed).toBe(false);
+    expect(check("woic-reasoning", "reasoning.disagreements.list", ["agency_admin"], { member: false, module: "reasoning" }).allowed).toBe(false);
+    expect(check("woic-reasoning", "reasoning.unknown", ["super_admin"], { module: "reasoning" }).allowed).toBe(false);
+  });
 });

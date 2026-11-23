@@ -69,7 +69,7 @@ export default function Conclusions() {
                   variant="outline"
                   disabled={critique.isPending}
                   onClick={() => critique.mutate({ conclusion_id: selected }, {
-                    onSuccess: () => toast({ title: "Critical review requested", description: "WOIC will perform the review." }),
+                    onSuccess: () => toast({ title: "Critical review completed", description: "The review and independent model assessments have been saved." }),
                     onError: (e) => toast({ title: "Request failed", description: String(e), variant: "destructive" }),
                   })}
                 >

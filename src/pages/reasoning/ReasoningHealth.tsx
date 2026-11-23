@@ -2,8 +2,10 @@ import {
   ArchitectureLinks, CapabilityState, ConfidenceMeter, CoverageMeter, MetadataBlock, Metric, Panel,
   PrivacyNotice,
 } from "@/components/reasoning/ReasonBits";
-import { useReasoningCapability, useReasoningSettings } from "@/hooks/reasoning/use-reasoning";
+import { useReasoningAction, useReasoningCapability, useReasoningPermissions, useReasoningSettings } from "@/hooks/reasoning/use-reasoning";
 import { CAPABILITIES, asRecord, str } from "@/lib/reasoning/platform";
+import { Button } from "@/components/ui/button";
+import { toast } from "@/hooks/use-toast";
 
 const TILES: Array<{ key: string; label: string; tone?: "danger" | "warn" }> = [
   { key: "service_status", label: "Reasoning Service" },
@@ -22,11 +24,20 @@ export default function ReasoningHealth() {
     "reasoning.health.get", {}, { refetchInterval: settings.refreshMs },
   );
   const rec = asRecord(health.data);
+  const resume = useReasoningAction("reasoning.gateway.resume");
+  const perms = useReasoningPermissions();
 
   return (
     <div className="space-y-4">
       <Panel title="Reasoning Health" description="Reported by the Phase 6.3A Reasoning API.">
         <CapabilityState status={health.status} message={health.message} label="reasoning health">
+          {rec.service_status === "PAUSED" && perms.canRequestCritique && <div className="mb-4 space-y-2">
+            <p className="text-sm text-destructive">{str(rec.model_status)}</p>
+            <Button variant="outline" disabled={resume.isPending} onClick={() => resume.mutate({ access_restored: true }, {
+              onSuccess: data => toast({ title: "Reviews resumed", description: str(data.message) }),
+              onError: e => toast({ title: "Cannot resume", description: e.message, variant: "destructive" }),
+            })}>AI credits or access restored — resume reviews</Button>
+          </div>}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {TILES.map((t) => (
               <Metric key={t.key} label={t.label} value={rec[t.key] == null ? "—" : str(rec[t.key])} tone={rec[t.key] == null ? undefined : t.tone} />

@@ -10456,6 +10456,131 @@ export type Database = {
           },
         ]
       }
+      woic_reasoning_gateway_state: {
+        Row: {
+          agency_id: string
+          created_at: string
+          message: string
+          status: number
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          message: string
+          status: number
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          message?: string
+          status?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "woic_reasoning_gateway_state_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: true
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      woic_reasoning_review_actions: {
+        Row: {
+          actor_id: string
+          agency_id: string
+          capability: string
+          created_at: string
+          id: string
+          item_id: string
+          review_id: string
+        }
+        Insert: {
+          actor_id: string
+          agency_id: string
+          capability: string
+          created_at?: string
+          id?: string
+          item_id: string
+          review_id: string
+        }
+        Update: {
+          actor_id?: string
+          agency_id?: string
+          capability?: string
+          created_at?: string
+          id?: string
+          item_id?: string
+          review_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "woic_reasoning_review_actions_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "woic_reasoning_review_actions_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "woic_reasoning_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      woic_reasoning_reviews: {
+        Row: {
+          agency_id: string
+          created_at: string
+          error: string | null
+          id: string
+          requested_by: string
+          result: Json | null
+          status: string
+          trace_id: string
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          requested_by: string
+          result?: Json | null
+          status?: string
+          trace_id: string
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          requested_by?: string
+          result?: Json | null
+          status?: string
+          trace_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "woic_reasoning_reviews_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "woic_reasoning_reviews_trace_id_fkey"
+            columns: ["trace_id"]
+            isOneToOne: false
+            referencedRelation: "woic_reasoning_traces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       woic_reasoning_steps: {
         Row: {
           agency_id: string

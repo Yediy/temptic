@@ -72,6 +72,11 @@ export function resolveWoicPermission(
   params: Record<string, unknown> = {},
 ): WoicPermission | null {
   const r = (resource: WoicResource, access: WoicAccess = "read"): WoicPermission => ({ resource, access });
+  if (fn === "woic-reasoning") {
+    const reads = ["reasoning.overview", "reasoning.requests.list", "reasoning.requests.get", "reasoning.conclusions.list", "reasoning.conclusions.get", "reasoning.hypotheses.list", "reasoning.evidence.list", "reasoning.contradictions.list", "reasoning.alternatives.list", "reasoning.critique.list", "reasoning.causality.list", "reasoning.disagreements.list", "reasoning.history.list", "reasoning.health.get"];
+    const writes = ["reasoning.critique.request", "reasoning.contradiction.review", "reasoning.disagreement.escalate", "reasoning.alternative.simulate", "reasoning.alternative.to_decision", "reasoning.alternative.reason_further", "reasoning.evidence.request", "reasoning.gateway.resume"];
+    return reads.includes(operation) ? r("reasoning") : writes.includes(operation) ? r("reasoning", "write") : null;
+  }
   if (fn === "woic-cognitive") {
     switch (operation) {
       case "reason": return r("reasoning", "write");

@@ -3,13 +3,20 @@ import {
   CapabilityState, CompareColumns, ConfidenceMeter, ListControls, MetadataBlock, Pager, Panel, RecordTable,
   usePagedRows,
 } from "@/components/reasoning/ReasonBits";
-import { useReasoningList, useReasoningSettings, useRowFilter } from "@/hooks/reasoning/use-reasoning";
+import { useReasoningAction, useReasoningList, useReasoningPermissions, useReasoningSettings, useRowFilter } from "@/hooks/reasoning/use-reasoning";
 import { str } from "@/lib/reasoning/platform";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "@/hooks/use-toast";
 
 export default function CriticalReview() {
   const [settings] = useReasoningSettings();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState<string | null>(null);
+  const [conclusionId, setConclusionId] = useState("");
+  const conclusions = useReasoningList("reasoning.conclusions.list");
+  const review = useReasoningAction("reasoning.critique.request");
+  const perms = useReasoningPermissions();
 
   const list = useReasoningList("reasoning.critique.list", {}, { refetchInterval: settings.refreshMs });
   const filtered = useRowFilter(list.rows, query);
@@ -19,6 +26,16 @@ export default function CriticalReview() {
   return (
     <div className="space-y-4">
       <Panel title="Critical Review" description="How WOIC challenged its own conclusions, and what changed as a result.">
+        {perms.canRequestCritique && <div className="mb-4 flex flex-wrap items-center gap-2">
+          <Select value={conclusionId} onValueChange={setConclusionId} disabled={review.isPending}>
+            <SelectTrigger className="w-full min-w-0 max-w-md" aria-label="Conclusion to review"><SelectValue placeholder="Choose a conclusion" /></SelectTrigger>
+            <SelectContent>{conclusions.rows.map(r => <SelectItem key={str(r.id)} value={str(r.id)}>{str(r.conclusion ?? r.question ?? r.id)}</SelectItem>)}</SelectContent>
+          </Select>
+          <Button disabled={!conclusionId || review.isPending} onClick={() => review.mutate({ conclusion_id: conclusionId }, {
+            onSuccess: () => toast({ title: "Review completed", description: "Independent assessments and their comparison have been saved." }),
+            onError: e => toast({ title: "Review failed", description: e.message, variant: "destructive" }),
+          })}>{review.isPending ? "Reviewing…" : "Run critical review"}</Button>
+        </div>}
         <CapabilityState status={list.status} message={list.message} label="critical reviews">
           <ListControls query={query} onQuery={setQuery} count={filtered.length} placeholder="Filter reviews…" />
           <RecordTable
@@ -59,7 +76,7 @@ export default function CriticalReview() {
                 <MetadataBlock value={detail.weak_assumptions} />
               </div>
               <div className="rounded border p-2">
-                <p className="mb-1 text-[10px] uppercase tracking-wide text-muted-foreground">Counterexamples</p>
+                <p className="mb-1 text-[10px] uppercase tracking-wide text-muted-foreground">Hypothetical counterexamples</p>
                 <MetadataBlock value={detail.counterexamples} />
               </div>
               <div className="rounded border p-2">

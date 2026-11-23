@@ -11,8 +11,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { readLiveReasoning } from "@/lib/reasoning/live-api";
-import { CapabilityPending, CapabilityForbidden, LIVE_READS } from "@/lib/reasoning/live-data";
+import { CapabilityPending, CapabilityForbidden } from "@/lib/reasoning/live-data";
 import {
   DEFAULT_REASONING_SETTINGS, REASONING_FUNCTION, REASONING_SETTINGS_KEY,
   asArray, asRecord, capabilityByKey, readJson, redactPrivate, writeJson,
@@ -35,7 +34,6 @@ export async function callReasoning<T>(
   capability: ReasoningCapabilityKey,
   params: Record<string, unknown> = {},
 ): Promise<T> {
-  if (LIVE_READS.has(capability)) return await readLiveReasoning(agencyId, capability, params) as T;
   const def = capabilityByKey(capability);
   const { data, error } = await supabase.functions.invoke(REASONING_FUNCTION, {
     body: { agency_id: agencyId, capability, method: def.method, params, module: "reasoning", contract: "PC-6.3B" },
@@ -43,14 +41,16 @@ export async function callReasoning<T>(
 
   if (error) {
     const status = (error as { context?: { status?: number } })?.context?.status;
-    if (status === 403) throw new CapabilityForbidden("You are not authorized for this reasoning capability.");
-    if (status === 404 || status === 501) {
+    let message = error.message;
+    try { const context = (error as { context?: Response }).context; if (context) message = (await context.json()).error ?? message; } catch { /* retain transport error */ }
+    if (status === 403) throw new CapabilityForbidden(message);
+    if (status === 501) {
       throw new CapabilityPending("The Phase 6.3A Reasoning API is not deployed in this environment.");
     }
-    throw new Error(error.message || "The Reasoning API returned an error.");
+    throw new Error(message || "The Reasoning API returned an error.");
   }
 
-  const body = asRecord(data);
+  const body = typeof data === "string" ? asRecord(JSON.parse(data.trim().split("\n").filter(Boolean).at(-1) ?? "{}")) : asRecord(data);
   const code = String(body.code ?? "");
   if (code === "not_implemented" || code === "capability_pending") {
     throw new CapabilityPending(String(body.error ?? "Capability pending."));

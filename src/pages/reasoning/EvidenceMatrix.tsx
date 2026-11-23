@@ -31,9 +31,9 @@ export default function EvidenceMatrix() {
           <Button
             size="sm"
             variant="outline"
-            disabled={request.isPending}
-            onClick={() => request.mutate({}, {
-              onSuccess: () => toast({ title: "Additional evidence requested", description: "WOIC will gather and re-evaluate." }),
+            disabled={request.isPending || !detail?.review_id}
+            onClick={() => request.mutate({ evidence_id: open }, {
+              onSuccess: (data) => toast({ title: "Evidence request recorded", description: str(data.message) }),
               onError: (e) => toast({ title: "Request failed", description: String(e), variant: "destructive" }),
             })}
           >
