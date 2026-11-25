@@ -1,0 +1,2 @@
+REVOKE INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON public.woic_reasoning_reviews, public.woic_reasoning_review_actions, public.woic_reasoning_gateway_state FROM authenticated, anon;
+REVOKE SELECT ON public.woic_reasoning_reviews, public.woic_reasoning_review_actions, public.woic_reasoning_gateway_state FROM anon;
