@@ -43,7 +43,8 @@ export type ReasoningCapabilityKey =
   | "reasoning.alternative.simulate"
   | "reasoning.alternative.to_decision"
   | "reasoning.alternative.reason_further"
-  | "reasoning.evidence.request";
+  | "reasoning.evidence.request"
+  | "reasoning.gateway.resume";
 
 export interface CapabilityDef {
   key: ReasoningCapabilityKey;
@@ -81,6 +82,7 @@ export const CAPABILITIES: CapabilityDef[] = [
   { key: "reasoning.alternative.to_decision", label: "Send to Decision Console", description: "Hand an alternative to the Decision Console via 6.3A.", method: "reasoning.alternative.to_decision", mutating: true, roles: WRITE_ROLES },
   { key: "reasoning.alternative.reason_further", label: "Reason Further", description: "Request additional reasoning on an alternative.", method: "reasoning.alternative.reason_further", mutating: true, roles: WRITE_ROLES },
   { key: "reasoning.evidence.request", label: "Request Missing Evidence", description: "Ask perception/knowledge to supply missing evidence.", method: "reasoning.evidence.request", mutating: true, roles: WRITE_ROLES },
+  { key: "reasoning.gateway.resume", label: "Resume Reviews", description: "Clear an AI credits/access pause after an administrator confirms it was restored.", method: "reasoning.gateway.resume", mutating: true, roles: WRITE_ROLES },
 ];
 
 export const capabilityByKey = (key: ReasoningCapabilityKey): CapabilityDef =>
