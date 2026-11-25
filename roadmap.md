@@ -1,12 +1,12 @@
 # Roadmap
-- [ ] Build full 6.3A reasoning service for live critical reviews, disagreements and model conflicts — blocked: external Supabase service-role key must be configured before service implementation
+- [x] Build 6.3A reasoning service: two-model critical reviews, disagreements, contradictions; live AI calls and privacy checks pass
+- [ ] Run first review on a real conclusion while signed in — blocked: sandbox sign-in to your backend unavailable
 - [x] Connect screening report/consent opening screens to compliance review and confirm worker-only versioned signatures; 13 targeted checks pass, deployed signature audit trigger confirmed
 - [x] Add compliance report with audited screening records, access trail and permission-scoped open findings; five targeted tests pass
 - [ ] Verify compliance report with live signed-in records — blocked: external Supabase session unavailable
 - [x] Privacy Inspector permission-scoped metadata views
 - [x] Evidence provenance panel in context pack + contradiction views
 - [x] Connect reasoning requests, conclusions and evidence to available live WOIC reads; regression tests pass
-- [ ] Activate dedicated 6.3A reviews, contradictions and disagreements — blocked: woic-reasoning not deployed and current WOIC outputs omit these fields
 - [ ] Verify signed-in reasoning detail flows — blocked: external Supabase session unavailable
 - [x] Move vector out of the public schema; verify placement, operator results and memory search configuration
 - [ ] Enable leaked-password protection — blocked: owner must enable external Supabase authentication setting (Pro or higher)
