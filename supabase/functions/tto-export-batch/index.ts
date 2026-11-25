@@ -76,7 +76,7 @@ Deno.serve(withSentry("tto-export-batch", async (req) => {
     rows = [["work_date", "worker_code", "worker_name", "client", "ticket_id", "regular_hours", "overtime_hours", "double_time_hours", "pay_rate", "regular_pay", "overtime_pay", "double_time_pay", "expenses", "mileage", "total_pay"]];
     for (const t of tickets) {
       const w = wMap.get(t.worker_id);
-      const rate = rateFor((payRates ?? []).filter((r) => r.worker_id === t.worker_id), t.work_date);
+      const rate = rateFor((payRates ?? []).filter((r) => r.worker_id === t.worker_id && (r.rate_type ?? "regular") === "regular"), t.work_date);
       const pr = Number(rate?.amount ?? 0);
       if (!rate) missingRates.add(`${w?.first_name ?? ""} ${w?.last_name ?? ""}`.trim() || t.worker_id);
       const h = [Number(t.regular_hours ?? 0), Number(t.overtime_hours ?? 0), Number(t.double_time_hours ?? 0)];
@@ -90,7 +90,7 @@ Deno.serve(withSentry("tto-export-batch", async (req) => {
     rows = [["work_date", "client", "worker_name", "ticket_id", "regular_hours", "overtime_hours", "double_time_hours", "bill_rate", "regular_amount", "overtime_amount", "double_time_amount", "expenses", "mileage", "total_amount"]];
     for (const t of tickets) {
       const w = wMap.get(t.worker_id);
-      const rate = rateFor((billRates ?? []).filter((r) => r.client_id === t.client_id), t.work_date);
+      const rate = rateFor((billRates ?? []).filter((r) => r.client_id === t.client_id && (r.rate_type ?? "regular") === "regular"), t.work_date);
       const br = rate ? r2(Number(rate.amount ?? 0) * (1 + Number(rate.markup_pct ?? 0) / 100)) : 0;
       if (!rate) missingRates.add(cMap.get(t.client_id) ?? "No client");
       const h = [Number(t.regular_hours ?? 0), Number(t.overtime_hours ?? 0), Number(t.double_time_hours ?? 0)];
