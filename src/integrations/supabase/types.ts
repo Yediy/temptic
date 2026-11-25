@@ -4353,6 +4353,7 @@ export type Database = {
           amount: number
           client_id: string
           created_at: string
+          currency: string
           effective_from: string
           effective_to: string | null
           id: string
@@ -4367,6 +4368,7 @@ export type Database = {
           amount?: number
           client_id: string
           created_at?: string
+          currency?: string
           effective_from?: string
           effective_to?: string | null
           id?: string
@@ -4381,6 +4383,7 @@ export type Database = {
           amount?: number
           client_id?: string
           created_at?: string
+          currency?: string
           effective_from?: string
           effective_to?: string | null
           id?: string
@@ -4952,6 +4955,7 @@ export type Database = {
           agency_id: string
           amount: number
           created_at: string
+          currency: string
           effective_from: string
           effective_to: string | null
           id: string
@@ -4964,6 +4968,7 @@ export type Database = {
           agency_id: string
           amount?: number
           created_at?: string
+          currency?: string
           effective_from?: string
           effective_to?: string | null
           id?: string
@@ -4976,6 +4981,7 @@ export type Database = {
           agency_id?: string
           amount?: number
           created_at?: string
+          currency?: string
           effective_from?: string
           effective_to?: string | null
           id?: string

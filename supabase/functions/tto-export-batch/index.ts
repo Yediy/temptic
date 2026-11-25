@@ -69,40 +69,47 @@ Deno.serve(withSentry("tto-export-batch", async (req) => {
   }
 
   const missingRates = new Set<string>();
+  const currencies = new Set<string>();
   let reg = 0, ot = 0, dt = 0, gross = 0, reimbTotal = 0;
   let rows: unknown[][];
 
   if (kind === "payroll") {
-    rows = [["work_date", "worker_code", "worker_name", "client", "ticket_id", "regular_hours", "overtime_hours", "double_time_hours", "pay_rate", "regular_pay", "overtime_pay", "double_time_pay", "expenses", "mileage", "total_pay"]];
+    rows = [["work_date", "worker_code", "worker_name", "client", "ticket_id", "regular_hours", "overtime_hours", "double_time_hours", "pay_rate", "regular_pay", "overtime_pay", "double_time_pay", "expenses", "mileage", "total_pay", "currency"]];
     for (const t of tickets) {
       const w = wMap.get(t.worker_id);
       const rate = rateFor((payRates ?? []).filter((r) => r.worker_id === t.worker_id && (r.rate_type ?? "regular") === "regular"), t.work_date);
       const pr = Number(rate?.amount ?? 0);
+      const cur = String(rate?.currency ?? "USD"); if (rate) currencies.add(cur);
       if (!rate) missingRates.add(`${w?.first_name ?? ""} ${w?.last_name ?? ""}`.trim() || t.worker_id);
       const h = [Number(t.regular_hours ?? 0), Number(t.overtime_hours ?? 0), Number(t.double_time_hours ?? 0)];
       const pay = [r2(h[0] * pr), r2(h[1] * pr * OT), r2(h[2] * pr * DT)];
       const rb = reimb.get(t.id) ?? { exp: 0, mile: 0 };
       const total = r2(pay[0] + pay[1] + pay[2] + rb.exp + rb.mile);
       reg += h[0]; ot += h[1]; dt += h[2]; gross += pay[0] + pay[1] + pay[2]; reimbTotal += rb.exp + rb.mile;
-      rows.push([t.work_date, w?.worker_code, `${w?.first_name ?? ""} ${w?.last_name ?? ""}`.trim(), cMap.get(t.client_id) ?? "", t.id, ...h, pr, ...pay, r2(rb.exp), r2(rb.mile), total]);
+      rows.push([t.work_date, w?.worker_code, `${w?.first_name ?? ""} ${w?.last_name ?? ""}`.trim(), cMap.get(t.client_id) ?? "", t.id, ...h, pr, ...pay, r2(rb.exp), r2(rb.mile), total, cur]);
     }
   } else {
-    rows = [["work_date", "client", "worker_name", "ticket_id", "regular_hours", "overtime_hours", "double_time_hours", "bill_rate", "regular_amount", "overtime_amount", "double_time_amount", "expenses", "mileage", "total_amount"]];
+    rows = [["work_date", "client", "worker_name", "ticket_id", "regular_hours", "overtime_hours", "double_time_hours", "bill_rate", "regular_amount", "overtime_amount", "double_time_amount", "expenses", "mileage", "total_amount", "currency"]];
     for (const t of tickets) {
       const w = wMap.get(t.worker_id);
       const rate = rateFor((billRates ?? []).filter((r) => r.client_id === t.client_id && (r.rate_type ?? "regular") === "regular"), t.work_date);
       const br = rate ? r2(Number(rate.amount ?? 0) * (1 + Number(rate.markup_pct ?? 0) / 100)) : 0;
+      const cur = String(rate?.currency ?? "USD"); if (rate) currencies.add(cur);
       if (!rate) missingRates.add(cMap.get(t.client_id) ?? "No client");
       const h = [Number(t.regular_hours ?? 0), Number(t.overtime_hours ?? 0), Number(t.double_time_hours ?? 0)];
       const amt = [r2(h[0] * br), r2(h[1] * br * OT), r2(h[2] * br * DT)];
       const rb = reimb.get(t.id) ?? { exp: 0, mile: 0 };
       const total = r2(amt[0] + amt[1] + amt[2] + rb.exp + rb.mile);
       reg += h[0]; ot += h[1]; dt += h[2]; gross += amt[0] + amt[1] + amt[2]; reimbTotal += rb.exp + rb.mile;
-      rows.push([t.work_date, cMap.get(t.client_id) ?? "", `${w?.first_name ?? ""} ${w?.last_name ?? ""}`.trim(), t.id, ...h, br, ...amt, r2(rb.exp), r2(rb.mile), total]);
+      rows.push([t.work_date, cMap.get(t.client_id) ?? "", `${w?.first_name ?? ""} ${w?.last_name ?? ""}`.trim(), t.id, ...h, br, ...amt, r2(rb.exp), r2(rb.mile), total, cur]);
     }
   }
+  if (currencies.size > 1) return jsonResponse({ error: `This batch mixes currencies (${[...currencies].join(", ")}). Export each currency in a separate batch so totals are not added across currencies.`, code: "mixed_currency" }, 409, corsHeaders);
+  const currency = [...currencies][0] ?? "USD";
   rows.push([]);
-  rows.push(["TOTAL", "", "", "", r2(reg), r2(ot), r2(dt), "", "", "", "", "", r2(reimbTotal), r2(gross + reimbTotal)]);
+  rows.push(kind === "payroll"
+    ? ["TOTAL", "", "", "", "", r2(reg), r2(ot), r2(dt), "", "", "", "", r2(reimbTotal), "", r2(gross + reimbTotal), currency]
+    : ["TOTAL", "", "", "", r2(reg), r2(ot), r2(dt), "", "", "", "", r2(reimbTotal), "", r2(gross + reimbTotal), currency]);
 
   const path = `${batch.agency_id}/${kind}/${batch.period_start}_${batchId}.csv`;
   const { error: upErr } = await admin.storage.from("tto-exports").upload(path, new Blob([csv(rows)], { type: "text/csv" }), { upsert: true, contentType: "text/csv" });
@@ -111,7 +118,7 @@ Deno.serve(withSentry("tto-export-batch", async (req) => {
   const totals = {
     ticket_count: tickets.length, regular_hours: r2(reg), overtime_hours: r2(ot), double_time_hours: r2(dt),
     [kind === "payroll" ? "gross_pay" : "amount"]: r2(gross), reimbursements: r2(reimbTotal), grand_total: r2(gross + reimbTotal),
-    missing_rates: [...missingRates],
+    missing_rates: [...missingRates], currency,
   };
   const { data: updated } = await admin.from(table).update({
     status: "exported", file_path: path, exported_at: new Date().toISOString(), exported_by: auth.user.id, totals,

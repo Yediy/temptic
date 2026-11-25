@@ -11,6 +11,7 @@ import { toast } from "sonner";
 
 const PAY_TYPES = ["regular", "overtime", "double_time", "holiday", "shift_diff", "bonus", "per_diem", "mileage"];
 const BILL_TYPES = ["regular", "overtime", "double_time", "holiday", "shift_diff", "travel", "expense"];
+const CURRENCIES = ["USD", "CAD", "MXN", "EUR", "GBP"];
 
 export default function RateBook() {
   const { agencyId } = useAuth();
@@ -32,14 +33,14 @@ export default function RateBook() {
   const { data: bills = [] } = useBillRates(agencyId ?? undefined);
   const addPay = useUpsertPayRate();
   const addBill = useUpsertBillRate();
-  const [pw, setPw] = useState({ worker_id: "", rate_type: "regular", amount: "", effective_from: today });
-  const [bw, setBw] = useState({ client_id: "", rate_type: "regular", amount: "", markup_pct: "0", effective_from: today });
+  const [pw, setPw] = useState({ worker_id: "", rate_type: "regular", amount: "", currency: "USD", effective_from: today });
+  const [bw, setBw] = useState({ client_id: "", rate_type: "regular", amount: "", markup_pct: "0", currency: "USD", effective_from: today });
 
   const submitPay = async () => {
     if (!agencyId || !pw.worker_id || !(Number(pw.amount) > 0)) return toast.error("Choose a worker and enter an hourly amount above 0");
     try {
-      await addPay.mutateAsync({ agency_id: agencyId, worker_id: pw.worker_id, rate_type: pw.rate_type, amount: Number(pw.amount), effective_from: pw.effective_from || null });
-      setPw({ worker_id: "", rate_type: "regular", amount: "", effective_from: today });
+      await addPay.mutateAsync({ agency_id: agencyId, worker_id: pw.worker_id, rate_type: pw.rate_type, amount: Number(pw.amount), currency: pw.currency, effective_from: pw.effective_from || null });
+      setPw({ worker_id: "", rate_type: "regular", amount: "", currency: "USD", effective_from: today });
       toast.success("Pay rate saved");
     } catch (e) { toast.error(e instanceof Error ? e.message : "Could not save pay rate"); }
   };
@@ -48,9 +49,9 @@ export default function RateBook() {
     try {
       await addBill.mutateAsync({
         agency_id: agencyId, client_id: bw.client_id, rate_type: bw.rate_type,
-        amount: Number(bw.amount), markup_pct: Number(bw.markup_pct || 0), effective_from: bw.effective_from || null,
+        amount: Number(bw.amount), markup_pct: Number(bw.markup_pct || 0), currency: bw.currency, effective_from: bw.effective_from || null,
       });
-      setBw({ client_id: "", rate_type: "regular", amount: "", markup_pct: "0", effective_from: today });
+      setBw({ client_id: "", rate_type: "regular", amount: "", markup_pct: "0", currency: "USD", effective_from: today });
       toast.success("Bill rate saved");
     } catch (e) { toast.error(e instanceof Error ? e.message : "Could not save bill rate"); }
   };
@@ -67,7 +68,10 @@ export default function RateBook() {
           <select aria-label="Rate type" className="border rounded p-2 text-sm bg-background" value={pw.rate_type} onChange={(e) => setPw({ ...pw, rate_type: e.target.value })}>
             {PAY_TYPES.map((t) => <option key={t}>{t}</option>)}
           </select>
-          <Input aria-label="Hourly pay" type="number" min="0" step="0.01" placeholder="Hourly pay (USD)" value={pw.amount} onChange={(e) => setPw({ ...pw, amount: e.target.value })} />
+          <Input aria-label="Hourly pay" type="number" min="0" step="0.01" placeholder="Hourly pay" value={pw.amount} onChange={(e) => setPw({ ...pw, amount: e.target.value })} />
+          <select aria-label="Currency" className="border rounded p-2 text-sm bg-background" value={pw.currency} onChange={(e) => setPw({ ...pw, currency: e.target.value })}>
+            {CURRENCIES.map((c) => <option key={c}>{c}</option>)}
+          </select>
           <Input aria-label="Starts on" type="date" value={pw.effective_from} onChange={(e) => setPw({ ...pw, effective_from: e.target.value })} />
           <Button size="sm" onClick={submitPay}>Add</Button>
         </div>
@@ -75,7 +79,7 @@ export default function RateBook() {
           {pays.map((r) => (
             <div key={String(r.id)} className="flex justify-between border-b py-1">
               <span>{workerName(r.worker_id)} · {String(r.rate_type)}{r.effective_from ? ` · from ${String(r.effective_from)}` : ""}</span>
-              <span>${Number(r.amount).toFixed(2)}</span>
+              <span>{Number(r.amount).toFixed(2)} {String(r.currency ?? "USD")}</span>
             </div>
           ))}
         </div>
@@ -91,7 +95,10 @@ export default function RateBook() {
           <select aria-label="Rate type" className="border rounded p-2 text-sm bg-background" value={bw.rate_type} onChange={(e) => setBw({ ...bw, rate_type: e.target.value })}>
             {BILL_TYPES.map((t) => <option key={t}>{t}</option>)}
           </select>
-          <Input aria-label="Hourly bill rate" type="number" min="0" step="0.01" placeholder="Hourly bill (USD)" value={bw.amount} onChange={(e) => setBw({ ...bw, amount: e.target.value })} />
+          <Input aria-label="Hourly bill rate" type="number" min="0" step="0.01" placeholder="Hourly bill" value={bw.amount} onChange={(e) => setBw({ ...bw, amount: e.target.value })} />
+          <select aria-label="Currency" className="border rounded p-2 text-sm bg-background" value={bw.currency} onChange={(e) => setBw({ ...bw, currency: e.target.value })}>
+            {CURRENCIES.map((c) => <option key={c}>{c}</option>)}
+          </select>
           <Input aria-label="Markup percent" type="number" min="0" step="0.1" placeholder="Markup %" value={bw.markup_pct} onChange={(e) => setBw({ ...bw, markup_pct: e.target.value })} />
           <Input aria-label="Starts on" type="date" value={bw.effective_from} onChange={(e) => setBw({ ...bw, effective_from: e.target.value })} />
           <Button size="sm" onClick={submitBill}>Add</Button>
@@ -100,7 +107,7 @@ export default function RateBook() {
           {bills.map((r) => (
             <div key={String(r.id)} className="flex justify-between border-b py-1">
               <span>{clientName(r.client_id)} · {String(r.rate_type)} · +{Number(r.markup_pct)}%{r.effective_from ? ` · from ${String(r.effective_from)}` : ""}</span>
-              <span>${Number(r.amount).toFixed(2)}</span>
+              <span>{Number(r.amount).toFixed(2)} {String(r.currency ?? "USD")}</span>
             </div>
           ))}
         </div>
