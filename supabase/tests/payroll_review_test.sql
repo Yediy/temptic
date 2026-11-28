@@ -1,0 +1,68 @@
+BEGIN;
+CREATE TEMP TABLE contract_test_context(agency uuid, actor uuid, worker uuid, client uuid, supervisor uuid, contract uuid, assignment uuid, ticket uuid);
+INSERT INTO contract_test_context(agency,actor)
+SELECT agency_id,user_id FROM public.agency_members WHERE is_active AND role::text IN ('agency_admin','agency_owner') ORDER BY created_at LIMIT 1;
+DO $$
+DECLARE f contract_test_context; cid uuid; aid uuid; tid uuid; denied boolean;
+BEGIN
+ SELECT * INTO f FROM contract_test_context;
+ IF f.actor IS NULL THEN RAISE EXCEPTION 'An agency manager is needed for this rollback-only test'; END IF;
+ INSERT INTO public.clients(agency_id,company_name) VALUES(f.agency,'Rollback fixture client') RETURNING id INTO f.client;
+ INSERT INTO public.workers(agency_id,first_name,last_name) VALUES(f.agency,'Rollback','Fixture') RETURNING id INTO f.worker;
+ INSERT INTO public.client_signers(client_id,first_name,last_name,email) VALUES(f.client,'Rollback','Supervisor','fixture@example.invalid') RETURNING id INTO f.supervisor;
+ PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',f.actor,'role','authenticated')::text,true);
+ cid:=public.create_tto_contract(f.agency,'Rollback $40 contract',f.client,NULL,f.supervisor,'Rollback-only fixture work',40,NULL,'USD','2026-11-01','2026-11-30');
+ aid:=public.create_tto_assignment(cid,f.worker,'2026-11-01','2026-11-30');
+ tid:=public.create_contracted_time_ticket(aid,'2026-11-25','2026-11-25T08:00:00Z','2026-11-25T16:00:00Z');
+ IF NOT EXISTS(SELECT 1 FROM public.tto_ticket_terms WHERE time_ticket_id=tid AND contract_id=cid AND assignment_id=aid AND pay_rate=40 AND currency='USD' AND supervisor_email='fixture@example.invalid') THEN RAISE EXCEPTION 'Ticket must freeze its contract, assignment, $40 pay, USD and named supervisor'; END IF;
+ denied:=false; BEGIN PERFORM public.create_contracted_time_ticket(aid,'2026-10-31'); EXCEPTION WHEN OTHERS THEN denied:=true; END;
+ IF NOT denied THEN RAISE EXCEPTION 'Work dates outside the assignment must be rejected'; END IF;
+ denied:=false; BEGIN INSERT INTO public.tto_time_tickets(agency_id,worker_id,client_id,work_date) VALUES(f.agency,f.worker,f.client,'2026-11-26'); EXCEPTION WHEN OTHERS THEN denied:=true; END;
+ IF NOT denied THEN RAISE EXCEPTION 'Uncontracted time tickets must be rejected'; END IF;
+ denied:=false; BEGIN UPDATE public.tto_ticket_terms SET pay_rate=99 WHERE time_ticket_id=tid; EXCEPTION WHEN OTHERS THEN denied:=true; END;
+ IF NOT denied THEN RAISE EXCEPTION 'Agreed ticket pay must be immutable'; END IF;
+ denied:=false; BEGIN UPDATE public.tto_time_tickets SET status='approved' WHERE id=tid; EXCEPTION WHEN insufficient_privilege THEN denied:=true; END;
+ IF NOT denied THEN RAISE EXCEPTION 'Direct browser approval must be rejected'; END IF;
+ PERFORM set_config('request.jwt.claims',jsonb_build_object('role','service_role')::text,true);
+ UPDATE public.tto_time_tickets SET status='submitted',regular_hours=8 WHERE id=tid;
+ PERFORM public.decide_contracted_time_ticket(tid,f.actor,'approve','Rollback-only approval check');
+ IF NOT EXISTS(SELECT 1 FROM public.tto_time_tickets WHERE id=tid AND status='approved' AND approved_by=f.actor) THEN RAISE EXCEPTION 'Authorized approval must update status'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM public.tto_payroll_batches WHERE agency_id=f.agency AND tid=ANY(ticket_ids)) THEN RAISE EXCEPTION 'Approved ticket must enter Payroll Prep'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM public.tto_audit_events WHERE time_ticket_id=tid AND action='ticket.approve' AND actor_id=f.actor) THEN RAISE EXCEPTION 'Approval must have an access-trail entry'; END IF;
+ denied:=false; BEGIN PERFORM public.decide_contracted_time_ticket(tid,f.actor,'approve'); EXCEPTION WHEN OTHERS THEN denied:=true; END;
+ IF NOT denied THEN RAISE EXCEPTION 'A second approval must be rejected'; END IF;
+ UPDATE contract_test_context SET worker=f.worker,client=f.client,supervisor=f.supervisor,contract=cid,assignment=aid,ticket=tid;
+END $$;
+DO $$
+DECLARE f contract_test_context; b public.tto_payroll_batches; duplicate uuid; denied boolean; deductions jsonb; snapshot jsonb;
+BEGIN
+ SELECT * INTO f FROM contract_test_context;
+ SELECT * INTO b FROM public.tto_payroll_batches WHERE f.ticket=ANY(ticket_ids) LIMIT 1;
+ deductions:=jsonb_build_array(jsonb_build_object('worker_id',f.worker,'label','Authorized repayment','amount',100));
+ snapshot:=jsonb_build_object('tickets',jsonb_build_array(jsonb_build_object('id',f.ticket,'regular_hours',8,'overtime_hours',0,'double_time_hours',0)),'workers',jsonb_build_array(jsonb_build_object('worker_id',f.worker,'gross_pay',320,'deductions',100,'net_pay',220)));
+ PERFORM public.save_tto_payroll_review(b.id,f.actor,deductions,b.period_end+1,'weekly','{"gross_pay":320,"deductions":100,"net_pay":220}'::jsonb,snapshot);
+ IF NOT EXISTS(SELECT 1 FROM public.tto_payroll_batches WHERE id=b.id AND deductions->0->>'amount'='100' AND pay_date=b.period_end+1 AND (totals->>'net_pay')::numeric=220) THEN RAISE EXCEPTION 'Saved review must retain pay date, deduction and net pay'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM public.tto_labor_costs WHERE time_ticket_id=f.ticket AND line_kind='regular' AND hours=8 AND rate=40 AND amount=320) THEN RAISE EXCEPTION 'Labor costs must use reviewed hours and agreed $40 pay'; END IF;
+ PERFORM public.save_tto_payroll_review(b.id,f.actor,deductions,b.period_end+1,'weekly','{"gross_pay":320,"deductions":100,"net_pay":220}'::jsonb,snapshot);
+ IF (SELECT count(*) FROM public.tto_labor_costs WHERE time_ticket_id=f.ticket)<>3 THEN RAISE EXCEPTION 'Saving again must not duplicate labor costs'; END IF;
+ denied:=false; BEGIN PERFORM public.save_tto_payroll_review(b.id,'00000000-0000-0000-0000-000000000000',deductions,b.period_end+1,'weekly','{}','{}'); EXCEPTION WHEN insufficient_privilege THEN denied:=true; END;
+ IF NOT denied THEN RAISE EXCEPTION 'An unrelated actor must not save payroll'; END IF;
+ denied:=false; BEGIN PERFORM public.save_tto_payroll_review(b.id,f.actor,jsonb_build_array(jsonb_build_object('worker_id',gen_random_uuid(),'label','Invalid worker','amount',1)),b.period_end+1,'weekly','{}','{}'); EXCEPTION WHEN OTHERS THEN denied:=true; END;
+ IF NOT denied THEN RAISE EXCEPTION 'Deduction worker must belong to the batch'; END IF;
+ PERFORM public.claim_tto_payroll_export(b.id,f.actor);
+ denied:=false; BEGIN PERFORM public.save_tto_payroll_review(b.id,f.actor,deductions,b.period_end+1,'weekly','{}','{}'); EXCEPTION WHEN OTHERS THEN denied:=true; END;
+ IF NOT denied THEN RAISE EXCEPTION 'Deductions must be locked while exporting'; END IF;
+ INSERT INTO public.tto_payroll_batches(agency_id,name,period_start,period_end,pay_date,status,ticket_ids) VALUES(f.agency,'Rollback overlap check',b.period_start,b.period_end,b.period_end+1,'prepared',ARRAY[f.ticket]) RETURNING id INTO duplicate;
+ denied:=false; BEGIN PERFORM public.claim_tto_payroll_export(duplicate,f.actor); EXCEPTION WHEN OTHERS THEN denied:=true; END;
+ IF NOT denied THEN RAISE EXCEPTION 'The same ticket must not be exported twice'; END IF;
+ UPDATE public.tto_payroll_batches SET status='exported' WHERE id=b.id;
+ denied:=false; BEGIN UPDATE public.tto_payroll_batches SET deductions='[]' WHERE id=b.id; EXCEPTION WHEN OTHERS THEN denied:=true; END;
+ IF NOT denied THEN RAISE EXCEPTION 'Exported deductions must be immutable'; END IF;
+ denied:=false; BEGIN DELETE FROM public.tto_payroll_batches WHERE id=b.id; EXCEPTION WHEN OTHERS THEN denied:=true; END;
+ IF NOT denied THEN RAISE EXCEPTION 'Exported payroll must not be deleted'; END IF;
+ IF has_function_privilege('authenticated','public.save_tto_payroll_review(uuid,uuid,jsonb,date,text,jsonb,jsonb)','EXECUTE') OR has_function_privilege('anon','public.claim_tto_payroll_export(uuid,uuid)','EXECUTE') THEN RAISE EXCEPTION 'Payroll writes must remain service-only'; END IF;
+END $$;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-000000000000","role":"authenticated"}',true);
+DO $$ BEGIN IF EXISTS(SELECT 1 FROM public.tto_payroll_batches) THEN RAISE EXCEPTION 'Unrelated users must not read payroll'; END IF; END $$;
+ROLLBACK;

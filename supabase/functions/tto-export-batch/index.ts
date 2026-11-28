@@ -6,6 +6,8 @@ import { requireUser, jsonResponse } from "../_shared/auth.ts";
 import { type ContractTerms } from "../_shared/contract-rates.ts";
 import { buildContractExport } from "../_shared/contract-export.ts";
 import { hasAgencyRole, TTO_PAYROLL, TTO_BILLING } from "../_shared/tto_access.ts";
+import { loadPayrollReview } from "../_shared/payroll-data.ts";
+import { payrollSignature } from "../_shared/payroll-calculation.ts";
 
 const ELIGIBLE = ["approved", "payroll_ready", "billing_ready", "closed"];
 
@@ -22,13 +24,29 @@ Deno.serve(withSentry("tto-export-batch", async (req) => {
 
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   const table = kind === "payroll" ? "tto_payroll_batches" : "tto_billing_batches";
-  const { data: batch } = await admin.from(table).select("*").eq("id", batchId).maybeSingle();
+  const { data: foundBatch } = await admin.from(table).select("*").eq("id", batchId).maybeSingle();
+  let batch=foundBatch;
   if (!batch) return jsonResponse({ error: "Batch not found", code: "not_found" }, 404, corsHeaders);
 
   if (!(await hasAgencyRole(admin, auth.user.id, batch.agency_id, kind === "payroll" ? TTO_PAYROLL : TTO_BILLING))) {
     return jsonResponse({ error: "You don't have access to export this batch", code: "forbidden" }, 403, corsHeaders);
   }
 
+  if(kind==="payroll"){
+    const claim=await admin.rpc("claim_tto_payroll_export",{_batch_id:batchId,_actor_id:auth.user.id});
+    if(claim.error)return jsonResponse({error:claim.error.message},409,corsHeaders);
+    batch=claim.data;
+  }
+  const originalStatus=batch.status;
+  try {
+  let generated: {csv:string;totals:Record<string,unknown>};
+  let snapshot:unknown;
+  if(kind==="payroll"){
+    const review=await loadPayrollReview(admin,batch.agency_id,{period_start:batch.period_start,period_end:batch.period_end,pay_date:batch.pay_date},batch.deductions??[],batch.ticket_ids??[]);
+    snapshot={workers:review.workers,tickets:review.tickets,totals:review.totals};
+    if(payrollSignature(snapshot)!==payrollSignature(batch.payroll_snapshot))return jsonResponse({error:"Approved work changed since review. Review and save payroll again before export."},409,corsHeaders);
+    generated=review;
+  } else {
   const ids: string[] = batch.ticket_ids ?? [];
   const { data: ticketsRaw } = ids.length
     ? await admin.from("tto_time_tickets").select("*").eq("agency_id", batch.agency_id).in("id", ids).in("status", ELIGIBLE).order("work_date")
@@ -50,9 +68,9 @@ Deno.serve(withSentry("tto-export-batch", async (req) => {
     reimb.set(e.time_ticket_id, cur);
   }
 
-  let generated: ReturnType<typeof buildContractExport>;
   try { generated = buildContractExport(kind, tickets, termsMap, reimb); }
   catch (e) { return jsonResponse({ error: e instanceof Error ? e.message : "Contract export cannot be generated", code: "invalid_contract_export" }, 409, corsHeaders); }
+  }
   const { totals } = generated;
 
   const path = `${batch.agency_id}/${kind}/${batch.period_start}_${batchId}.csv`;
@@ -61,6 +79,7 @@ Deno.serve(withSentry("tto-export-batch", async (req) => {
 
   const { data: updated, error: updateError } = await admin.from(table).update({
     status: "exported", file_path: path, exported_at: new Date().toISOString(), exported_by: auth.user.id, totals,
+    ...(kind==="payroll"?{payroll_snapshot:snapshot}:{}),
   }).eq("id", batchId).select().single();
   if (updateError) return jsonResponse({ error: updateError.message }, 500, corsHeaders);
 
@@ -70,4 +89,9 @@ Deno.serve(withSentry("tto-export-batch", async (req) => {
   });
 
   return jsonResponse({ ok: true, batch: updated }, 200, corsHeaders);
+  } catch(e) {
+    return jsonResponse({error:e instanceof Error?e.message:"Payroll export failed"},409,corsHeaders);
+  } finally {
+    if(kind==="payroll")await admin.from(table).update({status:originalStatus}).eq("id",batchId).eq("status","exporting");
+  }
 }));

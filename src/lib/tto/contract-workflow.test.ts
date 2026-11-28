@@ -18,7 +18,7 @@ describe("contracted pay for time tickets", () => {
   });
   it("Generate export includes the ticket, contract, assignment and its $40 pay in the CSV", () => {
     const result = buildContractExport("payroll", [{ id: "ticket-1", work_date: "2026-11-28", regular_hours: 8, overtime_hours: 0, double_time_hours: 0 }], new Map([["ticket-1", terms]]), new Map());
-    expect(result.csv.split("\n")[1]).toBe("2026-11-28,T01,Test worker,Test client,ticket-1,8,0,0,40,320,0,0,0,0,320,USD,contract-1,assignment-1,Test contract");
+    expect(result.csv.split("\n")[1]).toBe("2026-11-28,T01,Test worker,Test client,ticket-1,8,0,0,40,320,0,0,0,0,320,USD,contract-1,assignment-1,Test contract,0,320,320");
     expect(result.totals.grand_total).toBe(320);
   });
   it("blocks mixed-currency payroll totals", () => {

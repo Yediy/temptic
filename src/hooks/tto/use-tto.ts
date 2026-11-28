@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Any = any;
 
@@ -116,7 +117,7 @@ export function useTtoValidate() {
 export function useTtoPreparePayroll() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { agency_id: string; period_start: string; period_end: string; name?: string }) => {
+    mutationFn: async (input: { agency_id: string; period_start: string; period_end: string; pay_date:string;period_type:string;currency:string;deductions?:Array<{worker_id:string;label:string;amount:number}>;name?: string }) => {
       const { data, error } = await supabase.functions.invoke("tto-prepare-payroll", { body: input });
       if (error) throw error; return data;
     },
@@ -136,10 +137,12 @@ export function useTtoPrepareBilling() {
 }
 
 export function useTtoPayrollBatches() {
+  const {agencyId}=useAuth();
   return useQuery({
-    queryKey: ["tto-payroll-batches"],
+    queryKey: ["tto-payroll-batches",agencyId],enabled:!!agencyId,
     queryFn: async () => {
-      const { data, error } = await supabase.from("tto_payroll_batches" as Any).select("*").order("created_at", { ascending: false }).limit(50);
+      if(!agencyId)return [];
+      const { data, error } = await supabase.from("tto_payroll_batches" as Any).select("*").eq("agency_id",agencyId).order("created_at", { ascending: false }).limit(50);
       if (error) throw error; return (data ?? []) as unknown as Array<Record<string, unknown>>;
     },
   });

@@ -7691,13 +7691,17 @@ export type Database = {
           agency_id: string
           created_at: string
           created_by: string | null
+          deductions: Json
           exported_at: string | null
           exported_by: string | null
           file_path: string | null
           id: string
           name: string
+          pay_date: string | null
+          payroll_snapshot: Json
           period_end: string
           period_start: string
+          period_type: string
           status: string
           ticket_ids: string[] | null
           totals: Json | null
@@ -7707,13 +7711,17 @@ export type Database = {
           agency_id: string
           created_at?: string
           created_by?: string | null
+          deductions?: Json
           exported_at?: string | null
           exported_by?: string | null
           file_path?: string | null
           id?: string
           name: string
+          pay_date?: string | null
+          payroll_snapshot?: Json
           period_end: string
           period_start: string
+          period_type?: string
           status?: string
           ticket_ids?: string[] | null
           totals?: Json | null
@@ -7723,13 +7731,17 @@ export type Database = {
           agency_id?: string
           created_at?: string
           created_by?: string | null
+          deductions?: Json
           exported_at?: string | null
           exported_by?: string | null
           file_path?: string | null
           id?: string
           name?: string
+          pay_date?: string | null
+          payroll_snapshot?: Json
           period_end?: string
           period_start?: string
+          period_type?: string
           status?: string
           ticket_ids?: string[] | null
           totals?: Json | null
@@ -11735,6 +11747,10 @@ export type Database = {
         Args: { _key: string; _max_requests: number; _window_seconds: number }
         Returns: boolean
       }
+      claim_tto_payroll_export: {
+        Args: { _actor_id: string; _batch_id: string }
+        Returns: Json
+      }
       create_contracted_time_ticket: {
         Args: {
           _actual_end?: string
@@ -11810,6 +11826,18 @@ export type Database = {
       rollback_automation: {
         Args: { _automation_id: string; _target_version: number }
         Returns: number
+      }
+      save_tto_payroll_review: {
+        Args: {
+          _actor_id: string
+          _batch_id: string
+          _deductions: Json
+          _pay_date: string
+          _period_type: string
+          _snapshot: Json
+          _totals: Json
+        }
+        Returns: Json
       }
       sign_screening_consent: { Args: { _consent_id: string }; Returns: string }
       sign_screening_consent_version: {

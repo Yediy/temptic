@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 type Batch = Record<string, unknown> & { id: string; totals?: Record<string, unknown> | null; ticket_ids?: string[] | null };
 
-export function BatchList({ kind, batches }: { kind: "payroll" | "billing"; batches: Batch[] }) {
+export function BatchList({ kind, batches, onReview }: { kind: "payroll" | "billing"; batches: Batch[]; onReview?:(id:string)=>void }) {
   const qc = useQueryClient();
   const exportBatch = useMutation({
     mutationFn: async (batch_id: string) => {
@@ -22,9 +22,8 @@ export function BatchList({ kind, batches }: { kind: "payroll" | "billing"; batc
     },
     onSuccess: (d) => {
       qc.invalidateQueries({ queryKey: [`tto-${kind}-batches`] });
-      const missing = (d?.batch?.totals?.missing_rates ?? []) as string[];
+      qc.invalidateQueries({ queryKey: ["tto-payroll-review"] });
       toast.success("Export file ready");
-      if (missing.length) toast.warning(`No ${kind === "payroll" ? "pay" : "bill"} rate set for: ${missing.join(", ")} — amounts are $0`);
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Export failed"),
   });
@@ -36,7 +35,7 @@ export function BatchList({ kind, batches }: { kind: "payroll" | "billing"; batc
     window.location.assign(data.signedUrl);
   };
 
-  if (!batches.length) return <Card className="p-6 text-center text-sm text-muted-foreground">No batches yet. Approved tickets appear here automatically.</Card>;
+  if (!batches.length) return <p className="border-y py-6 text-center text-sm text-muted-foreground">No payroll batches yet.</p>;
 
   return (
     <div className="space-y-2">
@@ -56,9 +55,10 @@ export function BatchList({ kind, batches }: { kind: "payroll" | "billing"; batc
             </div>
             <div className="flex items-center gap-2">
               <Badge variant={open ? "outline" : "secondary"}>{open ? "collecting" : String(b.status)}</Badge>
-              <Button size="sm" variant="outline" disabled={exportBatch.isPending || count === 0} onClick={() => exportBatch.mutate(b.id)}>
+              {onReview&&<Button size="sm" variant="outline" onClick={()=>onReview(b.id)}>Review</Button>}
+              {(kind!=="payroll"||b.status!=="exported")&&<Button size="sm" variant="outline" disabled={exportBatch.isPending || count === 0 || (kind==="payroll"&&(!b.pay_date||b.status==="exporting"))} onClick={() => exportBatch.mutate(b.id)}>
                 <FileSpreadsheet className="mr-1 h-3.5 w-3.5" />{b.file_path ? "Regenerate" : "Generate export"}
-              </Button>
+              </Button>}
               {b.file_path && <Button size="sm" onClick={() => download(b)}><Download className="mr-1 h-3.5 w-3.5" />CSV</Button>}
             </div>
           </Card>
