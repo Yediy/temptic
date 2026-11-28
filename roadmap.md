@@ -1,4 +1,6 @@
 # Roadmap
+- [ ] Add one time-ticket screen: worker, client, contracted assignment, agreed pay, worked hours, then submit for approval
+- [ ] Confirm a live payroll CSV from that ticket — blocked: supervisor approval and authorized sign-in required
 - [x] Build pay-period payroll review with approved hours, overtime, deductions and net-pay CSV calculations
 - [x] Verify payroll calculations and deduction permissions with 26 automated checks and rollback-only payroll safety checks
 - [ ] Review and export live payroll while signed in — blocked: no approved contracted time exists, and sandbox sign-in is unavailable

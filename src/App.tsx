@@ -281,6 +281,7 @@ import TwinOrganization from "@/pages/twin/TwinOrganization";
 import TtoLayout from "@/pages/tto/TtoLayout";
 import TtoContracts from "@/pages/tto/Contracts";
 import TtoAssignments from "@/pages/tto/Assignments";
+import TtoNewTimeTicket from "@/pages/tto/NewTimeTicket";
 import PbLayout from "@/pages/pb/PbLayout";
 import PayrollCommandCenter from "@/pages/pb/PayrollCommandCenter";
 import PayrollRuns from "@/pages/pb/PayrollRuns";
@@ -665,6 +666,7 @@ const App = () => (
                   <Route index element={<TimeTicketDashboard />} />
                   <Route path="contracts" element={<TtoContracts />} />
                   <Route path="assignments" element={<TtoAssignments />} />
+                  <Route path="new-ticket" element={<TtoNewTimeTicket />} />
                   <Route path="live" element={<LiveLaborDashboard />} />
                   <Route path="site-qr" element={<SiteQrCodes />} />
                   <Route path="approvals" element={<SupervisorApprovalCenter />} />
