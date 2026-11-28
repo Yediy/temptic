@@ -3,6 +3,8 @@ import { Clock } from "lucide-react";
 
 const tabs = [
   { to: "/tto", label: "Dashboard", end: true },
+  { to: "/tto/contracts", label: "Contracts" },
+  { to: "/tto/assignments", label: "Assignments" },
   { to: "/tto/live", label: "Live Labor" },
   { to: "/tto/site-qr", label: "Site QR Codes" },
   { to: "/tto/approvals", label: "Approvals" },

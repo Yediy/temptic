@@ -3,20 +3,11 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { withSentry } from "../_shared/sentry.ts";
 import { requireUser, jsonResponse } from "../_shared/auth.ts";
+import { type ContractTerms } from "../_shared/contract-rates.ts";
+import { buildContractExport } from "../_shared/contract-export.ts";
+import { hasAgencyRole, TTO_PAYROLL, TTO_BILLING } from "../_shared/tto_access.ts";
 
-const OT = 1.5, DT = 2;
-const PAYROLL_ROLES = ["agency_admin", "payroll", "payroll_specialist"];
-const BILLING_ROLES = ["agency_admin", "payroll", "billing_specialist"];
 const ELIGIBLE = ["approved", "payroll_ready", "billing_ready", "closed"];
-
-const esc = (v: unknown) => { const s = v == null ? "" : String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
-const csv = (rows: unknown[][]) => rows.map((r) => r.map(esc).join(",")).join("\n") + "\n";
-const r2 = (n: number) => Math.round(n * 100) / 100;
-
-function rateFor<T extends { effective_from: string | null; effective_to: string | null }>(rates: T[], day: string) {
-  return rates.filter((r) => (!r.effective_from || r.effective_from <= day) && (!r.effective_to || r.effective_to >= day))
-    .sort((a, b) => String(b.effective_from ?? "").localeCompare(String(a.effective_from ?? "")))[0];
-}
 
 Deno.serve(withSentry("tto-export-batch", async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -34,95 +25,44 @@ Deno.serve(withSentry("tto-export-batch", async (req) => {
   const { data: batch } = await admin.from(table).select("*").eq("id", batchId).maybeSingle();
   if (!batch) return jsonResponse({ error: "Batch not found", code: "not_found" }, 404, corsHeaders);
 
-  const [{ data: roles }, { data: member }] = await Promise.all([
-    admin.from("user_roles").select("role").eq("user_id", auth.user.id),
-    admin.from("agency_members").select("agency_id").eq("user_id", auth.user.id).eq("agency_id", batch.agency_id).maybeSingle(),
-  ]);
-  const allowed = kind === "payroll" ? PAYROLL_ROLES : BILLING_ROLES;
-  if (!member || !(roles ?? []).some((r) => allowed.includes(r.role))) {
+  if (!(await hasAgencyRole(admin, auth.user.id, batch.agency_id, kind === "payroll" ? TTO_PAYROLL : TTO_BILLING))) {
     return jsonResponse({ error: "You don't have access to export this batch", code: "forbidden" }, 403, corsHeaders);
   }
 
   const ids: string[] = batch.ticket_ids ?? [];
   const { data: ticketsRaw } = ids.length
-    ? await admin.from("tto_time_tickets").select("*").in("id", ids).in("status", ELIGIBLE).order("work_date")
+    ? await admin.from("tto_time_tickets").select("*").eq("agency_id", batch.agency_id).in("id", ids).in("status", ELIGIBLE).order("work_date")
     : { data: [] };
   const tickets = ticketsRaw ?? [];
+  if (!tickets.length || tickets.length !== new Set(ids).size) return jsonResponse({ error: "Every batch ticket must be approved and belong to this agency.", code: "ineligible_tickets" }, 409, corsHeaders);
   const tIds = tickets.map((t) => t.id);
-  const workerIds = [...new Set(tickets.map((t) => t.worker_id))];
-  const clientIds = [...new Set(tickets.map((t) => t.client_id).filter(Boolean))];
 
-  const [{ data: workers }, { data: clients }, { data: evidence }, { data: payRates }, { data: billRates }] = await Promise.all([
-    workerIds.length ? admin.from("workers").select("id,worker_code,first_name,last_name").in("id", workerIds) : { data: [] },
-    clientIds.length ? admin.from("clients").select("id,company_name").in("id", clientIds) : { data: [] },
-    tIds.length ? admin.from("tto_ticket_evidence").select("time_ticket_id,kind,amount,mileage_total").in("time_ticket_id", tIds).eq("status", "approved").in("kind", ["expense", "mileage"]) : { data: [] },
-    workerIds.length ? admin.from("pb_worker_pay_rates").select("*").eq("agency_id", batch.agency_id).in("worker_id", workerIds) : { data: [] },
-    clientIds.length ? admin.from("pb_client_bill_rates").select("*").eq("agency_id", batch.agency_id).in("client_id", clientIds) : { data: [] },
+  const [termsResult, evidenceResult] = await Promise.all([
+    admin.from("tto_ticket_terms").select("*").eq("agency_id", batch.agency_id).in("time_ticket_id", tIds),
+    admin.from("tto_ticket_evidence").select("time_ticket_id,kind,amount,mileage_total").eq("agency_id", batch.agency_id).in("time_ticket_id", tIds).eq("status", "approved").in("kind", ["expense", "mileage"]),
   ]);
-  const wMap = new Map((workers ?? []).map((w) => [w.id, w]));
-  const cMap = new Map((clients ?? []).map((c) => [c.id, c.company_name]));
+  if (termsResult.error || evidenceResult.error) return jsonResponse({ error: termsResult.error?.message ?? evidenceResult.error?.message }, 500, corsHeaders);
+  const termsMap = new Map<string, ContractTerms>((termsResult.data ?? []).map(t => [t.time_ticket_id, t as ContractTerms]));
   const reimb = new Map<string, { exp: number; mile: number }>();
-  for (const e of evidence ?? []) {
+  for (const e of evidenceResult.data ?? []) {
     const cur = reimb.get(e.time_ticket_id) ?? { exp: 0, mile: 0 };
     if (e.kind === "expense") cur.exp += Number(e.amount ?? 0); else cur.mile += Number(e.mileage_total ?? 0);
     reimb.set(e.time_ticket_id, cur);
   }
 
-  const missingRates = new Set<string>();
-  const currencies = new Set<string>();
-  let reg = 0, ot = 0, dt = 0, gross = 0, reimbTotal = 0;
-  let rows: unknown[][];
-
-  if (kind === "payroll") {
-    rows = [["work_date", "worker_code", "worker_name", "client", "ticket_id", "regular_hours", "overtime_hours", "double_time_hours", "pay_rate", "regular_pay", "overtime_pay", "double_time_pay", "expenses", "mileage", "total_pay", "currency"]];
-    for (const t of tickets) {
-      const w = wMap.get(t.worker_id);
-      const rate = rateFor((payRates ?? []).filter((r) => r.worker_id === t.worker_id && (r.rate_type ?? "regular") === "regular"), t.work_date);
-      const pr = Number(rate?.amount ?? 0);
-      const cur = String(rate?.currency ?? "USD"); if (rate) currencies.add(cur);
-      if (!rate) missingRates.add(`${w?.first_name ?? ""} ${w?.last_name ?? ""}`.trim() || t.worker_id);
-      const h = [Number(t.regular_hours ?? 0), Number(t.overtime_hours ?? 0), Number(t.double_time_hours ?? 0)];
-      const pay = [r2(h[0] * pr), r2(h[1] * pr * OT), r2(h[2] * pr * DT)];
-      const rb = reimb.get(t.id) ?? { exp: 0, mile: 0 };
-      const total = r2(pay[0] + pay[1] + pay[2] + rb.exp + rb.mile);
-      reg += h[0]; ot += h[1]; dt += h[2]; gross += pay[0] + pay[1] + pay[2]; reimbTotal += rb.exp + rb.mile;
-      rows.push([t.work_date, w?.worker_code, `${w?.first_name ?? ""} ${w?.last_name ?? ""}`.trim(), cMap.get(t.client_id) ?? "", t.id, ...h, pr, ...pay, r2(rb.exp), r2(rb.mile), total, cur]);
-    }
-  } else {
-    rows = [["work_date", "client", "worker_name", "ticket_id", "regular_hours", "overtime_hours", "double_time_hours", "bill_rate", "regular_amount", "overtime_amount", "double_time_amount", "expenses", "mileage", "total_amount", "currency"]];
-    for (const t of tickets) {
-      const w = wMap.get(t.worker_id);
-      const rate = rateFor((billRates ?? []).filter((r) => r.client_id === t.client_id && (r.rate_type ?? "regular") === "regular"), t.work_date);
-      const br = rate ? r2(Number(rate.amount ?? 0) * (1 + Number(rate.markup_pct ?? 0) / 100)) : 0;
-      const cur = String(rate?.currency ?? "USD"); if (rate) currencies.add(cur);
-      if (!rate) missingRates.add(cMap.get(t.client_id) ?? "No client");
-      const h = [Number(t.regular_hours ?? 0), Number(t.overtime_hours ?? 0), Number(t.double_time_hours ?? 0)];
-      const amt = [r2(h[0] * br), r2(h[1] * br * OT), r2(h[2] * br * DT)];
-      const rb = reimb.get(t.id) ?? { exp: 0, mile: 0 };
-      const total = r2(amt[0] + amt[1] + amt[2] + rb.exp + rb.mile);
-      reg += h[0]; ot += h[1]; dt += h[2]; gross += amt[0] + amt[1] + amt[2]; reimbTotal += rb.exp + rb.mile;
-      rows.push([t.work_date, cMap.get(t.client_id) ?? "", `${w?.first_name ?? ""} ${w?.last_name ?? ""}`.trim(), t.id, ...h, br, ...amt, r2(rb.exp), r2(rb.mile), total, cur]);
-    }
-  }
-  if (currencies.size > 1) return jsonResponse({ error: `This batch mixes currencies (${[...currencies].join(", ")}). Export each currency in a separate batch so totals are not added across currencies.`, code: "mixed_currency" }, 409, corsHeaders);
-  const currency = [...currencies][0] ?? "USD";
-  rows.push([]);
-  rows.push(kind === "payroll"
-    ? ["TOTAL", "", "", "", "", r2(reg), r2(ot), r2(dt), "", "", "", "", r2(reimbTotal), "", r2(gross + reimbTotal), currency]
-    : ["TOTAL", "", "", "", r2(reg), r2(ot), r2(dt), "", "", "", "", r2(reimbTotal), "", r2(gross + reimbTotal), currency]);
+  let generated: ReturnType<typeof buildContractExport>;
+  try { generated = buildContractExport(kind, tickets, termsMap, reimb); }
+  catch (e) { return jsonResponse({ error: e instanceof Error ? e.message : "Contract export cannot be generated", code: "invalid_contract_export" }, 409, corsHeaders); }
+  const { totals } = generated;
 
   const path = `${batch.agency_id}/${kind}/${batch.period_start}_${batchId}.csv`;
-  const { error: upErr } = await admin.storage.from("tto-exports").upload(path, new Blob([csv(rows)], { type: "text/csv" }), { upsert: true, contentType: "text/csv" });
+  const { error: upErr } = await admin.storage.from("tto-exports").upload(path, new Blob([generated.csv], { type: "text/csv" }), { upsert: true, contentType: "text/csv" });
   if (upErr) return jsonResponse({ error: upErr.message, code: "internal" }, 500, corsHeaders);
 
-  const totals = {
-    ticket_count: tickets.length, regular_hours: r2(reg), overtime_hours: r2(ot), double_time_hours: r2(dt),
-    [kind === "payroll" ? "gross_pay" : "amount"]: r2(gross), reimbursements: r2(reimbTotal), grand_total: r2(gross + reimbTotal),
-    missing_rates: [...missingRates], currency,
-  };
-  const { data: updated } = await admin.from(table).update({
+  const { data: updated, error: updateError } = await admin.from(table).update({
     status: "exported", file_path: path, exported_at: new Date().toISOString(), exported_by: auth.user.id, totals,
   }).eq("id", batchId).select().single();
+  if (updateError) return jsonResponse({ error: updateError.message }, 500, corsHeaders);
 
   await admin.from("tto_audit_events").insert({
     agency_id: batch.agency_id, actor_id: auth.user.id, actor_kind: "agency",

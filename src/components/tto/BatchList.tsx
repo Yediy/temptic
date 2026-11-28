@@ -50,7 +50,7 @@ export function BatchList({ kind, batches }: { kind: "payroll" | "billing"; batc
               <div className="font-medium">{String(b.name)}</div>
               <div className="text-xs text-muted-foreground">
                 {String(b.period_start)} – {String(b.period_end)} · {count} ticket{count === 1 ? "" : "s"}
-                {t.grand_total != null && ` · $${Number(t.grand_total).toFixed(2)}`}
+                {t.grand_total != null && ` · ${Number(t.grand_total).toFixed(2)} ${String(t.currency ?? "USD")}`}
                 {b.exported_at ? ` · exported ${new Date(String(b.exported_at)).toLocaleString()}` : ""}
               </div>
             </div>

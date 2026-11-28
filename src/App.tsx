@@ -279,6 +279,8 @@ import TwinTimeline from "@/pages/twin/TwinTimeline";
 import TwinKnowledgeGraph from "@/pages/twin/TwinKnowledgeGraph";
 import TwinOrganization from "@/pages/twin/TwinOrganization";
 import TtoLayout from "@/pages/tto/TtoLayout";
+import TtoContracts from "@/pages/tto/Contracts";
+import TtoAssignments from "@/pages/tto/Assignments";
 import PbLayout from "@/pages/pb/PbLayout";
 import PayrollCommandCenter from "@/pages/pb/PayrollCommandCenter";
 import PayrollRuns from "@/pages/pb/PayrollRuns";
@@ -666,6 +668,15 @@ const App = () => (
                   <Route path="coach" element={<PassportCareerCoach />} />
                   <Route path="opportunities" element={<PassportOpportunities />} />
                   <Route path="settings" element={<PassportSettings />} />
+                </Route>
+              </Route>
+            </Route>
+
+            <Route element={<ProtectedRoute allowedRoles={["super_admin", "agency_owner", "agency_admin", "dispatcher", "payroll"]} redirectTo="/login" />}>
+              <Route element={<AppLayout />}>
+                <Route element={<TtoLayout />}>
+                  <Route path="/tto/contracts" element={<TtoContracts />} />
+                  <Route path="/tto/assignments" element={<TtoAssignments />} />
                 </Route>
               </Route>
             </Route>

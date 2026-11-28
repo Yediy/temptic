@@ -61,8 +61,10 @@ Deno.serve(withSentry("tto-send-approval-link", async (req) => {
 
   const { data: tClient } = await admin.from("clients").select("agency_id").eq("id", ticket.client_id).maybeSingle();
   if (!tClient || tClient.agency_id !== ticket.agency_id) return jsonResponse({ error: "Ticket client is not part of this agency", code: "forbidden" }, 403, corsHeaders);
+  const { data: terms, error: termsError } = await admin.from("tto_ticket_terms").select("supervisor_id,supervisor_email").eq("time_ticket_id", ticketId).eq("agency_id", ticket.agency_id).maybeSingle();
+  if (termsError || !terms) return jsonResponse({ error: "Contract supervisor must be recorded before sending an approval", code: "missing_contract" }, 409, corsHeaders);
 
-  let q = admin.from("client_signers").select("id,first_name,email,phone,site_id,user_id").eq("client_id", ticket.client_id).eq("is_active", true);
+  let q = admin.from("client_signers").select("id,first_name,email,phone,site_id,user_id").eq("id", terms.supervisor_id).eq("client_id", ticket.client_id).eq("is_active", true);
   if (ticket.site_id) q = q.or(`site_id.eq.${ticket.site_id},site_id.is.null`);
   const { data: signers } = await q;
   if (!signers?.length) return jsonResponse({ error: "No active client supervisors for this ticket", code: "bad_request" }, 400, corsHeaders);
@@ -81,7 +83,7 @@ Deno.serve(withSentry("tto-send-approval-link", async (req) => {
     for (const ch of channels) {
       // SMS only goes to supervisors who have activated their own account (verified contact).
       if (ch === "sms" && !s.user_id) continue;
-      const recipient = ch === "email" ? s.email : s.phone;
+      const recipient = ch === "email" ? terms.supervisor_email : s.phone;
       if (!recipient) continue;
       const t = token();
       const { error } = await admin.from("tto_approval_links").insert({

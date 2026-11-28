@@ -508,6 +508,7 @@ export type Database = {
         Row: {
           agency_id: string
           client_id: string | null
+          contract_id: string | null
           created_at: string
           ends_on: string | null
           id: string
@@ -521,6 +522,7 @@ export type Database = {
         Insert: {
           agency_id: string
           client_id?: string | null
+          contract_id?: string | null
           created_at?: string
           ends_on?: string | null
           id?: string
@@ -534,6 +536,7 @@ export type Database = {
         Update: {
           agency_id?: string
           client_id?: string | null
+          contract_id?: string | null
           created_at?: string
           ends_on?: string | null
           id?: string
@@ -557,6 +560,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assignments_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "tto_contracts"
             referencedColumns: ["id"]
           },
           {
@@ -7458,6 +7468,86 @@ export type Database = {
           },
         ]
       }
+      tto_contracts: {
+        Row: {
+          agency_id: string
+          bill_rate: number | null
+          client_id: string
+          created_at: string
+          created_by: string
+          currency: string
+          ends_on: string | null
+          id: string
+          pay_rate: number
+          reference: string
+          site_id: string | null
+          starts_on: string
+          supervisor_id: string
+          work_details: string
+        }
+        Insert: {
+          agency_id: string
+          bill_rate?: number | null
+          client_id: string
+          created_at?: string
+          created_by: string
+          currency?: string
+          ends_on?: string | null
+          id?: string
+          pay_rate: number
+          reference: string
+          site_id?: string | null
+          starts_on: string
+          supervisor_id: string
+          work_details: string
+        }
+        Update: {
+          agency_id?: string
+          bill_rate?: number | null
+          client_id?: string
+          created_at?: string
+          created_by?: string
+          currency?: string
+          ends_on?: string | null
+          id?: string
+          pay_rate?: number
+          reference?: string
+          site_id?: string | null
+          starts_on?: string
+          supervisor_id?: string
+          work_details?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tto_contracts_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tto_contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tto_contracts_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "client_sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tto_contracts_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "client_signers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tto_expense_entries: {
         Row: {
           agency_id: string
@@ -7870,6 +7960,96 @@ export type Database = {
             foreignKeyName: "tto_ticket_evidence_time_ticket_id_fkey"
             columns: ["time_ticket_id"]
             isOneToOne: false
+            referencedRelation: "tto_time_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tto_ticket_terms: {
+        Row: {
+          agency_id: string
+          assignment_id: string
+          bill_rate: number | null
+          captured_at: string
+          client_name: string
+          contract_id: string
+          contract_reference: string
+          currency: string
+          pay_rate: number
+          supervisor_email: string
+          supervisor_id: string
+          time_ticket_id: string
+          work_details: string
+          worker_code: string | null
+          worker_name: string
+        }
+        Insert: {
+          agency_id: string
+          assignment_id: string
+          bill_rate?: number | null
+          captured_at?: string
+          client_name: string
+          contract_id: string
+          contract_reference: string
+          currency: string
+          pay_rate: number
+          supervisor_email: string
+          supervisor_id: string
+          time_ticket_id: string
+          work_details: string
+          worker_code?: string | null
+          worker_name: string
+        }
+        Update: {
+          agency_id?: string
+          assignment_id?: string
+          bill_rate?: number | null
+          captured_at?: string
+          client_name?: string
+          contract_id?: string
+          contract_reference?: string
+          currency?: string
+          pay_rate?: number
+          supervisor_email?: string
+          supervisor_id?: string
+          time_ticket_id?: string
+          work_details?: string
+          worker_code?: string | null
+          worker_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tto_ticket_terms_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tto_ticket_terms_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tto_ticket_terms_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "tto_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tto_ticket_terms_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "client_signers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tto_ticket_terms_time_ticket_id_fkey"
+            columns: ["time_ticket_id"]
+            isOneToOne: true
             referencedRelation: "tto_time_tickets"
             referencedColumns: ["id"]
           },
@@ -11555,9 +11735,52 @@ export type Database = {
         Args: { _key: string; _max_requests: number; _window_seconds: number }
         Returns: boolean
       }
+      create_contracted_time_ticket: {
+        Args: {
+          _actual_end?: string
+          _actual_start?: string
+          _assignment_id: string
+          _work_date: string
+        }
+        Returns: string
+      }
+      create_tto_assignment: {
+        Args: {
+          _contract_id: string
+          _ends_on: string
+          _starts_on: string
+          _worker_id: string
+        }
+        Returns: string
+      }
+      create_tto_contract: {
+        Args: {
+          _agency_id: string
+          _bill_rate: number
+          _client_id: string
+          _currency: string
+          _ends_on: string
+          _pay_rate: number
+          _reference: string
+          _site_id: string
+          _starts_on: string
+          _supervisor_id: string
+          _work_details: string
+        }
+        Returns: string
+      }
       decide_automation_action: {
         Args: { _approval_id: string; _approve: boolean; _reason?: string }
         Returns: Json
+      }
+      decide_contracted_time_ticket: {
+        Args: {
+          _actor_id: string
+          _comment?: string
+          _decision: string
+          _ticket_id: string
+        }
+        Returns: string
       }
       download_worker_screening: {
         Args: {

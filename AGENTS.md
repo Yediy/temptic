@@ -1,4 +1,5 @@
 # Project Rules
+- New TTO tickets require a tenant-validated contracted assignment; immutable private tto_ticket_terms snapshots supply export/payroll rates, currency and the sole contract supervisor, while public creation RPCs delegate to private role-checked functions; why: agreed pay and legal reviewer must not drift or leak to workers.
 
 - Compliance reports audit screening metadata before displaying it, scope agency reads explicitly, and leave platform security findings super-admin-only; why: consolidated review must preserve existing privacy and access traceability.
 - Screening detail screens share worker and read-only agency views; agency reads use explicit safe fields and audited tenant-scoped access, while signing remains on the worker-only versioned RPC; why: reviewers must never sign on a worker's behalf.

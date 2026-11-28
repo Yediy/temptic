@@ -24,27 +24,11 @@ Deno.serve(withSentry("tto-approve-ticket", async (req) => {
   if (!ticket) return jsonResponse({ error: "Not found", code: "not_found" }, 404, corsHeaders);
   if (!(await hasAgencyRole(admin, auth.user.id, ticket.agency_id, TTO_STAFF))) return jsonResponse({ error: "Forbidden", code: "forbidden" }, 403, corsHeaders);
 
-  await admin.from("tto_ticket_approvals").insert({
-    agency_id: ticket.agency_id, time_ticket_id,
-    approver_id: auth.user.id, approver_kind: "agency",
-    decision, comment: body.comment ?? null, channel: "portal",
+  const { data: status, error } = await admin.rpc("decide_contracted_time_ticket", {
+    _ticket_id: time_ticket_id, _actor_id: auth.user.id, _decision: decision,
+    _comment: typeof body.comment === "string" ? body.comment.slice(0, 2000) : null,
   });
-
-  const status = decision === "approve" ? "approved" : decision === "reject" ? "rejected" : "corrected";
-  const patch: Record<string, unknown> = { status };
-  if (decision === "approve") { patch.approved_at = new Date().toISOString(); patch.approved_by = auth.user.id; }
-  await admin.from("tto_time_tickets").update(patch).eq("id", time_ticket_id);
-
-  await admin.from("tto_audit_events").insert({
-    agency_id: ticket.agency_id, time_ticket_id, actor_id: auth.user.id, actor_kind: "agency",
-    action: `ticket.${decision}`, reason: body.comment ? String(body.comment) : null,
-  });
-
-  await admin.from("ttos_events").insert({
-    agency_id: ticket.agency_id, module: "time_ticket", name: `time.ticket.${decision}`,
-    actor_id: auth.user.id, entity_type: "tto_time_ticket", entity_id: time_ticket_id,
-    metadata: { comment: body.comment ?? null },
-  });
+  if (error) return jsonResponse({ error: error.message, code: error.code === "42501" ? "forbidden" : "conflict" }, error.code === "42501" ? 403 : 409, corsHeaders);
 
   return jsonResponse({ ok: true, status }, 200, corsHeaders);
 }));

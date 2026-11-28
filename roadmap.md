@@ -1,4 +1,8 @@
 # Roadmap
+- [ ] Build agency contract and assignment screens, with ticket creation from immutable agreed terms
+- [ ] Create the first Prostaffing contract from scratch with the user's agreed $40/hour pay — awaiting the real worker/client assignment and worked times
+- [ ] Connect contracted pay/currency to payroll preparation and CSV export, with regression tests
+- [ ] Approve and export a real contracted ticket — blocked: worker/client, worked times and authorized signed-in approver required; user specified $40/hour pay
 - [x] Connect Twilio and configure the existing SMS-enabled sending number for time-approval links; redeploy sending service
 - [ ] Send a real approval text and verify ticket status — blocked: no time tickets exist, recipient sign-off type awaits confirmation, and approval must be performed by the authorized recipient
 - [x] Build 6.3A reasoning service: two-model critical reviews, disagreements, contradictions; live AI calls and privacy checks pass
