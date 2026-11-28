@@ -1,5 +1,5 @@
 # Roadmap
-- [ ] Add one time-ticket screen: worker, client, contracted assignment, agreed pay, worked hours, then submit for approval
+- [x] Add one time-ticket screen: worker, client, contracted assignment, agreed pay, worked hours, then submit for approval
 - [ ] Confirm a live payroll CSV from that ticket — blocked: supervisor approval and authorized sign-in required
 - [x] Build pay-period payroll review with approved hours, overtime, deductions and net-pay CSV calculations
 - [x] Verify payroll calculations and deduction permissions with 26 automated checks and rollback-only payroll safety checks
@@ -23,3 +23,4 @@
 - [ ] Enable leaked-password protection — blocked: owner must enable external Supabase authentication setting (Pro or higher)
 - [x] Build worker screening report/consent pages with audited versioned reads, signing and downloads; seven UI/logic checks pass
 - [ ] Run screening document SQL lifecycle test and signed-in download check — blocked: external session unavailable and no screening records exist
+- [ ] Run a live payroll and client invoice — blocked: approved contracted ticket needed (contract start date, worked hours, supervisor approval)

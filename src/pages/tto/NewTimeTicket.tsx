@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useContractCatalog, useContracts, useContractAssignments, useCreateContract, useCreateContractAssignment, useCreateContractTicket } from "@/hooks/tto/use-contract-workflow";
 import { useTtoSubmit } from "@/hooks/tto/use-tto";
 import { oneYearEndDate } from "@/lib/tto/contract-validation";
+import { billRateFromMarkup } from "../../../supabase/functions/_shared/contract-invoice";
 import { shiftFromHours } from "@/lib/tto/ticket-entry";
 
 const NEW = "new";
@@ -18,7 +19,7 @@ export default function NewTimeTicket() {
   const catalog = useContractCatalog(); const contracts = useContracts(); const assignments = useContractAssignments();
   const createContract = useCreateContract(); const createAssignment = useCreateContractAssignment(); const createTicket = useCreateContractTicket(); const submit = useTtoSubmit();
   const [worker, setWorker] = useState(""); const [client, setClient] = useState(""); const [assignmentId, setAssignmentId] = useState("");
-  const [supervisor, setSupervisor] = useState(""); const [work, setWork] = useState(""); const [pay, setPay] = useState(""); const [currency, setCurrency] = useState("USD");
+  const [supervisor, setSupervisor] = useState(""); const [work, setWork] = useState(""); const [pay, setPay] = useState(""); const [currency, setCurrency] = useState("USD"); const [markup, setMarkup] = useState("");
   const [startsOn, setStartsOn] = useState(""); const [endsOn, setEndsOn] = useState("");
   const [workDate, setWorkDate] = useState(""); const [startTime, setStartTime] = useState(""); const [hours, setHours] = useState(""); const [zone, setZone] = useState("America/New_York");
   const [done, setDone] = useState<string | null>(null); const [busy, setBusy] = useState(false);
@@ -37,7 +38,7 @@ export default function NewTimeTicket() {
       const shift = shiftFromHours(workDate, startTime, Number(hours), zone);
       let assignment = assignmentId;
       if (isNew) {
-        const contractId = await createContract.mutateAsync({ reference: `${catalog.data?.clients.find(c => c.id === client)?.company_name ?? "Client"} · ${work.trim().slice(0, 80)}`, client_id: client, site_id: null, supervisor_id: supervisor, work_details: work, pay_rate: Number(pay), bill_rate: null, currency, starts_on: startsOn, ends_on: endsOn || null });
+        const contractId = await createContract.mutateAsync({ reference: `${catalog.data?.clients.find(c => c.id === client)?.company_name ?? "Client"} · ${work.trim().slice(0, 80)}`, client_id: client, site_id: null, supervisor_id: supervisor, work_details: work, pay_rate: Number(pay), bill_rate: markup ? billRateFromMarkup(Number(pay), Number(markup)) : null, currency, starts_on: startsOn, ends_on: endsOn || null });
         assignment = await createAssignment.mutateAsync({ contract_id: contractId, worker_id: worker, starts_on: startsOn, ends_on: endsOn || null });
       }
       const ticketId = await createTicket.mutateAsync({ assignment_id: assignment, work_date: workDate, ...shift });
@@ -62,6 +63,7 @@ export default function NewTimeTicket() {
       <div className="sm:col-span-2"><Label>Contract supervisor (approves the ticket)</Label><Select value={supervisor} onValueChange={setSupervisor}><SelectTrigger aria-label="Contract supervisor"><SelectValue placeholder={supervisors.length ? "Choose supervisor" : "This client has no supervisor with an email"} /></SelectTrigger><SelectContent>{supervisors.map(s => <SelectItem key={s.id} value={s.id}>{s.first_name} {s.last_name} · {s.email}</SelectItem>)}</SelectContent></Select></div>
       <div className="sm:col-span-2"><Label htmlFor="ticket-work">Contracted work</Label><Textarea id="ticket-work" required maxLength={10000} rows={2} value={work} onChange={e => setWork(e.target.value)} /></div>
       <div><Label htmlFor="ticket-pay">Agreed hourly pay</Label><Input id="ticket-pay" type="number" min="0.01" step="0.01" required value={pay} onChange={e => setPay(e.target.value)} /></div>
+      <div><Label htmlFor="ticket-markup">Client markup %</Label><Input id="ticket-markup" type="number" min="0" max="500" step="0.1" value={markup} onChange={e => setMarkup(e.target.value)} /><p className="mt-1 text-xs text-muted-foreground">{pay && markup ? `Client bill rate: ${(Number(pay) * (1 + Number(markup) / 100)).toFixed(2)} ${currency}/h` : "Needed to invoice the client"}</p></div>
       <div><Label>Currency</Label><Select value={currency} onValueChange={setCurrency}><SelectTrigger aria-label="Currency"><SelectValue /></SelectTrigger><SelectContent>{["USD", "CAD", "MXN", "EUR", "GBP"].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select></div>
       <div><Label htmlFor="ticket-starts">Contract starts</Label><Input id="ticket-starts" type="date" required value={startsOn} onChange={e => { setStartsOn(e.target.value); setEndsOn(oneYearEndDate(e.target.value)); }} /></div>
       <div><Label htmlFor="ticket-ends">Contract ends</Label><Input id="ticket-ends" type="date" min={startsOn} value={endsOn} onChange={e => setEndsOn(e.target.value)} /></div>

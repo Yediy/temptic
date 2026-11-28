@@ -32,7 +32,7 @@ export default function Invoices() {
     if (!agencyId || !start || !end) return toast.error("Set start and end dates");
     try {
       const r = await gen.mutateAsync({ agency_id: agencyId, period_start: start, period_end: end });
-      toast.success(`Generated ${r.count ?? 0} invoices`);
+      toast.success(`Generated ${r.count ?? 0} invoices`, { description: r.skipped?.length ? `${r.skipped.length} approved tickets skipped (already invoiced or no agreed bill rate).` : undefined });
     } catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); }
   };
 
