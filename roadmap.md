@@ -1,10 +1,10 @@
 # Roadmap
-- [ ] Build agency contract and assignment screens, with ticket creation from immutable agreed terms
-- [ ] Create the first Prostaffing contract from scratch with the user's agreed $40/hour pay — awaiting the real worker/client assignment and worked times
-- [ ] Connect contracted pay/currency to payroll preparation and CSV export, with regression tests
-- [ ] Approve and export a real contracted ticket — blocked: worker/client, worked times and authorized signed-in approver required; user specified $40/hour pay
+- [x] Build agency contract and assignment screens, with ticket creation from immutable agreed terms
+- [ ] Create the first Prostaffing contract for Bill Nue and Acme Builders LLC at the user's agreed $40/hour — blocked: contracted work and work dates/times await the user
+- [x] Connect contracted pay/currency to payroll preparation and CSV export; 10 regression tests and the rollback-only approval/privacy SQL checks pass
+- [ ] Approve and export a real contracted ticket — blocked: actual work details/times and authorized signed-in approver required; sandbox cannot sign into the externally managed backend
 - [x] Connect Twilio and configure the existing SMS-enabled sending number for time-approval links; redeploy sending service
-- [ ] Send a real approval text and verify ticket status — blocked: no time tickets exist, recipient sign-off type awaits confirmation, and approval must be performed by the authorized recipient
+- [ ] Send a real approval text and verify ticket status — blocked: no time tickets exist; approval links now use the sole contract supervisor, who must perform the approval
 - [x] Build 6.3A reasoning service: two-model critical reviews, disagreements, contradictions; live AI calls and privacy checks pass
 - [ ] Run first review on a real conclusion while signed in — blocked: sandbox sign-in to your backend unavailable
 - [x] Connect screening report/consent opening screens to compliance review and confirm worker-only versioned signatures; 13 targeted checks pass, deployed signature audit trigger confirmed

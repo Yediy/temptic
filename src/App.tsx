@@ -494,19 +494,6 @@ const App = () => (
                   <Route path="analytics" element={<RecruitAnalytics />} />
                   <Route path="assistant" element={<RecruitAssistant />} />
                 </Route>
-                {/* Digital Time Ticket OS (IWOS 4.5) */}
-                <Route path="/tto" element={<TtoLayout />}>
-                  <Route index element={<TimeTicketDashboard />} />
-                  <Route path="live" element={<LiveLaborDashboard />} />
-                  <Route path="site-qr" element={<SiteQrCodes />} />
-                  <Route path="approvals" element={<SupervisorApprovalCenter />} />
-                  <Route path="corrections" element={<CorrectionQueue />} />
-                  <Route path="payroll" element={<PayrollPrep />} />
-                  <Route path="billing" element={<BillingPrep />} />
-                  <Route path="analytics" element={<LaborAnalytics />} />
-                  <Route path="audit" element={<AuditCenter />} />
-                  <Route path="worker" element={<WorkerTimeCenter />} />
-                </Route>
                 {/* Payroll & Billing OS (IWOS 4.6) */}
                 <Route path="/pb" element={<PbLayout />}>
                   <Route index element={<PayrollCommandCenter />} />
@@ -672,11 +659,21 @@ const App = () => (
               </Route>
             </Route>
 
-            <Route element={<ProtectedRoute allowedRoles={["super_admin", "agency_owner", "agency_admin", "dispatcher", "payroll"]} redirectTo="/login" />}>
+            <Route element={<ProtectedRoute allowedRoles={["super_admin", "agency_owner", "agency_admin", "dispatcher", "payroll", "viewer"]} redirectTo="/login" />}>
               <Route element={<AppLayout />}>
-                <Route element={<TtoLayout />}>
-                  <Route path="/tto/contracts" element={<TtoContracts />} />
-                  <Route path="/tto/assignments" element={<TtoAssignments />} />
+                <Route path="/tto" element={<TtoLayout />}>
+                  <Route index element={<TimeTicketDashboard />} />
+                  <Route path="contracts" element={<TtoContracts />} />
+                  <Route path="assignments" element={<TtoAssignments />} />
+                  <Route path="live" element={<LiveLaborDashboard />} />
+                  <Route path="site-qr" element={<SiteQrCodes />} />
+                  <Route path="approvals" element={<SupervisorApprovalCenter />} />
+                  <Route path="corrections" element={<CorrectionQueue />} />
+                  <Route path="payroll" element={<PayrollPrep />} />
+                  <Route path="billing" element={<BillingPrep />} />
+                  <Route path="analytics" element={<LaborAnalytics />} />
+                  <Route path="audit" element={<AuditCenter />} />
+                  <Route path="worker" element={<WorkerTimeCenter />} />
                 </Route>
               </Route>
             </Route>
