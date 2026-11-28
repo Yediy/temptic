@@ -7,7 +7,7 @@
 - [x] Connect contracted pay/currency to payroll preparation and CSV export; regression tests cover the $40 CSV, one-year dates and Eastern work times, and rollback-only approval/privacy SQL checks pass
 - [ ] Approve and export a real contracted ticket — blocked: actual shift date, clock-in/out times and authorized signed-in approver required; the one-year contract term is not worked hours, and sandbox cannot sign into the externally managed backend
 - [x] Connect Twilio and configure the existing SMS-enabled sending number for time-approval links; redeploy sending service
-- [ ] Send a real approval text and verify ticket status — blocked: no time tickets exist; approval links now use the sole contract supervisor, who must perform the approval
+- [ ] Send a real approval text and verify ticket status — blocked: no contract or time tickets exist, Acme supervisor Jane Doe has no mobile number, and she must perform the approval herself
 - [x] Build 6.3A reasoning service: two-model critical reviews, disagreements, contradictions; live AI calls and privacy checks pass
 - [ ] Run first review on a real conclusion while signed in — blocked: sandbox sign-in to your backend unavailable
 - [x] Connect screening report/consent opening screens to compliance review and confirm worker-only versioned signatures; 13 targeted checks pass, deployed signature audit trigger confirmed
