@@ -34,23 +34,23 @@ BEGIN
  UPDATE contract_test_context SET worker=f.worker,client=f.client,supervisor=f.supervisor,contract=cid,assignment=aid,ticket=tid;
 END $$;
 DO $$
-DECLARE f contract_test_context; b public.tto_payroll_batches; duplicate uuid; denied boolean; deductions jsonb; snapshot jsonb;
+DECLARE f contract_test_context; b public.tto_payroll_batches; duplicate uuid; denied boolean; deduction_input jsonb; snapshot jsonb;
 BEGIN
  SELECT * INTO f FROM contract_test_context;
  SELECT * INTO b FROM public.tto_payroll_batches WHERE f.ticket=ANY(ticket_ids) LIMIT 1;
- deductions:=jsonb_build_array(jsonb_build_object('worker_id',f.worker,'label','Authorized repayment','amount',100));
+ deduction_input:=jsonb_build_array(jsonb_build_object('worker_id',f.worker,'label','Authorized repayment','amount',100));
  snapshot:=jsonb_build_object('tickets',jsonb_build_array(jsonb_build_object('id',f.ticket,'regular_hours',8,'overtime_hours',0,'double_time_hours',0)),'workers',jsonb_build_array(jsonb_build_object('worker_id',f.worker,'gross_pay',320,'deductions',100,'net_pay',220)));
- PERFORM public.save_tto_payroll_review(b.id,f.actor,deductions,b.period_end+1,'weekly','{"gross_pay":320,"deductions":100,"net_pay":220}'::jsonb,snapshot);
+ PERFORM public.save_tto_payroll_review(b.id,f.actor,deduction_input,b.period_end+1,'weekly','{"gross_pay":320,"deductions":100,"net_pay":220}'::jsonb,snapshot);
  IF NOT EXISTS(SELECT 1 FROM public.tto_payroll_batches WHERE id=b.id AND deductions->0->>'amount'='100' AND pay_date=b.period_end+1 AND (totals->>'net_pay')::numeric=220) THEN RAISE EXCEPTION 'Saved review must retain pay date, deduction and net pay'; END IF;
  IF NOT EXISTS(SELECT 1 FROM public.tto_labor_costs WHERE time_ticket_id=f.ticket AND line_kind='regular' AND hours=8 AND rate=40 AND amount=320) THEN RAISE EXCEPTION 'Labor costs must use reviewed hours and agreed $40 pay'; END IF;
- PERFORM public.save_tto_payroll_review(b.id,f.actor,deductions,b.period_end+1,'weekly','{"gross_pay":320,"deductions":100,"net_pay":220}'::jsonb,snapshot);
+ PERFORM public.save_tto_payroll_review(b.id,f.actor,deduction_input,b.period_end+1,'weekly','{"gross_pay":320,"deductions":100,"net_pay":220}'::jsonb,snapshot);
  IF (SELECT count(*) FROM public.tto_labor_costs WHERE time_ticket_id=f.ticket)<>3 THEN RAISE EXCEPTION 'Saving again must not duplicate labor costs'; END IF;
- denied:=false; BEGIN PERFORM public.save_tto_payroll_review(b.id,'00000000-0000-0000-0000-000000000000',deductions,b.period_end+1,'weekly','{}','{}'); EXCEPTION WHEN insufficient_privilege THEN denied:=true; END;
+ denied:=false; BEGIN PERFORM public.save_tto_payroll_review(b.id,'00000000-0000-0000-0000-000000000000',deduction_input,b.period_end+1,'weekly','{}','{}'); EXCEPTION WHEN insufficient_privilege THEN denied:=true; END;
  IF NOT denied THEN RAISE EXCEPTION 'An unrelated actor must not save payroll'; END IF;
  denied:=false; BEGIN PERFORM public.save_tto_payroll_review(b.id,f.actor,jsonb_build_array(jsonb_build_object('worker_id',gen_random_uuid(),'label','Invalid worker','amount',1)),b.period_end+1,'weekly','{}','{}'); EXCEPTION WHEN OTHERS THEN denied:=true; END;
  IF NOT denied THEN RAISE EXCEPTION 'Deduction worker must belong to the batch'; END IF;
  PERFORM public.claim_tto_payroll_export(b.id,f.actor);
- denied:=false; BEGIN PERFORM public.save_tto_payroll_review(b.id,f.actor,deductions,b.period_end+1,'weekly','{}','{}'); EXCEPTION WHEN OTHERS THEN denied:=true; END;
+ denied:=false; BEGIN PERFORM public.save_tto_payroll_review(b.id,f.actor,deduction_input,b.period_end+1,'weekly','{}','{}'); EXCEPTION WHEN OTHERS THEN denied:=true; END;
  IF NOT denied THEN RAISE EXCEPTION 'Deductions must be locked while exporting'; END IF;
  INSERT INTO public.tto_payroll_batches(agency_id,name,period_start,period_end,pay_date,status,ticket_ids) VALUES(f.agency,'Rollback overlap check',b.period_start,b.period_end,b.period_end+1,'prepared',ARRAY[f.ticket]) RETURNING id INTO duplicate;
  denied:=false; BEGIN PERFORM public.claim_tto_payroll_export(duplicate,f.actor); EXCEPTION WHEN OTHERS THEN denied:=true; END;
