@@ -1,4 +1,6 @@
 # Roadmap
+- [x] Connect Twilio and configure the existing SMS-enabled sending number for time-approval links; redeploy sending service
+- [ ] Send a real approval text and verify ticket status — blocked: no time tickets exist, recipient sign-off type awaits confirmation, and approval must be performed by the authorized recipient
 - [x] Build 6.3A reasoning service: two-model critical reviews, disagreements, contradictions; live AI calls and privacy checks pass
 - [ ] Run first review on a real conclusion while signed in — blocked: sandbox sign-in to your backend unavailable
 - [x] Connect screening report/consent opening screens to compliance review and confirm worker-only versioned signatures; 13 targeted checks pass, deployed signature audit trigger confirmed
