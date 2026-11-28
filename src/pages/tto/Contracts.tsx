@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useContracts, useContractCatalog, useCreateContract } from "@/hooks/tto/use-contract-workflow";
+import { oneYearEndDate } from "@/lib/tto/contract-validation";
 
 type Draft = { reference: string; client_id: string; site_id: string; supervisor_id: string; work_details: string; pay_rate: string; bill_rate: string; currency: string; starts_on: string; ends_on: string };
 const blank: Draft = { reference: "", client_id: "", site_id: "", supervisor_id: "", work_details: "", pay_rate: "", bill_rate: "", currency: "USD", starts_on: "", ends_on: "" };
@@ -18,6 +19,14 @@ export default function Contracts() {
   const navigate = useNavigate(); const { roles } = useAuth();
   const list = useContracts(); const catalog = useContractCatalog(); const create = useCreateContract();
   const [open, setOpen] = useState(false); const [draft, setDraft] = useState<Draft>(blank); const [selected, setSelected] = useState<string | null>(null);
+  const [oneYear, setOneYear] = useState(false);
+  const startNewContract = () => {
+    const first = catalog.data?.agencyName === "Prostaffing" && list.data?.length === 0;
+    const client = first ? catalog.data?.clients.find(c => c.company_name === "Acme Builders LLC") : undefined;
+    const signers = client ? catalog.data?.supervisors.filter(s => s.client_id === client.id && !s.site_id && s.email) ?? [] : [];
+    setDraft({ ...blank, reference: first ? "Acme Builders LLC · Framing" : "", client_id: client?.id ?? "", supervisor_id: signers.length === 1 ? signers[0].id : "", work_details: first ? "framing" : "", pay_rate: first ? "40" : "" });
+    setOneYear(first); setOpen(true);
+  };
   const set = (key: keyof Draft, value: string) => setDraft(v => ({ ...v, [key]: value }));
   const clientName = (id: string) => catalog.data?.clients.find(c => c.id === id)?.company_name ?? "Client unavailable";
   const supervisors = catalog.data?.supervisors.filter(s => s.client_id === draft.client_id && (!s.site_id || s.site_id === draft.site_id)) ?? [];
@@ -32,7 +41,7 @@ export default function Contracts() {
     } catch (error) { toast.error(error instanceof Error ? error.message : "Could not save contract"); }
   };
   return <div className="space-y-6">
-    <header className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl font-semibold">Contracts</h2>{canCreate && <Button onClick={() => { setDraft({ ...blank, pay_rate: list.data?.length === 0 ? "40" : "" }); setOpen(true); }}><Plus className="mr-2 h-4 w-4" />New contract</Button>}</header>
+    <header className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl font-semibold">Contracts</h2>{canCreate && <Button disabled={list.isLoading || catalog.isLoading} onClick={startNewContract}><Plus className="mr-2 h-4 w-4" />New contract</Button>}</header>
     {(list.error || catalog.error) && <p role="alert" className="text-sm text-destructive">{String(list.error?.message ?? catalog.error?.message)}</p>}
     {list.isLoading && <p className="text-muted-foreground">Loading contracts…</p>}
     {!list.isLoading && list.data?.length === 0 && <p className="border-y py-10 text-center text-muted-foreground">No contracts yet.</p>}
@@ -48,8 +57,9 @@ export default function Contracts() {
         <div><Label htmlFor="agreed-pay">Agreed hourly pay</Label><Input id="agreed-pay" type="number" min="0.01" step="0.01" required value={draft.pay_rate} onChange={e => set("pay_rate", e.target.value)} /></div>
         <div><Label htmlFor="agreed-bill">Agreed hourly bill (optional)</Label><Input id="agreed-bill" type="number" min="0.01" step="0.01" value={draft.bill_rate} onChange={e => set("bill_rate", e.target.value)} /></div>
         <div><Label>Currency</Label><Select value={draft.currency} onValueChange={v => set("currency", v)}><SelectTrigger aria-label="Contract currency"><SelectValue /></SelectTrigger><SelectContent>{["USD", "CAD", "MXN", "EUR", "GBP"].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select></div>
-        <div><Label htmlFor="contract-start">Effective from</Label><Input id="contract-start" type="date" required value={draft.starts_on} onChange={e => set("starts_on", e.target.value)} /></div>
-        <div><Label htmlFor="contract-end">Effective until (optional)</Label><Input id="contract-end" type="date" min={draft.starts_on} value={draft.ends_on} onChange={e => set("ends_on", e.target.value)} /></div>
+        <div><Label>Term</Label><Select value={oneYear ? "year" : "custom"} onValueChange={v => { setOneYear(v === "year"); if (v === "year") set("ends_on", oneYearEndDate(draft.starts_on)); }}><SelectTrigger aria-label="Contract term"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="year">One year</SelectItem><SelectItem value="custom">Custom dates</SelectItem></SelectContent></Select></div>
+        <div><Label htmlFor="contract-start">Effective from</Label><Input id="contract-start" type="date" required value={draft.starts_on} onChange={e => { const starts_on = e.target.value; setDraft(d => ({ ...d, starts_on, ends_on: oneYear ? oneYearEndDate(starts_on) : d.ends_on })); }} /></div>
+        <div><Label htmlFor="contract-end">Effective until {oneYear ? "" : "(optional)"}</Label><Input id="contract-end" type="date" readOnly={oneYear} required={oneYear} min={draft.starts_on} value={draft.ends_on} onChange={e => set("ends_on", e.target.value)} /></div>
         <div className="flex justify-end gap-2 sm:col-span-2"><Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button><Button type="submit" disabled={create.isPending || !draft.client_id || !draft.supervisor_id}>{create.isPending ? "Saving…" : "Save contract"}</Button></div>
       </form>
     </DialogContent></Dialog>

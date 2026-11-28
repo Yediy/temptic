@@ -1,10 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { contractSchema, withinEffectiveDates } from "./contract-validation";
+import { contractSchema, withinEffectiveDates, oneYearEndDate, workedTimestamp } from "./contract-validation";
 import { agreedRate, hourlyAmounts, type ContractTerms } from "../../../supabase/functions/_shared/contract-rates";
 import { buildContractExport } from "../../../supabase/functions/_shared/contract-export";
 
 const terms: ContractTerms = { contract_id: "contract-1", assignment_id: "assignment-1", contract_reference: "Test contract", pay_rate: 40, bill_rate: null, currency: "USD", worker_name: "Test worker", worker_code: "T01", client_name: "Test client" };
 describe("contracted pay for time tickets", () => {
+  it("uses an inclusive one-year term rather than one year of payroll hours", () => {
+    expect(oneYearEndDate("2026-11-27")).toBe("2027-11-26");
+  });
+  it("records Eastern work times correctly through daylight-saving changes", () => {
+    expect(workedTimestamp("2026-11-27T08:00", "America/New_York")).toBe("2026-11-27T13:00:00.000Z");
+    expect(workedTimestamp("2026-07-01T08:00", "America/New_York")).toBe("2026-07-01T12:00:00.000Z");
+  });
   it("uses the user's agreed $40 hourly pay", () => {
     expect(agreedRate(terms, "payroll")).toEqual({ amount: 40, currency: "USD" });
     expect(hourlyAmounts(8, 0, 0, agreedRate(terms, "payroll").amount)[0]).toBe(320);

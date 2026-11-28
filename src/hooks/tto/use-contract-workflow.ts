@@ -12,18 +12,20 @@ export function useContractCatalog() {
   const { agencyId } = useAuth();
   return useQuery({ queryKey: ["contract-catalog", agencyId], enabled: !!agencyId, queryFn: async () => {
     if (!agencyId) throw new Error("Select an agency");
-    const [clients, workers] = await Promise.all([
+    const [clients, workers, agency] = await Promise.all([
       supabase.from("clients").select("id,company_name").eq("agency_id", agencyId).order("company_name").limit(1000),
       supabase.from("workers").select("id,first_name,last_name").eq("agency_id", agencyId).order("last_name").limit(1000),
+      supabase.from("agencies").select("name").eq("id", agencyId).single(),
     ]);
     if (clients.error) throw clients.error; if (workers.error) throw workers.error;
+    if (agency.error) throw agency.error;
     const ids = clients.data.map(c => c.id);
     const [sites, supervisors] = ids.length ? await Promise.all([
       supabase.from("client_sites").select("id,client_id,site_name,address_line1").in("client_id", ids).eq("is_active", true).limit(1000),
       supabase.from("client_signers").select("id,client_id,site_id,first_name,last_name,email,user_id").in("client_id", ids).eq("is_active", true).limit(1000),
     ]) : [{ data: [], error: null }, { data: [], error: null }];
     if (sites.error) throw sites.error; if (supervisors.error) throw supervisors.error;
-    return { clients: clients.data, workers: workers.data, sites: sites.data ?? [], supervisors: supervisors.data ?? [] };
+    return { agencyName: agency.data.name, clients: clients.data, workers: workers.data, sites: sites.data ?? [], supervisors: supervisors.data ?? [] };
   }});
 }
 

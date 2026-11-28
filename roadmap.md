@@ -1,8 +1,8 @@
 # Roadmap
 - [x] Build agency contract and assignment screens, with ticket creation from immutable agreed terms
-- [ ] Create the first Prostaffing contract for Bill Nue and Acme Builders LLC at the user's agreed $40/hour — blocked: contracted work and work dates/times await the user
-- [x] Connect contracted pay/currency to payroll preparation and CSV export; 10 regression tests and the rollback-only approval/privacy SQL checks pass
-- [ ] Approve and export a real contracted ticket — blocked: actual work details/times and authorized signed-in approver required; sandbox cannot sign into the externally managed backend
+- [ ] Create the first Prostaffing framing contract for Bill Nue and Acme Builders LLC at the user's agreed $40/hour, for one year in Eastern time — blocked: the contract start date remains unspecified
+- [x] Connect contracted pay/currency to payroll preparation and CSV export; regression tests cover the $40 CSV, one-year dates and Eastern work times, and rollback-only approval/privacy SQL checks pass
+- [ ] Approve and export a real contracted ticket — blocked: actual shift date, clock-in/out times and authorized signed-in approver required; the one-year contract term is not worked hours, and sandbox cannot sign into the externally managed backend
 - [x] Connect Twilio and configure the existing SMS-enabled sending number for time-approval links; redeploy sending service
 - [ ] Send a real approval text and verify ticket status — blocked: no time tickets exist; approval links now use the sole contract supervisor, who must perform the approval
 - [x] Build 6.3A reasoning service: two-model critical reviews, disagreements, contradictions; live AI calls and privacy checks pass

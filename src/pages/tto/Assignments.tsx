@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useContracts, useContractCatalog, useContractAssignments, useContractTickets, useCreateContractAssignment, useCreateContractTicket, type Assignment } from "@/hooks/tto/use-contract-workflow";
 import { useTtoSubmit } from "@/hooks/tto/use-tto";
+import { workedTimestamp } from "@/lib/tto/contract-validation";
 
 export default function Assignments() {
   const [search] = useSearchParams(); const qc = useQueryClient(); const { roles } = useAuth();
@@ -20,6 +21,7 @@ export default function Assignments() {
   const [open, setOpen] = useState(false); const [contractId, setContract] = useState(search.get("contract") ?? "");
   const [worker, setWorker] = useState(""); const [start, setStart] = useState(""); const [end, setEnd] = useState("");
   const [ticketAssignment, setTicketAssignment] = useState<Assignment | null>(null); const [workDate, setWorkDate] = useState(""); const [workedFrom, setWorkedFrom] = useState(""); const [workedUntil, setWorkedUntil] = useState("");
+  const [timeZone, setTimeZone] = useState("America/New_York");
   const c = contracts.data?.find(v => v.id === contractId);
   const canManage = roles.some(r => ["agency_admin", "agency_owner", "super_admin", "dispatcher"].includes(r));
   const workerName = (id: string) => { const w = catalog.data?.workers.find(w => w.id === id); return w ? `${w.first_name} ${w.last_name}` : "Worker unavailable"; };
@@ -27,10 +29,10 @@ export default function Assignments() {
   const saveTicket = async (e: React.FormEvent) => {
     e.preventDefault(); if (!ticketAssignment) return;
     if (!!workedFrom !== !!workedUntil) return toast.error("Provide both worked timestamps or leave both blank");
-    try { await createTicket.mutateAsync({ assignment_id: ticketAssignment.id, work_date: workDate, actual_start: workedFrom ? new Date(workedFrom).toISOString() : null, actual_end: workedUntil ? new Date(workedUntil).toISOString() : null }); setTicketAssignment(null); toast.success("Time ticket created with agreed contract terms"); } catch (e) { toast.error(e instanceof Error ? e.message : "Could not create ticket"); }
+    try { await createTicket.mutateAsync({ assignment_id: ticketAssignment.id, work_date: workDate, actual_start: workedFrom ? workedTimestamp(workedFrom, timeZone) : null, actual_end: workedUntil ? workedTimestamp(workedUntil, timeZone) : null }); setTicketAssignment(null); toast.success("Time ticket created with agreed contract terms"); } catch (e) { toast.error(e instanceof Error ? e.message : "Could not create ticket"); }
   };
   return <div className="space-y-6">
-    <header className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl font-semibold">Assignments</h2>{canManage && <Button onClick={() => { setStart(c?.starts_on ?? ""); setEnd(c?.ends_on ?? ""); setWorker(""); setOpen(true); }}><Plus className="mr-2 h-4 w-4" />New assignment</Button>}</header>
+    <header className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl font-semibold">Assignments</h2>{canManage && <Button disabled={catalog.isLoading || contracts.isLoading} onClick={() => { setStart(c?.starts_on ?? ""); setEnd(c?.ends_on ?? ""); const bill = catalog.data?.agencyName === "Prostaffing" ? catalog.data.workers.find(w => w.first_name === "Bill" && w.last_name === "Nue") : undefined; setWorker(bill?.id ?? ""); setOpen(true); }}><Plus className="mr-2 h-4 w-4" />New assignment</Button>}</header>
     {(contracts.error || assignments.error || tickets.error || catalog.error) && <p role="alert" className="text-sm text-destructive">{String(contracts.error?.message ?? assignments.error?.message ?? tickets.error?.message ?? catalog.error?.message)}</p>}
     {assignments.isLoading && <p className="text-muted-foreground">Loading assignments…</p>}
     {assignments.data?.length === 0 && <p className="border-y py-10 text-center text-muted-foreground">No contracted assignments yet.</p>}
@@ -47,8 +49,9 @@ export default function Assignments() {
     </form></DialogContent></Dialog>
     <Dialog open={!!ticketAssignment} onOpenChange={v => { if (!v) setTicketAssignment(null); }}><DialogContent><DialogHeader><DialogTitle>Create time ticket</DialogTitle></DialogHeader><form className="space-y-4" onSubmit={saveTicket}>
       <p className="text-sm">{ticketAssignment ? workerName(ticketAssignment.worker_id) : ""}</p><div><Label htmlFor="ticket-work-date">Work date</Label><Input id="ticket-work-date" required type="date" min={ticketAssignment?.starts_on} max={ticketAssignment?.ends_on ?? undefined} value={workDate} onChange={e => setWorkDate(e.target.value)} /></div>
-      <div><Label htmlFor="worked-from">Worked from (optional)</Label><Input id="worked-from" type="datetime-local" value={workedFrom} onChange={e => setWorkedFrom(e.target.value)} /></div>
-      <div><Label htmlFor="worked-until">Worked until (optional)</Label><Input id="worked-until" type="datetime-local" value={workedUntil} onChange={e => setWorkedUntil(e.target.value)} /></div>
+      <div><Label>Time zone</Label><Select value={timeZone} onValueChange={setTimeZone}><SelectTrigger aria-label="Worked time zone"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="America/New_York">Eastern (US/Canada)</SelectItem><SelectItem value="UTC">UTC</SelectItem></SelectContent></Select></div>
+      <div><Label htmlFor="worked-from">Worked from</Label><Input id="worked-from" required type="datetime-local" value={workedFrom} onChange={e => setWorkedFrom(e.target.value)} /></div>
+      <div><Label htmlFor="worked-until">Worked until</Label><Input id="worked-until" required type="datetime-local" min={workedFrom} value={workedUntil} onChange={e => setWorkedUntil(e.target.value)} /></div>
       <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setTicketAssignment(null)}>Cancel</Button><Button type="submit" disabled={createTicket.isPending}>{createTicket.isPending ? "Creating…" : "Create time ticket"}</Button></div>
     </form></DialogContent></Dialog>
   </div>;

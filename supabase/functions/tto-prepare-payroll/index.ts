@@ -34,6 +34,8 @@ Deno.serve(withSentry("tto-prepare-payroll", async (req) => {
   const termMap = new Map<string, ContractTerms>((terms ?? []).map(t => [t.time_ticket_id, t as ContractTerms]));
   try { for (const t of tickets) agreedRate(termMap.get(t.id), "payroll"); }
   catch (e) { return jsonResponse({ error: e instanceof Error ? e.message : "Agreed contract pay is missing" }, 409, corsHeaders); }
+  const currencies = new Set(tickets.map(t => agreedRate(termMap.get(t.id), "payroll").currency));
+  if (currencies.size > 1) return jsonResponse({ error: "Prepare a separate payroll batch for each contract currency" }, 409, corsHeaders);
 
   let totalReg = 0, totalOt = 0, totalDt = 0;
   const ticket_ids: string[] = [];

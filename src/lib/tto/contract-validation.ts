@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { addDays, addYears, format, parseISO } from "date-fns";
+import { fromZonedTime } from "date-fns-tz";
 
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Choose an effective date");
 const money = z.coerce.number().finite().positive("Enter the agreed hourly amount above zero");
@@ -13,4 +15,12 @@ export const contractSchema = z.object({
 
 export function withinEffectiveDates(day: string, start: string, end: string | null) {
   return day >= start && (!end || day <= end);
+}
+
+export function oneYearEndDate(start: string) {
+  return start ? format(addDays(addYears(parseISO(start), 1), -1), "yyyy-MM-dd") : "";
+}
+
+export function workedTimestamp(local: string, timeZone: string) {
+  return fromZonedTime(local, timeZone).toISOString();
 }
