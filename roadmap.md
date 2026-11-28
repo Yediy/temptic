@@ -1,6 +1,7 @@
 # Roadmap
-- [ ] Build pay-period payroll review with approved hours, overtime, deductions and net-pay CSV calculations
-- [ ] Verify payroll calculations and deduction permissions; live payroll verification awaits approved contracted work and authorized sign-in
+- [x] Build pay-period payroll review with approved hours, overtime, deductions and net-pay CSV calculations
+- [x] Verify payroll calculations and deduction permissions with 26 automated checks and rollback-only payroll safety checks
+- [ ] Review and export live payroll while signed in — blocked: no approved contracted time exists, and sandbox sign-in is unavailable
 - [x] Build agency contract and assignment screens, with ticket creation from immutable agreed terms
 - [ ] Create the first Prostaffing framing contract for Bill Nue and Acme Builders LLC at the user's agreed $40/hour, for one year in Eastern time — blocked: the contract start date remains unspecified
 - [x] Connect contracted pay/currency to payroll preparation and CSV export; regression tests cover the $40 CSV, one-year dates and Eastern work times, and rollback-only approval/privacy SQL checks pass
